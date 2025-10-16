@@ -1,0 +1,14 @@
+# Ficheiros de log
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+
+# Dependências do Node
+/node_modules
+
+# Ficheiro de variáveis de ambiente (contém segredos)
+.env
+
+# Ficheiros de sistema do macOS
+.DS_Store

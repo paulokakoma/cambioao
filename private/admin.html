@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Administração - Mercado Cambial</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @keyframes scroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+        .scrolling-wrapper {
+            animation: scroll 40s linear infinite;
+        }
+        :root { --accent-color: #4f46e5; }
+        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
+        .sidebar { transition: transform 0.3s ease-in-out; }
+        .sidebar-link { transition: all 0.2s ease; }
+        .sidebar-link.active, .sidebar-link:hover { background-color: #312e81; color: #f8fafc; }
+        .stat-card { background-color: white; border-radius: 1rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); transition: all 0.3s ease; opacity: 0; }
+        .stat-card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1); }
+        .modal-overlay { transition: opacity 0.3s ease; }
+        .modal-content { transition: transform 0.3s ease; }
+        .toggle-switch { position: relative; display: inline-block; width: 40px; height: 24px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+        .toggle-slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .toggle-slider { background-color: var(--accent-color); }
+        input:checked + .toggle-slider:before { transform: translateX(16px); }
+        .editable-cell { cursor: pointer; position: relative; }
+        .editable-cell:hover:after { content: '✎'; position: absolute; right: 8px; top: 50%; transform: translateY(-50%); color: var(--accent-color); font-size: 1.2em; }
+        .btn-primary { background-color: var(--accent-color); color: white; font-weight: bold; padding: 0.5rem 1rem; border-radius: 0.5rem; transition: background-color 0.3s ease; }
+        .btn-primary:hover { background-color: #4338ca; }
+        .btn-secondary { background-color: #e2e8f0; color: #475569; font-weight: bold; padding: 0.5rem 1rem; border-radius: 0.5rem; transition: background-color 0.3s ease; }
+        .btn-secondary:hover { background-color: #cbd5e1; }
+        .informal-tab.active-tab { border-color: var(--accent-color); color: var(--accent-color); }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in-up { animation: fadeInUp 0.6s ease-out forwards; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loader { border: 4px solid rgba(0, 0, 0, 0.1); border-left-color: var(--accent-color); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+
+    <aside class="sidebar w-64 bg-slate-800 text-slate-100 flex-shrink-0 flex flex-col fixed lg:relative inset-y-0 left-0 transform -translate-x-full lg:translate-x-0 z-30">
+        <div class="px-6 py-4 flex items-center justify-between">
+            <h1 class="text-xl font-bold text-white">Admin Cambial</h1>
+            <button id="close-sidebar-btn" class="lg:hidden text-slate-400 hover:text-white">&times;</button>
+        </div>
+        <nav class="flex-1 px-4 py-4 space-y-2">
+            <a href="#dashboard" class="sidebar-link active flex items-center space-x-3 px-4 py-2 rounded-lg"><span>Dashboard</span></a>
+            <a href="#bancos" class="sidebar-link flex items-center space-x-3 px-4 py-2 rounded-lg"><span>Bancos</span></a>
+            <a href="#mercado_informal" class="sidebar-link flex items-center space-x-3 px-4 py-2 rounded-lg"><span>Mercado Informal</span></a>
+            <a href="#afiliados" class="sidebar-link flex items-center space-x-3 px-4 py-2 rounded-lg"><span>Afiliados</span></a>
+            <a href="#apoiadores" class="sidebar-link flex items-center space-x-3 px-4 py-2 rounded-lg"><span>Apoiadores</span></a>
+            <a href="#moedas" class="sidebar-link flex items-center space-x-3 px-4 py-2 rounded-lg"><span>Moedas</span></a>
+            <a href="#configuracoes" class="sidebar-link flex items-center space-x-3 px-4 py-2 rounded-lg"><span>Configurações</span></a>
+        </nav>
+        <div class="p-4 mt-auto">
+            <button id="logout-btn" class="w-full text-left flex items-center space-x-3 px-4 py-2 rounded-lg text-slate-400 hover:bg-red-900/50 hover:text-red-300 transition-colors"><span>Sair</span></button>
+        </div>
+    </aside>
+
+    <div class="flex-1 flex flex-col">
+        <header class="bg-white shadow-sm p-4 flex items-center justify-between lg:justify-end">
+             <button id="open-sidebar-btn" class="lg:hidden text-slate-600"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg></button>
+            <div class="flex items-center space-x-4"><span class="font-semibold text-slate-700">Bem-vindo, Admin</span></div>
+        </header>
+
+        <main class="flex-1 overflow-y-auto p-6 md:p-8">
+            <!-- Dashboard Section -->
+            <section id="dashboard" class="admin-section">
+                <h2 class="text-3xl font-bold text-slate-800 mb-2">Boas-vindas, Admin!</h2>
+                <p class="text-slate-500 mb-8">Aqui está uma visão geral da sua aplicação.</p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
+                    <div class="stat-card p-6"><h3 class="text-slate-500 font-semibold">Utilizadores Online</h3><p class="text-4xl font-bold text-slate-800 mt-2" id="online-users-stat">--</p></div>
+                    <div class="stat-card p-6"><h3 class="text-slate-500 font-semibold">Acessos Hoje</h3><p class="text-4xl font-bold text-slate-800 mt-2" id="today-access-stat">--</p></div>
+                    <div class="stat-card p-6"><h3 class="text-slate-500 font-semibold">Acessos Semanais</h3><p class="text-4xl font-bold text-slate-800 mt-2" id="weekly-access-stat">--</p></div>
+                    <div class="stat-card p-6"><h3 class="text-slate-500 font-semibold">Acessos Mensais</h3><p class="text-4xl font-bold text-slate-800 mt-2" id="monthly-access-stat">--</p></div>
+                    <div class="stat-card p-6"><h3 class="text-slate-500 font-semibold">Rejeições (Hoje)</h3><p class="text-4xl font-bold text-slate-800 mt-2" id="bounced-sessions-stat">--</p></div>
+                    <div class="stat-card p-6"><h3 class="text-slate-500 font-semibold">Bancos Ativos</h3><p class="text-4xl font-bold text-slate-800 mt-2" id="active-banks-stat">--</p></div>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+                    <div class="lg:col-span-2 stat-card p-6"><h3 class="text-lg font-bold text-slate-800 mb-4">Atividade Semanal</h3><div class="h-80 relative"><canvas id="weeklyActivityChart"></canvas></div></div>                     
+                    <div class="space-y-6">
+                        <div class="stat-card p-6"><h3 class="text-lg font-bold text-slate-800 mb-4">Ações Rápidas</h3><div class="space-y-3"><button id="add-bank-quick-btn" class="w-full text-left flex items-center space-x-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition"><span>Adicionar Novo Banco</span></button></div></div>
+                        <div class="stat-card p-6"><h3 class="text-lg font-bold text-slate-800 mb-4">Atividade em Tempo Real</h3><div id="realtime-feed" class="space-y-3 max-h-60 overflow-y-auto pr-2"><p class="text-sm text-slate-400 text-center py-8">A aguardar por atividade...</p></div></div>
+                        <div class="stat-card p-6"><h3 class="text-lg font-bold text-slate-800 mb-4">Cliques por Afiliado</h3><div id="affiliate-chart-container" class="h-64 relative flex items-center justify-center"><canvas id="affiliateClicksChart"></canvas></div></div>
+                        <div class="stat-card p-6">
+                            <h3 class="text-lg font-bold text-slate-800 mb-4">Abas Mais Visitadas</h3>
+                            <div id="tab-visits-chart-container" class="h-64 relative flex items-center justify-center"><canvas id="tabVisitsChart"></canvas></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Bancos Section -->
+            <section id="bancos" class="admin-section hidden">
+                <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+                    <h2 class="text-3xl font-bold text-slate-800">Gerir Bancos</h2>
+                    <div class="flex items-center gap-4">
+                        <input type="search" id="bank-search-input" placeholder="Procurar por nome ou código..." class="w-full md:w-64 px-4 py-2 border border-slate-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition">
+                        <button id="add-bank-btn" class="btn-primary flex-shrink-0">Adicionar Banco</button>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg shadow overflow-hidden"><div class="overflow-x-auto max-w-full"><table class="w-full text-sm text-left text-gray-500"><thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr><th scope="col" class="px-6 py-3">Banco</th><th scope="col" class="px-6 py-3">Taxa USD</th><th scope="col" class="px-6 py-3">Taxa EUR</th><th scope="col" class="px-6 py-3">Última Atualização</th><th scope="col" class="px-6 py-3">Taxa Cartão (%)</th><th scope="col" class="px-6 py-3">Taxa Final (%)</th><th scope="col" class="px-6 py-3">Status</th><th scope="col" class="px-6 py-3 text-center">Ações</th></tr></thead><tbody id="banks-table-body"><tr class="h-48"><td colspan="8" class="text-center"><div class="loader mx-auto"></div></td></tr></tbody></table></div></div>
+            </section>
+            
+            <!-- Mercado Informal Section -->
+            <section id="mercado_informal" class="admin-section hidden">
+                <div class="flex items-center justify-between mb-6"><h2 class="text-3xl font-bold text-slate-800">Gerir Mercado Informal</h2></div>
+                <div class="bg-white rounded-lg shadow p-6 md:p-8">
+                    <div class="border-b border-gray-200 mb-4 flex items-center justify-between gap-4"><nav id="informal-province-tabs" class="-mb-px flex space-x-6 md:space-x-8 overflow-x-auto scrollbar-hide" aria-label="Tabs"></nav><button id="add-province-btn" class="btn-secondary mb-px flex-shrink-0 flex items-center space-x-2 text-sm"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg> <span>Adicionar</span></button></div>
+                    <div id="informal-rates-content" class="min-h-[200px] flex items-center justify-center"><div class="loader"></div></div>
+                </div>
+            </section>
+
+            <!-- Afiliados Section -->
+            <section id="afiliados" class="admin-section hidden">
+                <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+                    <h2 class="text-3xl font-bold text-slate-800">Gerir Links de Afiliados</h2>
+                    <div class="flex items-center gap-4">
+                        <input type="search" id="affiliate-search-input" placeholder="Procurar por título..." class="w-full md:w-64 px-4 py-2 border border-slate-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition">
+                        <button id="add-affiliate-btn" class="btn-primary flex-shrink-0">Adicionar Link</button>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg shadow overflow-hidden"><div class="overflow-x-auto max-w-full"><table class="w-full text-xs md:text-sm text-left text-gray-500"><thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr><th scope="col" class="px-6 py-3">Produto</th><th scope="col" class="px-6 py-3 text-center">Preço</th><th scope="col" class="px-6 py-3 text-center">Cliques</th><th scope="col" class="px-6 py-3">Status</th><th scope="col" class="px-6 py-3 text-center">Ações</th></tr></thead><tbody id="affiliates-table-body"><tr class="h-48"><td colspan="5" class="text-center"><div class="loader mx-auto"></div></td></tr></tbody></table></div></div>
+            </section>
+
+            <!-- Apoiadores Section -->
+            <section id="apoiadores" class="admin-section hidden">
+                <div class="flex items-center justify-between mb-6"><h2 class="text-3xl font-bold text-slate-800">Gerir Apoiadores</h2><button id="add-supporter-btn" class="btn-primary">Adicionar Apoiador</button></div>
+                <div class="bg-white rounded-lg shadow overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-xs md:text-sm text-left text-gray-500"><thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr><th scope="col" class="px-6 py-3">Apoiador</th><th scope="col" class="px-6 py-3">Status</th><th scope="col" class="px-6 py-3 text-center">Ações</th></tr></thead><tbody id="supporters-table-body"><tr class="h-48"><td colspan="3" class="text-center"><div class="loader mx-auto"></div></td></tr></tbody></table></div></div>
+            </section>
+
+            <!-- Moedas Section -->
+            <section id="moedas" class="admin-section hidden">
+                <div class="flex items-center justify-between mb-6"><h2 class="text-3xl font-bold text-slate-800">Gerir Moedas</h2><button id="add-currency-btn" class="btn-primary">Adicionar Moeda</button></div>
+                <div class="bg-white rounded-lg shadow overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-xs md:text-sm text-left text-gray-500"><thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr><th scope="col" class="px-6 py-3">Código</th><th scope="col" class="px-6 py-3">Nome</th><th scope="col" class="px-6 py-3">Símbolo</th><th scope="col" class="px-6 py-3">Status</th><th scope="col" class="px-6 py-3 text-center">Ações</th></tr></thead><tbody id="currencies-table-body"><tr class="h-48"><td colspan="5" class="text-center"><div class="loader mx-auto"></div></td></tr></tbody></table></div></div>
+            </section>
+
+            <!-- Configurações Section -->
+            <section id="configuracoes" class="admin-section hidden">
+                <h2 class="text-3xl font-bold text-slate-800 mb-6">Configurações Gerais</h2>
+                <div class="bg-white rounded-lg shadow p-6 md:p-8 max-w-3xl mx-auto">
+                    <form id="settings-form" class="space-y-6">
+                        <div><h3 class="text-lg font-semibold text-slate-700 border-b pb-2 mb-4">Informações de Contato</h3></div>
+                        <div><label for="setting_contact_email" class="block text-sm font-medium text-slate-700">Email de Contato</label><input type="email" name="contact_email" id="setting_contact_email" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md"></div>
+                        <div><label for="setting_contact_phone" class="block text-sm font-medium text-slate-700">Telefone de Contato</label><input type="tel" name="contact_phone" id="setting_contact_phone" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md"></div>
+                        <div class="pt-4"><h3 class="text-lg font-semibold text-slate-700 border-b pb-2 mb-4">Vídeos Padrão</h3></div>
+                        <div><label for="setting_tutorial_video_url" class="block text-sm font-medium text-slate-700">URL do Vídeo Tutorial Padrão (Compra)</label><input type="url" name="tutorial_video_url" id="setting_tutorial_video_url" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md"></div>
+                        <div class="pt-4"><h3 class="text-lg font-semibold text-slate-700 border-b pb-2 mb-4">Redes Sociais Padrão</h3></div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2">
+                            <div><label for="setting_social_whatsapp" class="block text-sm font-medium text-slate-700">WhatsApp</label><input type="url" name="whatsapp" id="setting_social_whatsapp" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md"></div>
+                            <div><label for="setting_social_instagram" class="block text-sm font-medium text-slate-700">Instagram</label><input type="url" name="instagram" id="setting_social_instagram" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md"></div>
+                            <div><label for="setting_social_facebook" class="block text-sm font-medium text-slate-700">Facebook</label><input type="url" name="facebook" id="setting_social_facebook" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md"></div>
+                            <div><label for="setting_social_tiktok" class="block text-sm font-medium text-slate-700">TikTok</label><input type="url" name="tiktok" id="setting_social_tiktok" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md"></div>
+                            <div><label for="setting_social_youtube" class="block text-sm font-medium text-slate-700">YouTube</label><input type="url" name="youtube" id="setting_social_youtube" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md"></div>
+                        </div>
+                        <div class="flex justify-end pt-4"><button type="submit" class="btn-primary">Guardar Configurações</button></div>
+                    </form>
+
+                    <div class="mt-12 pt-6 border-t border-red-200">
+                        <h3 class="text-lg font-semibold text-red-700 mb-4">Zona de Perigo</h3>
+                        <p class="text-sm text-slate-600 mb-4">A ação abaixo é irreversível. Tenha a certeza do que está a fazer.</p>
+                        <button id="reset-stats-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">Zerar Todas as Estatísticas</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    
+    <!-- Modals -->
+    <div id="bank-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-40"><div class="modal-content bg-white rounded-lg shadow-xl p-8 w-full max-w-md transform scale-95"><h3 class="text-2xl font-bold text-slate-800 mb-6" id="bank-modal-title">Adicionar Novo Banco</h3><form id="bank-form"><input type="hidden" id="bank-id-input"><div class="space-y-4"><div><label for="bank_code" class="block text-sm font-medium text-slate-700">Código (ex: BAI)</label><input type="text" id="bank_code" name="bank_code" required class="mt-1 block w-full border border-slate-300 rounded-md shadow-sm p-2" maxlength="10"></div><div><label for="bank_name" class="block text-sm font-medium text-slate-700">Nome Completo</label><input type="text" id="bank_name" name="bank_name" required class="mt-1 block w-full border border-slate-300 rounded-md shadow-sm p-2"></div></div><div class="flex justify-end space-x-4 mt-8"><button type="button" id="cancel-bank-modal" class="btn-secondary">Cancelar</button><button type="submit" class="btn-primary">Guardar</button></div></form></div></div>
+    <div id="currency-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-40"><div class="modal-content bg-white rounded-lg shadow-xl p-8 w-full max-w-md transform scale-95"><h3 id="currency-modal-title" class="text-2xl font-bold text-slate-800 mb-6">Adicionar Nova Moeda</h3><form id="currency-form" class="space-y-4"><input type="hidden" id="currency_id" name="currency_id"><div><label for="currency_code" class="block text-sm font-medium text-slate-700">Código (ex: USD)</label><input type="text" name="currency_code" id="currency_code" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md" required maxlength="10"></div><div><label for="currency_name" class="block text-sm font-medium text-slate-700">Nome (ex: Dólar Americano)</label><input type="text" name="currency_name" id="currency_name" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md" required></div><div><label for="currency_symbol" class="block text-sm font-medium text-slate-700">Símbolo (ex: $)</label><input type="text" name="currency_symbol" id="currency_symbol" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md" maxlength="5"></div><div class="flex justify-end space-x-4 pt-4"><button type="button" class="btn-secondary" id="cancel-currency-modal">Cancelar</button><button type="submit" id="save-currency-btn" class="btn-primary">Adicionar</button></div></form></div></div>
+    <div id="affiliate-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-40"><div class="modal-content bg-white rounded-lg shadow-xl p-8 w-full max-w-lg transform scale-95 max-h-[90vh] overflow-y-auto"><h3 id="affiliate-modal-title" class="text-2xl font-bold text-slate-800 mb-6">Adicionar Novo Link</h3><form id="affiliate-form" class="space-y-4"><input type="hidden" id="affiliate_id" name="affiliate_id"><div><label for="affiliate_title" class="block text-sm font-medium text-slate-700">Título do Produto</label><input type="text" name="affiliate_title" id="affiliate_title" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md" required></div><div><label for="affiliate_url" class="block text-sm font-medium text-slate-700">URL de Afiliado (Link de Compra)</label><input type="url" name="affiliate_url" id="affiliate_url" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md" required></div><div><label for="affiliate_image_url" class="block text-sm font-medium text-slate-700">URL da Imagem do Produto</label><input type="url" name="affiliate_image_url" id="affiliate_image_url" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md"></div><div class="grid grid-cols-2 gap-4"><div><label for="affiliate_price" class="block text-sm font-medium text-slate-700">Preço do Produto (USD)</label><input type="number" step="0.01" name="affiliate_price" id="affiliate_price" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md"></div><div><label for="affiliate_shipping" class="block text-sm font-medium text-slate-700">Custo de Frete (USD)</label><input type="number" step="0.01" name="affiliate_shipping" id="affiliate_shipping" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md"></div></div><div><label for="affiliate_proof_video_url" class="block text-sm font-medium text-slate-700">URL do Vídeo de Prova (Opcional)</label><input type="url" name="affiliate_proof_video_url" id="affiliate_proof_video_url" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md"></div><div class="flex justify-end space-x-4 pt-4"><button type="button" class="btn-secondary" id="cancel-affiliate-modal">Cancelar</button><button type="submit" id="save-affiliate-btn" class="btn-primary">Adicionar</button></div></form></div></div>
+    <div id="supporter-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-40"><div class="modal-content bg-white rounded-lg shadow-xl p-8 w-full max-w-lg transform scale-95"><h3 id="supporter-modal-title" class="text-2xl font-bold text-slate-800 mb-6">Adicionar Novo Apoiador</h3><form id="supporter-form" class="space-y-4"><input type="hidden" id="supporter_id" name="supporter_id"><div><label for="supporter_name" class="block text-sm font-medium text-slate-700">Nome do Apoiador</label><input type="text" name="supporter_name" id="supporter_name" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md" required></div><div><label for="supporter_website_url" class="block text-sm font-medium text-slate-700">URL do Website</label><input type="url" name="supporter_website_url" id="supporter_website_url" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md" required></div><div><label for="supporter_logo_url" class="block text-sm font-medium text-slate-700">URL do Logotipo</label><input type="url" name="supporter_logo_url" id="supporter_logo_url" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md" placeholder="https://exemplo.com/logo.png" required></div><div class="flex justify-end space-x-4 pt-4"><button type="button" class="btn-secondary" id="cancel-supporter-modal">Cancelar</button><button type="submit" id="save-supporter-btn" class="btn-primary">Adicionar</button></div></form></div></div>
+    <div id="delete-confirm-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50"><div class="modal-content bg-white rounded-lg shadow-xl p-8 w-full max-w-sm transform scale-95"><h3 class="text-xl font-bold text-slate-800 mb-4">Confirmar Exclusão</h3><p id="delete-confirm-message" class="text-slate-600 mb-6"></p><div class="flex justify-end space-x-4"><button type="button" id="cancel-delete-btn" class="btn-secondary">Cancelar</button><button type="button" id="confirm-delete-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">Apagar</button></div></div></div>
+
+    <!-- Notifications -->
+    <div id="toast-notification" class="fixed top-5 right-5 bg-green-500 text-white py-3 px-6 rounded-lg shadow-lg transform translate-x-[120%] transition-transform duration-300 ease-out z-50"><p id="toast-message"></p></div>
+    <div id="error-notification" class="fixed top-5 right-5 bg-red-500 text-white py-3 px-6 rounded-lg shadow-lg transform translate-x-[120%] transition-transform duration-300 ease-out z-50"><p id="error-message"></p></div>
+
+<script type="module">
+    // --- CONFIG & INIT ---
+    const API_BASE_URL = ''; // As chamadas serão relativas ao domínio atual
+    const WEBSOCKET_URL = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}`;;
+    
+    let dbClient;
+    let allFormalProviders = [], allInformalProviders = [], allAffiliates = [], allCurrencies = [], allSupporters = [], _weeklyChartInstance, _affiliateChartInstance, _tabVisitsChartInstance;
+
+    document.addEventListener('DOMContentLoaded', initializeApp);
+
+    async function initializeApp() {
+        try {
+            const response = await fetch('/api/config');
+            if (!response.ok) throw new Error('Falha ao carregar a configuração do servidor.');
+            const config = await response.json();
+            dbClient = supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
+            init();
+        } catch (error) {
+            console.error("Erro de inicialização:", error);
+            document.body.innerHTML = `<div class="p-8 m-8 text-center bg-red-100 text-red-800 rounded-lg"><strong>Erro Crítico:</strong> Não foi possível carregar a configuração da aplicação.</div>`;
+        }
+    }
+
+    async function init() {
+        updateViewForHash(window.location.hash || '#dashboard');
+        loadAllData();
+        initAnimations();
+        setupEventListeners();
+        connectAdminWebSocket();
+    }
+    
+    // --- NAVIGATION ---
+    function updateViewForHash(hash) {
+        const effectiveHash = (hash && document.querySelector(hash)) ? hash : '#dashboard';
+        document.querySelectorAll('.admin-section').forEach(s => s.classList.add('hidden'));
+        document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+        document.querySelector(effectiveHash)?.classList.remove('hidden');
+        document.querySelector(`.sidebar-link[href="${effectiveHash}"]`)?.classList.add('active');
+    }
+
+    // --- DATA LOADING ---
+    async function loadAllData() {
+        await Promise.all([
+            loadDashboardData(),
+            loadRecentActivity(),
+            loadBanks(),
+            loadCurrencies(),
+            loadInformalRates(),
+            loadAffiliateLinks(),
+            loadSupporters(),
+            loadSettings(),
+            renderAffiliateChart()
+
+        ]);
+        renderDashboardCharts();
+    }
+
+    async function loadDashboardData() {
+        try {
+            const { count: totalProviders } = await dbClient.from('rate_providers').select('*', { count: 'exact', head: true }).eq('type', 'FORMAL');
+            const { count: activeProviders } = await dbClient.from('rate_providers').select('id', { count: 'exact', head: true }).eq('type', 'FORMAL').eq('is_active', true);
+            document.getElementById('active-banks-stat').textContent = `${activeProviders || 0} / ${totalProviders || 0}`;
+
+            const now = new Date();
+            const todayStart = new Date(now.setHours(0, 0, 0, 0)).toISOString();
+            const weekStart = new Date(new Date().setDate(new Date().getDate() - new Date().getDay())).toISOString();
+            const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
+
+            const [todayViews, weeklyViews, monthlyViews, bouncedSessionsResult] = await Promise.all([
+                dbClient.from('user_activity').select('id', { count: 'exact', head: true }).eq('event_type', 'page_view').gte('created_at', todayStart),
+                dbClient.from('user_activity').select('id', { count: 'exact', head: true }).eq('event_type', 'page_view').gte('created_at', weekStart),
+                dbClient.from('user_activity').select('id', { count: 'exact', head: true }).eq('event_type', 'page_view').gte('created_at', monthStart),
+                dbClient.rpc('get_bounced_sessions_count', { start_date: todayStart })
+            ]);
+
+            const formatCount = (result) => result.error ? 'Erro' : (result.count || 0).toLocaleString('pt-PT');
+            document.getElementById('today-access-stat').textContent = formatCount(todayViews);
+            document.getElementById('weekly-access-stat').textContent = formatCount(weeklyViews);
+            document.getElementById('monthly-access-stat').textContent = formatCount(monthlyViews);
+
+            if (bouncedSessionsResult.error) {
+                console.error('Erro ao contar rejeições:', bouncedSessionsResult.error);
+                document.getElementById('bounced-sessions-stat').textContent = 'Erro';
+            } else {
+                document.getElementById('bounced-sessions-stat').textContent = (bouncedSessionsResult.data || 0).toLocaleString('pt-PT');
+            }
+        } catch(e) { console.error("Falha ao carregar dados do dashboard", e)}
+    }
+
+    async function loadBanks() {
+        const banksTableBody = document.getElementById('banks-table-body');
+        banksTableBody.innerHTML = `<tr><td colspan="8" class="text-center h-48"><div class="loader mx-auto"></div></td></tr>`;
+        const { data, error } = await dbClient.from('rate_providers').select(`*, exchange_rates(currency_pair, sell_rate, updated_at)`).eq('type', 'FORMAL').order('code');
+        if(error) { console.error(error); banksTableBody.innerHTML = `<tr><td colspan="8" class="text-center p-4 text-red-500">Erro ao carregar bancos.</td></tr>`; return; }
+        allFormalProviders = data;
+        renderBanks(allFormalProviders);
+    }
+
+    function renderBanks(providers) {
+        const banksTableBody = document.getElementById('banks-table-body');
+        banksTableBody.innerHTML = '';
+        if (!providers || providers.length === 0) {
+            banksTableBody.innerHTML = `<tr><td colspan="8" class="text-center p-8 text-slate-500">Nenhum banco encontrado.</td></tr>`;
+            return;
+        }
+        banksTableBody.innerHTML = providers.map(bank => {
+            const usdRate = bank.exchange_rates.find(r => r.currency_pair === 'USD/AOA')?.sell_rate || 0;
+            const eurRate = bank.exchange_rates.find(r => r.currency_pair === 'EUR/AOA')?.sell_rate || 0;
+
+            const latestUpdate = bank.exchange_rates.reduce((latest, rate) => {
+                const rateDate = new Date(rate.updated_at);
+                return rateDate > latest ? rateDate : latest;
+            }, new Date(0));
+
+            const formattedDate = latestUpdate.getTime() > 0 
+                ? `${latestUpdate.toLocaleDateString('pt-PT')} ${latestUpdate.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' })}`
+                : 'N/A';
+
+            return `
+                <tr class="bg-white border-b hover:bg-indigo-50/50">
+                    <td class="px-6 py-4 font-medium text-gray-900">${bank.code} <span class="text-xs text-gray-500 block">${bank.name}</span></td>
+                    <td class="px-6 py-4 editable-cell" data-field="sell_rate" data-pair="USD/AOA" data-provider-id="${bank.id}">${usdRate.toFixed(4)}</td>
+                    <td class="px-6 py-4 editable-cell" data-field="sell_rate" data-pair="EUR/AOA" data-provider-id="${bank.id}">${eurRate.toFixed(4)}</td>
+                    <td class="px-6 py-4 text-xs text-gray-500">${formattedDate}</td>
+                    <td class="px-6 py-4 editable-cell" data-field="fee_margin" data-provider-id="${bank.id}">${bank.fee_margin || 0}</td>
+                    <td class="px-6 py-4 editable-cell" data-field="fee_final" data-provider-id="${bank.id}">${bank.fee_final || 0}</td>
+                    <td class="px-6 py-4"><label class="toggle-switch"><input type="checkbox" class="toggle-status" data-type="bank" ${bank.is_active ? 'checked' : ''} data-id="${bank.id}"><span class="toggle-slider"></span></label></td>
+                    <td class="px-6 py-4 text-center space-x-2">
+                        <button class="edit-btn text-slate-500 hover:text-indigo-600" data-type="bank" data-id="${bank.id}">Editar</button>
+                        <button class="delete-btn text-slate-500 hover:text-red-600" data-type="bank" data-id="${bank.id}">Apagar</button>
+                    </td>
+                </tr>`;
+        }).join('');
+    }
+
+    async function loadCurrencies() {
+        const tableBody = document.getElementById('currencies-table-body');
+        tableBody.innerHTML = `<tr><td colspan="5" class="text-center h-48"><div class="loader mx-auto"></div></td></tr>`;
+        const { data, error } = await dbClient.from('currencies').select('*').order('code');
+        if (error) { console.error(error); tableBody.innerHTML = `<tr><td colspan="5" class="text-center p-4 text-red-500">Erro ao carregar moedas.</td></tr>`; return; }
+        allCurrencies = data;
+        tableBody.innerHTML = data.length === 0 
+            ? `<tr><td colspan="5" class="text-center p-4 text-gray-500">Nenhuma moeda encontrada.</td></tr>`
+            : data.map(currency => `
+                <tr class="bg-white border-b hover:bg-indigo-50/50" data-currency-id="${currency.id}">
+                    <td class="px-6 py-4 font-medium text-gray-900">${currency.code}</td>
+                    <td class="px-6 py-4">${currency.name}</td>
+                    <td class="px-6 py-4 text-center">${currency.symbol || ''}</td>
+                    <td class="px-6 py-4"><label class="toggle-switch"><input type="checkbox" class="toggle-status" data-type="currency" ${currency.is_active ? 'checked' : ''} data-id="${currency.id}"><span class="toggle-slider"></span></label></td>
+                    <td class="px-6 py-4 text-center space-x-2"><button class="edit-btn text-slate-500 hover:text-indigo-600" data-type="currency" data-id="${currency.id}">Editar</button><button class="delete-btn text-slate-500 hover:text-red-600" data-type="currency" data-id="${currency.id}">Apagar</button></td>
+                </tr>`).join('');
+    }
+
+    async function loadInformalRates() {
+        const contentContainer = document.getElementById('informal-rates-content');
+        const { data, error } = await dbClient.from('rate_providers').select(`id, name, exchange_rates(id, currency_pair, sell_rate)`).eq('type', 'INFORMAL').order('name');
+        if(error) { console.error(error); contentContainer.innerHTML = 'Erro ao carregar.'; return; }
+        allInformalProviders = data;
+        
+        const tabsContainer = document.getElementById('informal-province-tabs');
+        tabsContainer.innerHTML = allInformalProviders.map((prov, index) => 
+            `<button data-provider-id="${prov.id}" class="informal-tab whitespace-nowrap py-4 px-2 border-b-2 font-medium text-sm ${index === 0 ? 'active-tab' : 'border-transparent text-gray-500'}">${prov.name}</button>`
+        ).join('');
+
+        if (allInformalProviders.length > 0) {
+            renderInformalContent(allInformalProviders[0].id);
+        } else {
+            contentContainer.innerHTML = '<p class="text-slate-500">Nenhum mercado informal encontrado.</p>';
+        }
+    }
+
+    function renderInformalContent(providerId) {
+        const contentContainer = document.getElementById('informal-rates-content');
+        const provider = allInformalProviders.find(p => p.id == providerId);
+        if (!provider) { contentContainer.innerHTML = '<p class="text-gray-500">Província não encontrada.</p>'; return; }
+
+        const requiredPairs = ['USD/AOA', 'EUR/AOA', 'USDT/AOA'];
+        let content = `<div class="relative w-full max-w-sm"><div class="absolute -top-4 right-0 flex items-center space-x-2"><button class="edit-province-btn p-1 text-slate-400 hover:text-indigo-600" data-id="${provider.id}" data-name="${provider.name}" title="Editar Nome"><svg class="w-5 h-5 pointer-events-none" fill="currentColor" viewBox="0 0 20 20"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z"></path><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd"></path></svg></button><button class="delete-province-btn p-1 text-slate-400 hover:text-red-500" data-id="${provider.id}" data-name="${provider.name}" title="Apagar Província"><svg class="w-5 h-5 pointer-events-none" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg></button></div><form id="informal-form" data-provider-id="${provider.id}" class="space-y-4">`;
+        requiredPairs.forEach(pair => {
+            const existingRate = provider.exchange_rates.find(r => r.currency_pair === pair);
+            content += `<div><label class="block text-sm font-medium text-gray-700">${pair}</label><input type="text" data-rate-id="${existingRate?.id || ''}" data-pair="${pair}" value="${String(existingRate?.sell_rate || 0).replace('.',',')}" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" inputmode="decimal"></div>`;
+        });
+        content += `<div class="flex items-center space-x-4 pt-2"><button type="submit" class="btn-primary">Guardar Taxas</button></div></form></div>`;
+        contentContainer.innerHTML = content;
+    }
+
+    async function loadAffiliateLinks() {
+        const tableBody = document.getElementById('affiliates-table-body');
+        tableBody.innerHTML = `<tr><td colspan="5" class="text-center h-48"><div class="loader mx-auto"></div></td></tr>`;
+        const { data, error } = await dbClient.from('affiliate_links').select('*').order('created_at', { ascending: false });
+        if (error) { console.error(error); tableBody.innerHTML = `<tr><td colspan="5" class="text-center p-4 text-red-500">Erro ao carregar links.</td></tr>`; return; } 
+        allAffiliates = data;
+        renderAffiliates(allAffiliates);
+    }
+
+    function renderAffiliates(links) {
+        const tableBody = document.getElementById('affiliates-table-body');
+        tableBody.innerHTML = links.length === 0
+            ? `<tr><td colspan="5" class="text-center p-4 text-gray-500">Nenhum link de afiliado encontrado.</td></tr>`
+            : links.map(link => `
+                <tr class="bg-white border-b hover:bg-indigo-50/50" data-link-id="${link.id}">
+                    <td class="px-6 py-4"><div class="font-medium text-gray-900">${link.title}</div><a href="${link.url}" target="_blank" class="text-xs text-indigo-600 hover:underline truncate block max-w-xs">${link.url}</a></td>
+                    <td class="px-6 py-4 text-center">${new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'USD' }).format(link.price || 0)}</td>
+                    <td class="px-6 py-4 text-center font-medium">${link.click_count || 0}</td>
+                    <td class="px-6 py-4"><label class="toggle-switch"><input type="checkbox" class="toggle-status" data-type="affiliate" ${link.is_active ? 'checked' : ''} data-id="${link.id}"><span class="toggle-slider"></span></label></td>
+                    <td class="px-6 py-4 text-center space-x-2"><button class="edit-btn text-slate-500 hover:text-indigo-600" data-type="affiliate" data-id="${link.id}">Editar</button><button class="delete-btn text-slate-500 hover:text-red-600" data-type="affiliate" data-id="${link.id}">Apagar</button></td>
+                </tr>`).join('');
+    }
+
+    async function loadSupporters() {
+        const tableBody = document.getElementById('supporters-table-body');
+        tableBody.innerHTML = `<tr><td colspan="3" class="text-center h-48"><div class="loader mx-auto"></div></td></tr>`;
+        const { data, error } = await dbClient.from('supporters').select('*').order('name', { ascending: true });
+        if (error) { console.error(error); tableBody.innerHTML = `<tr><td colspan="3" class="text-center p-4 text-red-500">Erro ao carregar apoiadores.</td></tr>`; return; }
+        allSupporters = data;
+        tableBody.innerHTML = data.length === 0
+            ? `<tr><td colspan="3" class="text-center p-4 text-gray-500">Nenhum apoiador encontrado.</td></tr>`
+            : data.map(supporter => `
+                <tr class="bg-white border-b hover:bg-indigo-50/50" data-supporter-id="${supporter.id}">
+                    <td class="px-6 py-4"><div class="flex items-center space-x-3"><img src="${supporter.logo_url}" alt="${supporter.name}" class="h-8 w-auto object-contain bg-slate-100 p-1 rounded"><span class="font-medium text-gray-900">${supporter.name}</span></div></td>
+                    <td class="px-6 py-4"><label class="toggle-switch"><input type="checkbox" class="toggle-status" data-type="supporter" ${supporter.is_active ? 'checked' : ''} data-id="${supporter.id}"><span class="toggle-slider"></span></label></td>
+                    <td class="px-6 py-4 text-center space-x-2"><button class="edit-btn text-slate-500 hover:text-indigo-600" data-type="supporter" data-id="${supporter.id}">Editar</button><button class="delete-btn text-slate-500 hover:text-red-600" data-type="supporter" data-id="${supporter.id}">Apagar</button></td>
+                </tr>`).join('');
+    }
+
+    async function loadSettings() {
+        const { data, error } = await dbClient.from('site_settings').select('*');
+        if (error) return showError('Erro ao carregar configurações.');
+
+        const settings = data.reduce((acc, { key, value }) => {
+            acc[key] = value;
+            return acc;
+        }, {});
+
+        document.getElementById('setting_contact_email').value = settings.contact_email || '';
+        document.getElementById('setting_contact_phone').value = settings.contact_phone || '';
+        document.getElementById('setting_tutorial_video_url').value = settings.tutorial_video_url || '';
+        // O campo proof_video_url foi removido das configurações
+
+        // Preenche os campos de redes sociais
+        document.getElementById('setting_social_whatsapp').value = settings.social_media_links?.whatsapp || '';
+        document.getElementById('setting_social_instagram').value = settings.social_media_links?.instagram || '';
+        document.getElementById('setting_social_facebook').value = settings.social_media_links?.facebook || '';
+        document.getElementById('setting_social_tiktok').value = settings.social_media_links?.tiktok || '';
+        document.getElementById('setting_social_youtube').value = settings.social_media_links?.youtube || '';
+    }
+
+
+    // --- CHART RENDERING ---
+    async function renderDashboardCharts() {
+        const weeklyCtx = document.getElementById('weeklyActivityChart')?.getContext('2d');
+        if(!weeklyCtx) return;
+
+        const { data, error } = await dbClient.rpc('get_weekly_activity');
+        if (error) { console.error('Erro ao carregar atividade semanal:', error); return; } 
+
+        if (_weeklyChartInstance) _weeklyChartInstance.destroy();
+
+        const labels = data.map(d => d.day_name);
+        const accessData = data.map(d => d.access_count);
+
+        _weeklyChartInstance = new Chart(weeklyCtx, { type: 'line', data: { labels, datasets: [{ label: 'Acessos', data: accessData, borderColor: 'rgba(79, 70, 229, 1)', backgroundColor: 'rgba(79, 70, 229, 0.1)', fill: true, tension: 0.4 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } }, plugins: { legend: { display: false } } } });
+        renderTabVisitsChart();
+    }
+
+    async function loadRecentActivity() {
+        const feedContainer = document.getElementById('realtime-feed');
+        try {
+            const response = await apiCall('/api/recent-activity', 'GET');
+            feedContainer.innerHTML = ''; // Limpa a mensagem "A aguardar..."
+
+            if (response.length === 0) {
+                feedContainer.innerHTML = '<p class="text-sm text-slate-400 text-center py-8">Nenhuma atividade recente.</p>';
+                return;
+            }
+            response.reverse().forEach(activity => renderFeedEntry(activity)); // Adiciona do mais antigo para o mais novo
+        } catch (error) {
+            feedContainer.innerHTML = '<p class="text-sm text-red-500 text-center py-8">Erro ao carregar atividade.</p>';
+        }
+    }
+
+    async function renderAffiliateChart() {
+        const chartContainer = document.getElementById('affiliate-chart-container');
+        const chartCtx = document.getElementById('affiliateClicksChart')?.getContext('2d');
+        if (!chartCtx) return;
+
+        const { data, error } = await dbClient.rpc('get_affiliate_clicks_by_link');
+        
+        if (error) { console.error(error); chartContainer.innerHTML = `<p class="text-xs text-red-500">Erro ao carregar dados.</p>`; return; }
+        if (!data || data.length === 0 || data.every(d => d.click_count === 0)) { chartContainer.innerHTML = `<p class="text-sm text-slate-400">Sem dados de cliques.</p>`; return; }
+
+        if (_affiliateChartInstance) _affiliateChartInstance.destroy();
+
+        _affiliateChartInstance = new Chart(chartCtx, {
+            type: 'pie', data: { labels: data.map(d => d.title), datasets: [{ label: 'Cliques', data: data.map(d => d.click_count), backgroundColor: ['#4f46e5', '#10b981', '#f59e0b', '#3b82f6', '#ef4444', '#8b5cf6', '#ec4899'] }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 15 } } } }
+        });
+    }
+
+    async function renderTabVisitsChart() {
+        const chartContainer = document.getElementById('tab-visits-chart-container');
+        const chartCtx = document.getElementById('tabVisitsChart')?.getContext('2d');
+        if (!chartCtx) return;
+
+        const { data, error } = await dbClient.rpc('get_tab_visit_counts');
+
+        if (error) { console.error(error); chartContainer.innerHTML = `<p class="text-xs text-red-500">Erro ao carregar dados.</p>`; return; }
+        if (!data || data.length === 0) { chartContainer.innerHTML = `<p class="text-sm text-slate-400">Sem dados de visitas.</p>`; return; }
+
+        if (_tabVisitsChartInstance) _tabVisitsChartInstance.destroy();
+
+        _tabVisitsChartInstance = new Chart(chartCtx, {
+            type: 'bar', data: { labels: data.map(d => d.tab_name), datasets: [{ label: 'Visitas', data: data.map(d => d.visit_count), backgroundColor: ['#4f46e5', '#10b981', '#f59e0b', '#3b82f6'] }] },
+            options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true } } }
+        });
+    }
+
+    // --- UI & ANIMATIONS ---
+    function initAnimations() {
+        document.querySelectorAll('#dashboard .stat-card').forEach((card, index) => {
+            card.style.animationDelay = `${index * 100}ms`;
+            card.classList.add('fade-in-up');
+        });
+    }
+
+    function setupEventListeners() {
+        window.addEventListener('hashchange', () => updateViewForHash(window.location.hash));
+        document.querySelectorAll('.sidebar-link').forEach(link => {
+            link.addEventListener('click', e => {
+                e.preventDefault();
+                const newHash = e.currentTarget.getAttribute('href');
+                if (window.location.hash !== newHash) window.location.hash = newHash;
+                if (window.innerWidth < 1024) document.querySelector('.sidebar').classList.add('-translate-x-full');
+            });
+        });
+        document.getElementById('open-sidebar-btn')?.addEventListener('click', () => document.querySelector('.sidebar').classList.remove('-translate-x-full'));
+        document.getElementById('close-sidebar-btn')?.addEventListener('click', () => document.querySelector('.sidebar').classList.add('-translate-x-full'));
+        [document.getElementById('add-bank-btn'), document.getElementById('add-bank-quick-btn')].forEach(btn => btn?.addEventListener('click', () => openBankModal()));
+        document.getElementById('cancel-bank-modal')?.addEventListener('click', () => closeModal(document.getElementById('bank-modal')));
+        [document.getElementById('add-affiliate-btn'), document.getElementById('add-affiliate-quick-btn')].forEach(btn => btn?.addEventListener('click', () => openAffiliateModal()));
+        document.getElementById('add-affiliate-btn')?.addEventListener('click', () => openAffiliateModal());
+        document.getElementById('cancel-affiliate-modal')?.addEventListener('click', () => closeModal(document.getElementById('affiliate-modal')));
+        document.getElementById('add-supporter-btn')?.addEventListener('click', () => openSupporterModal());
+        document.getElementById('cancel-supporter-modal')?.addEventListener('click', () => closeModal(document.getElementById('supporter-modal')));
+        document.getElementById('add-currency-btn')?.addEventListener('click', () => openCurrencyModal());
+        document.getElementById('cancel-currency-modal')?.addEventListener('click', () => closeModal(document.getElementById('currency-modal')));
+        document.getElementById('add-province-btn')?.addEventListener('click', handleAddProvince);
+        document.getElementById('reset-stats-btn')?.addEventListener('click', handleResetStats);
+        document.getElementById('bank-search-input')?.addEventListener('input', handleBankSearch);
+        document.getElementById('logout-btn')?.addEventListener('click', handleLogout);
+        document.getElementById('affiliate-search-input')?.addEventListener('input', handleAffiliateSearch);
+        document.body.addEventListener('click', handleGlobalClick);
+        document.body.addEventListener('change', handleGlobalChange);
+        document.body.addEventListener('submit', handleGlobalSubmit);
+    }
+
+    // --- WEBSOCKET & REALTIME ---
+    function connectAdminWebSocket() {
+        try {
+            const ws = new WebSocket(`${WEBSOCKET_URL}/?client=admin`);
+            ws.onopen = () => console.log('Admin WebSocket conectado.');
+            ws.onmessage = (event) => {
+                const message = JSON.parse(event.data);
+                if (message.type === 'user_count_update') document.getElementById('online-users-stat').textContent = message.count;
+                if (message.type === 'new_user_activity') updateRealtimeFeed(message.payload);
+            };
+            ws.onclose = () => setTimeout(connectAdminWebSocket, 5000);
+            ws.onerror = (err) => console.error('Erro no Admin WebSocket:', err);
+        } catch(error) {
+            console.error("Falha ao conectar ao WebSocket:", error);
+        }
+    }
+
+    function updateRealtimeFeed(activity) {
+        const feedContainer = document.getElementById('realtime-feed');
+        // Atualiza contadores em tempo real
+        if (activity.event_type === 'page_view') {
+            const todayStatEl = document.getElementById('today-access-stat');
+            const currentCount = parseInt(todayStatEl.textContent.replace(/\./g, '')) || 0;
+            todayStatEl.textContent = (currentCount + 1).toLocaleString('pt-PT');
+            // Nota: A taxa de rejeição é complexa para atualizar em tempo real.
+            // É melhor recarregar os dados do dashboard periodicamente ou manualmente.
+        } else if (activity.event_type === 'affiliate_click' && activity.details?.link_id) {
+            loadAffiliateLinks().then(() => renderAffiliateChart());
+        } else if (activity.event_type === 'tab_switch') {
+            renderTabVisitsChart();
+        }
+        renderFeedEntry(activity, true); // Renderiza a entrada no feed
+    }
+
+    function renderFeedEntry(activity, isRealtime = false) {
+        const feedContainer = document.getElementById('realtime-feed');
+        if (feedContainer.querySelector('p')) feedContainer.innerHTML = '';
+
+        let eventText;
+        if (activity.event_type === 'page_view') eventText = 'visitou a página.';
+        else if (activity.event_type === 'affiliate_click') eventText = `clicou no link de afiliado: <strong>${activity.details?.product_title || '...'}</strong>.`;
+        else if (activity.event_type === 'tab_switch') eventText = `navegou para a aba <strong>${activity.details.tab}</strong>.`;
+        else if (activity.event_type === 'supporter_click') eventText = `clicou no apoiador: <strong>${activity.details.supporter_name}</strong>.`;
+        else return; // Não mostra eventos desconhecidos
+        
+        const newEntry = document.createElement('div');
+        newEntry.className = 'text-sm text-slate-600 border-b border-slate-100 pb-2';
+        const activityDate = isRealtime ? new Date() : new Date(activity.created_at);
+        newEntry.innerHTML = `<span>Um utilizador ${eventText}</span><span class="block text-xs text-slate-400">${activityDate.toLocaleTimeString('pt-PT')}</span>`;
+        feedContainer.prepend(newEntry); // Adiciona sempre no topo
+    }
+
+    async function notifyServerOfUpdate() {
+        try { await apiCall('/api/notify-update'); }
+        catch (error) { console.error('Falha ao notificar o servidor:', error); }
+    }
+
+    // --- UI UTILITIES (MODALS, TOASTS) ---
+    function showToast(message) {
+        const toast = document.getElementById('toast-notification');
+        document.getElementById('toast-message').textContent = message;
+        toast.classList.remove('translate-x-[120%]');
+        setTimeout(() => toast.classList.add('translate-x-[120%]'), 3000);
+    }
+    function showError(message) {
+        const errorToast = document.getElementById('error-notification');
+        document.getElementById('error-message').textContent = message;
+        errorToast.classList.remove('translate-x-[120%]');
+        setTimeout(() => errorToast.classList.add('translate-x-[120%]'), 4000);
+    }
+    function openModal(modal) {
+        modal?.classList.remove('hidden');
+        setTimeout(() => modal?.querySelector('.modal-content')?.classList.remove('scale-95'), 10);
+    }
+    function closeModal(modal) {
+        modal?.querySelector('.modal-content')?.classList.add('scale-95');
+        setTimeout(() => modal?.classList.add('hidden'), 300);
+    }
+
+    // --- API HELPER ---
+    async function apiCall(endpoint, method = 'POST', body = null) {
+        try {
+            const options = { method, headers: method !== 'GET' ? { 'Content-Type': 'application/json' } : {} };
+            if (body) options.body = JSON.stringify(body);
+            const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
+            if (!response.ok) {
+                const errorResult = await response.json().catch(() => ({ message: 'Erro desconhecido do servidor.' }));
+                throw new Error(errorResult.message);
+            }
+            return await response.json().catch(() => ({})); // Handle empty responses
+        } catch (error) {
+            showError(error.message);
+            throw error;
+        }
+    }
+    
+    // --- FORM & EVENT HANDLERS ---
+    function openBankModal(bankData = null) {
+        const modal = document.getElementById('bank-modal');
+        const form = document.getElementById('bank-form');
+        form.reset();
+        form.querySelector('#bank-id-input').value = bankData ? bankData.id : '';
+        document.getElementById('bank-modal-title').textContent = bankData ? 'Editar Banco' : 'Adicionar Novo Banco';
+        if(bankData){
+            form.querySelector('#bank_code').value = bankData.code;
+            form.querySelector('#bank_name').value = bankData.name;
+        }
+        openModal(modal);
+    }
+
+    async function handleBankFormSubmit(e) {
+        e.preventDefault();
+        const form = e.target;
+        const bankData = {
+            id: form.querySelector('#bank-id-input').value || null,
+            code: form.querySelector('#bank_code').value,
+            name: form.querySelector('#bank_name').value,
+        };
+        if (!bankData.code || !bankData.name) return showError('Por favor, preencha todos os campos.');
+        
+        try {
+            await apiCall('/api/bank', 'POST', bankData);
+            showToast(`Banco ${bankData.id ? 'atualizado' : 'adicionado'} com sucesso!`);
+            closeModal(document.getElementById('bank-modal'));
+            loadBanks();
+            notifyServerOfUpdate();
+        } catch (error) {}
+    }
+    
+    function openAffiliateModal(linkData = null) {
+        const modal = document.getElementById('affiliate-modal');
+        const form = document.getElementById('affiliate-form');
+        form.reset();
+        document.getElementById('affiliate-modal-title').textContent = linkData ? 'Editar Link de Afiliado' : 'Adicionar Novo Link';
+        form.querySelector('#save-affiliate-btn').textContent = linkData ? 'Guardar Alterações' : 'Adicionar';
+        form.querySelector('#affiliate_id').value = linkData?.id || '';
+        if (linkData) {
+            form.querySelector('#affiliate_title').value = linkData.title;
+            form.querySelector('#affiliate_url').value = linkData.url;
+            form.querySelector('#affiliate_image_url').value = linkData.image_url;
+            form.querySelector('#affiliate_price').value = linkData.price;
+            form.querySelector('#affiliate_shipping').value = linkData.shipping_cost_usd;
+            form.querySelector('#affiliate_proof_video_url').value = linkData.proof_video_url || '';
+        }
+        openModal(modal);
+    }
+    
+    async function handleAffiliateFormSubmit(e) {
+        e.preventDefault();
+        const form = e.target;
+        const imageUrl = form.querySelector('#affiliate_image_url').value;
+
+        const affiliateData = {
+            id: form.querySelector('#affiliate_id').value || null,
+            title: form.querySelector('#affiliate_title').value,
+            url: form.querySelector('#affiliate_url').value,
+            image_url: imageUrl,
+            price: parseFloat(form.querySelector('#affiliate_price').value) || 0,
+            shipping_cost_usd: parseFloat(form.querySelector('#affiliate_shipping').value) || 0,
+            proof_video_url: form.querySelector('#affiliate_proof_video_url').value || null
+        };
+        try {
+            await apiCall('/api/affiliate', 'POST', affiliateData);
+            showToast(`Link ${affiliateData.id ? 'atualizado' : 'adicionado'} com sucesso!`);
+            renderAffiliateChart();
+            loadAffiliateLinks();
+            if (affiliateData.id) closeModal(document.getElementById('affiliate-modal'));
+            else form.reset();
+        } catch (error) {}
+    }
+
+    function openSupporterModal(supporterData = null) {
+        const modal = document.getElementById('supporter-modal');
+        const form = document.getElementById('supporter-form');
+        form.reset();
+        document.getElementById('supporter-modal-title').textContent = supporterData ? 'Editar Apoiador' : 'Adicionar Novo Apoiador';
+        form.querySelector('#save-supporter-btn').textContent = supporterData ? 'Guardar Alterações' : 'Adicionar';
+        form.querySelector('#supporter_id').value = supporterData?.id || '';
+
+        if (supporterData) {
+            form.querySelector('#supporter_name').value = supporterData.name;
+            form.querySelector('#supporter_website_url').value = supporterData.website_url;
+            form.querySelector('#supporter_logo_url').value = supporterData.logo_url;
+        }
+        openModal(modal);
+    }
+
+    async function handleSupporterFormSubmit(e) {
+        e.preventDefault();
+        const form = e.target;
+        let logoUrl = form.querySelector('#supporter_logo_url').value;
+
+        const supporterData = {
+            id: form.querySelector('#supporter_id').value || null,
+            name: form.querySelector('#supporter_name').value,
+            website_url: form.querySelector('#supporter_website_url').value,
+            logo_url: logoUrl,
+        };
+        try {
+            await apiCall('/api/supporter', 'POST', supporterData);
+            showToast(`Apoiador ${supporterData.id ? 'atualizado' : 'adicionado'} com sucesso!`);
+            closeModal(document.getElementById('supporter-modal'));
+            loadSupporters();
+        } catch (error) {}
+    }
+
+    function openCurrencyModal(currencyData = null) {
+        const modal = document.getElementById('currency-modal');
+        const form = document.getElementById('currency-form');
+        form.reset();
+        document.getElementById('currency-modal-title').textContent = currencyData ? 'Editar Moeda' : 'Adicionar Nova Moeda';
+        form.querySelector('#save-currency-btn').textContent = currencyData ? 'Guardar Alterações' : 'Adicionar';
+        form.querySelector('#currency_id').value = currencyData?.id || '';
+        if (currencyData) {
+            form.querySelector('#currency_code').value = currencyData.code;
+            form.querySelector('#currency_name').value = currencyData.name;
+            form.querySelector('#currency_symbol').value = currencyData.symbol;
+        }
+        openModal(modal);
+    }
+
+    async function handleCurrencyFormSubmit(e) {
+        e.preventDefault();
+        const form = e.target;
+        const currencyData = {
+            id: form.querySelector('#currency_id').value || null,
+            code: form.querySelector('#currency_code').value.toUpperCase(),
+            name: form.querySelector('#currency_name').value,
+            symbol: form.querySelector('#currency_symbol').value,
+        };
+        try {
+            await apiCall('/api/currency', 'POST', currencyData);
+            showToast(`Moeda ${currencyData.id ? 'atualizada' : 'adicionada'} com sucesso!`);
+            closeModal(document.getElementById('currency-modal'));
+            loadCurrencies();
+        } catch (error) {}
+    }
+
+    async function handleAddProvince() {
+        const provinceName = prompt("Qual o nome da nova província?");
+        if (!provinceName || provinceName.trim() === '') return;
+        try {
+            await apiCall('/api/add-province', 'POST', { name: provinceName.trim() });
+            showToast('Província adicionada com sucesso!');
+            loadInformalRates();
+            notifyServerOfUpdate();
+        } catch (error) {}
+    }
+
+    async function handleSettingsFormSubmit(e) {
+        e.preventDefault();
+        const form = e.target;
+        const socialLinks = {
+            whatsapp: form.querySelector('#setting_social_whatsapp').value,
+            instagram: form.querySelector('#setting_social_instagram').value,
+            facebook: form.querySelector('#setting_social_facebook').value,
+            tiktok: form.querySelector('#setting_social_tiktok').value,
+            youtube: form.querySelector('#setting_social_youtube').value,
+        };
+
+        const settingsData = [
+            { key: 'contact_email', value: form.querySelector('#setting_contact_email').value },
+            { key: 'contact_phone', value: form.querySelector('#setting_contact_phone').value },
+            { key: 'tutorial_video_url', value: form.querySelector('#setting_tutorial_video_url').value },
+            { key: 'social_media_links', value: socialLinks },
+        ];
+
+        try {
+            await apiCall('/api/settings', 'POST', { settings: settingsData });
+            showToast('Configurações guardadas com sucesso!');
+            notifyServerOfUpdate();
+        } catch(e) {}
+
+    }
+
+    function handleBankSearch(e) {
+        const searchTerm = e.target.value.toLowerCase().trim();
+        renderBanks(searchTerm ? allFormalProviders.filter(b => b.name.toLowerCase().includes(searchTerm) || b.code.toLowerCase().includes(searchTerm)) : allFormalProviders);
+    }
+
+    function handleAffiliateSearch(e) {
+        const searchTerm = e.target.value.toLowerCase().trim();
+        renderAffiliates(searchTerm ? allAffiliates.filter(a => a.title.toLowerCase().includes(searchTerm)) : allAffiliates);
+    }
+
+    async function handleInformalRateSubmit(e) {
+        e.preventDefault();
+        const form = e.target;
+        const providerId = form.dataset.providerId;
+        const inputs = form.querySelectorAll('input[type="text"]');
+        const saveButton = form.querySelector('button[type="submit"]');
+
+        const rates = Array.from(inputs).map(input => ({
+            id: input.dataset.rateId || undefined,
+            provider_id: parseInt(providerId),
+            currency_pair: input.dataset.pair,
+            sell_rate: parseFloat(input.value.replace(',', '.')) || 0
+        }));
+        
+        try {
+            await apiCall('/api/informal-rates', 'POST', { rates });
+            saveButton.textContent = 'Guardado!';
+            showToast('Taxas guardadas!');
+            setTimeout(() => { 
+                saveButton.textContent = 'Guardar Taxas'; 
+                loadInformalRates(); 
+                notifyServerOfUpdate(); 
+            }, 1500);
+        } catch (error) {}
+    }
+
+    function handleGlobalClick(e) {
+        const target = e.target;
+        const { id, type, name } = target.dataset;
+
+        if (target.matches('.edit-btn')) {
+            if (type === 'bank') openBankModal(allFormalProviders.find(b => b.id == id));
+            if (type === 'affiliate') openAffiliateModal(allAffiliates.find(a => a.id == id));
+            if (type === 'currency') openCurrencyModal(allCurrencies.find(c => c.id == id));
+            if (type === 'supporter') openSupporterModal(allSupporters.find(s => s.id == id));
+        } else if (target.matches('.delete-btn')) {
+            if (type === 'bank') handleDeleteBank(id);
+            if (type === 'affiliate') handleDeleteAffiliate(id);
+            if (type === 'currency') handleDeleteCurrency(id);
+            if (type === 'supporter') handleDeleteSupporter(id);
+        } else if (target.matches('.delete-province-btn')) {
+            handleDeleteProvince(id, name);
+        } else if (target.matches('.edit-province-btn')) {
+            handleEditProvince(id, name);
+        } else if (target.matches('.editable-cell') && !target.querySelector('input')) {
+            handleCellEdit(target);
+        } else if (target.matches('.informal-tab') && !target.classList.contains('active-tab')) {
+            document.querySelectorAll('.informal-tab').forEach(t => t.classList.remove('active-tab'));
+            target.classList.add('active-tab');
+            renderInformalContent(target.dataset.providerId);
+        }
+    }
+    
+    async function handleGlobalChange(e) {
+        if (e.target.matches('.toggle-status')) {
+            const target = e.target;
+            const { id, type } = target.dataset;
+            const isActive = target.checked;
+            try {
+                const endpoint = '/api/update-status';
+                const body = { type, id, isActive };
+
+                await apiCall(endpoint, 'POST', body);
+                showToast('Status atualizado.');
+                if (type === 'bank') {
+                    loadDashboardData();
+                    notifyServerOfUpdate();
+                }
+            } catch (error) {
+                target.checked = !isActive;
+            }
+        }
+    }
+
+    function handleGlobalSubmit(e) {
+        e.preventDefault();
+        const formId = e.target.id;
+        if (formId === 'bank-form') handleBankFormSubmit(e);
+        else if (formId === 'affiliate-form') handleAffiliateFormSubmit(e);
+        else if (formId === 'currency-form') handleCurrencyFormSubmit(e);
+        else if (formId === 'supporter-form') handleSupporterFormSubmit(e);
+        else if (formId === 'informal-form') handleInformalRateSubmit(e);
+        else if (formId === 'settings-form') handleSettingsFormSubmit(e);
+    }
+
+    async function handleLogout() {
+        try {
+            await apiCall('/api/logout', 'POST');
+            window.location.href = '/login.html';
+        } catch (error) {
+            showError('Não foi possível sair. Tente novamente.');
+        }
+    }
+
+    function handleDeleteBank(id) {
+        showDeleteConfirmation('Apagar este banco é irreversível. Deseja continuar?', async () => {
+            try {
+                await apiCall(`/api/bank/${id}`, 'DELETE');
+                showToast('Banco apagado com sucesso.');
+                loadBanks();
+                loadDashboardData();
+                notifyServerOfUpdate();
+            } catch (error) {}
+        });
+    }
+
+    function handleDeleteAffiliate(id) {
+        showDeleteConfirmation('Tem a certeza que quer apagar este link?', async () => {
+            try {
+                await apiCall(`/api/affiliate/${id}`, 'DELETE');
+                showToast('Link apagado com sucesso.');
+                loadAffiliateLinks();
+            } catch (error) {}
+        });
+    }
+
+    function handleDeleteSupporter(id) {
+        showDeleteConfirmation('Tem a certeza que quer apagar este apoiador?', async () => {
+            try {
+                await apiCall(`/api/supporter/${id}`, 'DELETE');
+                showToast('Apoiador apagado com sucesso.');
+                loadSupporters();
+            } catch (error) {}
+        });
+    }
+
+    function handleDeleteCurrency(id) {
+        showDeleteConfirmation('Tem a certeza que quer apagar esta moeda?', async () => {
+            try {
+                await apiCall(`/api/currency/${id}`, 'DELETE');
+                showToast('Moeda apagada com sucesso.');
+                loadCurrencies();
+            } catch (error) {}
+        });
+    }
+
+    function handleDeleteProvince(id, name) {
+        showDeleteConfirmation(`Tem a certeza que deseja apagar a província "${name}"?`, async () => {
+            try {
+                await apiCall(`/api/province/${id}`, 'DELETE');
+                showToast('Província apagada com sucesso.');
+                loadInformalRates();
+                notifyServerOfUpdate();
+            } catch (error) {}
+        });
+    }
+
+    async function handleEditProvince(id, currentName) {
+        const newName = prompt("Digite o novo nome para a província:", currentName);
+        if (!newName || newName.trim() === '' || newName.trim() === currentName) return;
+        try {
+            await apiCall('/api/province', 'POST', { id, name: newName.trim() });
+            showToast('Nome da província atualizado.');
+            loadInformalRates();
+            notifyServerOfUpdate();
+        } catch (error) {}
+    }
+
+    async function handleCellEdit(cell) {
+        const originalValue = cell.textContent;
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = originalValue;
+        input.className = 'w-full bg-yellow-100 border-indigo-500 border-2 rounded px-1';
+        cell.innerHTML = '';
+        cell.appendChild(input);
+        input.focus();
+
+        const saveChanges = async () => {
+            const newValue = parseFloat(input.value.replace(',', '.'));
+            const originalNumber = parseFloat(originalValue.replace(',', '.'));
+            if (isNaN(newValue) || newValue === originalNumber) {
+                cell.textContent = originalValue; return;
+            }
+            try {
+                const { field, providerId, pair } = cell.dataset;
+                const body = { field, value: newValue, providerId, pair };
+                await apiCall('/api/update-cell', 'POST', body);
+                cell.textContent = field === 'sell_rate' ? newValue.toFixed(4) : newValue.toString();
+                showToast('Taxa atualizada com sucesso.');
+                notifyServerOfUpdate();
+            } catch (error) {
+                cell.textContent = originalValue;
+            }
+        };
+        input.addEventListener('blur', saveChanges);
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') input.blur();
+            if (e.key === 'Escape') {
+                cell.textContent = originalValue;
+                input.removeEventListener('blur', saveChanges);
+            }
+        });
+    }
+
+    function handleResetStats() {
+        showDeleteConfirmation('Esta ação vai apagar TODAS as estatísticas de atividade (acessos, cliques, etc.) e zerar os contadores de cliques dos afiliados. Esta ação é IRREVERSÍVEL. Deseja continuar?', async () => {
+            try {
+                await apiCall('/api/reset-stats', 'POST');
+                showToast('Todas as estatísticas foram zeradas com sucesso.');
+                loadAllData(); // Recarrega todos os dados para refletir o reset
+            } catch (error) {}
+        });
+    }
+
+    function showDeleteConfirmation(message, onConfirm) {
+        const modal = document.getElementById('delete-confirm-modal');
+        document.getElementById('delete-confirm-message').textContent = message;
+        const confirmBtn = document.getElementById('confirm-delete-btn');
+        const newConfirmBtn = confirmBtn.cloneNode(true);
+        confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+        newConfirmBtn.addEventListener('click', () => { onConfirm(); closeModal(modal); });
+        document.getElementById('cancel-delete-btn').addEventListener('click', () => closeModal(modal), { once: true });
+        openModal(modal);
+    }
+
+</script>
+</html>

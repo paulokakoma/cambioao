@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="pt">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mercado Cambial</title>
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="preload"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+      as="style"
+      onload="this.onload=null;this.rel='stylesheet'"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+      :root { --theme-color: #19b57f; }
+      body { font-family: "Inter", sans-serif; background-color: #f3f4f6; color: #1f2937; min-height: 100vh; }
+      .market-container { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 28px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05); }
+      .calculator-card { box-shadow: 0 32px 64px rgba(0, 0, 0, 0.3); transition: all 0.5s ease-in-out; border-radius: 24px; }
+      .theme-bai { background-image: linear-gradient(to bottom, #0194b3, #006c6e, #b56b3e); }
+      .theme-bfa { background-image: radial-gradient(circle, #f7931e, #eb5c28); }
+      .theme-bic { background-image: linear-gradient(to right, #d42128, #2b2b2b); }
+      .theme-bpc { background-image: linear-gradient(to right, #00529b, #00417a); }
+      .theme-bci { background-color: #1f3a38; }
+      .theme-yetu { background-image: linear-gradient(135deg, #00401A, #EAA900); }
+      .theme-default { background-image: linear-gradient(to right, #3b82f6, #2563eb); }
+      .border-theme-bai { border-color: #0194b3; } .text-theme-bai { color: #0194b3; }
+      .border-theme-bfa { border-color: #f7931e; } .text-theme-bfa { color: #f7931e; }
+      .border-theme-bic { border-color: #d42128; } .text-theme-bic { color: #d42128; }
+      .border-theme-bpc { border-color: #00529b; } .text-theme-bpc { color: #00529b; }
+      .border-theme-bci { border-color: #1f3a38; } .text-theme-bci { color: #1f3a38; }
+      .border-theme-yetu { border-color: #EAA900; } .text-theme-yetu { color: #EAA900; }
+      .border-theme-default { border-color: #3b82f6; } .text-theme-default { color: #3b82f6; }
+      .border-theme-bna { border-color: #64748b; } .text-theme-bna { color: #64748b; }
+      .bg-theme-bai-faded { background-color: rgba(1, 148, 179, 0.07); }
+      .bg-theme-bfa-faded { background-color: rgba(247, 147, 30, 0.07); }
+      .bg-theme-bic-faded { background-color: rgba(212, 33, 40, 0.07); }
+      .bg-theme-bpc-faded { background-color: rgba(0, 82, 155, 0.07); }
+      .bg-theme-bci-faded { background-color: rgba(31, 58, 56, 0.07); }
+      .bg-theme-yetu-faded { background-color: rgba(234, 169, 0, 0.07); }
+      .bg-theme-default-faded { background-color: rgba(59, 130, 246, 0.07); }
+      .bg-theme-bna-faded { background-color: rgba(100, 116, 139, 0.07); }
+      .market-header { color: var(--theme-color); transition: color 0.5s ease; }
+      .tab-button { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); font-weight: 700; font-size: 1.25rem; }
+      .tab-active { background-color: var(--theme-color); color: white; transform: scale(1.03); box-shadow: 0 12px 30px rgba(25, 181, 127, 0.2); }
+      .tab-inactive { background-color: #e5e7eb; color: #4b5563; }
+      .tab-inactive:hover { background-color: #d1d5db; }
+      .calc-input { font-family: 'JetBrains Mono', monospace; }
+      .province-tab { border-bottom: 3px solid transparent; transition: all 0.3s ease; }
+      .province-tab-active { border-color: var(--theme-color); color: var(--theme-color); }
+      @keyframes spin { to { transform: rotate(360deg); } }
+      @keyframes pulse {
+        50% { opacity: .6; }
+      }
+      .skeleton {
+        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        background-color: #e5e7eb; /* gray-200 */
+        border-radius: 0.5rem; /* rounded-lg */
+      }
+      .skeleton-dark {
+        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        background-color: #4b5563; /* gray-600 */
+        border-radius: 0.5rem; /* rounded-lg */
+      }
+      .custom-select { -webkit-appearance: none; -moz-appearance: none; appearance: none; }
+      .loader { border: 4px solid rgba(0, 0, 0, 0.1); border-left-color: var(--theme-color); border-radius: 50%; width: 48px; height: 48px; animation: spin 1s linear infinite; transition: color 0.5s ease; }
+      .scrollbar-hide::-webkit-scrollbar { display: none; }
+      .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+      @keyframes scroll-left {
+        from { transform: translateX(0); }
+        to { transform: translateX(-50%); }
+      }
+      .affiliate-scroller:hover .scrolling-content {
+        animation-play-state: paused;
+      }
+      @keyframes scroll {
+        from { transform: translateX(0); }
+        to { transform: translateX(-50%); }
+      }
+      .animate-scroll {
+        /* A duração é ajustada com base no número de itens, mas um valor padrão pode ser definido */
+        animation: scroll 60s linear infinite;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen">
+    <header class="bg-white shadow-sm sticky top-0 z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <a href="/" class="text-2xl font-bold text-emerald-600">Mercado Cambial</a>
+            <nav class="flex items-center space-x-4 md:space-x-8">
+                <a href="/" class="text-sm md:text-base font-semibold text-emerald-600 hover:text-emerald-700 transition-colors">Mercado</a>
+                <a href="/sobre" class="text-sm md:text-base font-semibold text-slate-600 hover:text-emerald-600 transition-colors">Sobre Nós</a>
+            </nav>
+        </div>
+    </header>
+    <main class="w-full max-w-7xl mx-auto mt-12 px-6 pb-12">
+      <div class="mb-12">
+        <div class="grid grid-cols-2 gap-4 rounded-3xl bg-white shadow-md p-3" role="tablist">
+          <button class="tab-button tab-active rounded-2xl py-4 px-8 text-lg font-bold focus:outline-none" id="market-tab" type="button" role="tab">🏦 Mercado</button>
+          <button class="tab-button tab-inactive rounded-2xl py-4 px-8 text-lg font-bold focus:outline-none" id="calculator-tab" type="button" role="tab">🧮 Calculadora</button>
+        </div>
+      </div>
+      <section id="myTabContent">
+        <div id="market-panel" role="tabpanel">
+            <div class="mb-8 flex justify-center">
+                <div class="flex space-x-2 bg-gray-200 p-2 rounded-full" role="tablist">
+                    <button id="formal-market-tab-btn" role="tab" class="py-2 px-8 rounded-full font-semibold transition-all duration-300">Formal</button>
+                    <button id="informal-market-tab-btn" role="tab" class="py-2 px-8 rounded-full font-semibold transition-all duration-300">Informal</button>
+                </div>
+            </div>
+             <div id="formal-market-panel" role="tabpanel">
+                 <div class="market-container p-6 md:p-8">
+                    <h3 class="text-2xl font-bold text-gray-800 flex items-center mb-6">🏛️ MERCADO FORMAL (Taxas Bancárias)</h3>
+                    
+                    <!-- Novo Conversor de Moeda -->
+                    <div id="quick-converter-container" class="mb-8 p-6 bg-slate-50 rounded-2xl border border-slate-200">
+                        <h4 class="text-lg font-bold text-gray-700 mb-4">Conversor Rápido (<span id="quick-converter-bank-name">--</span>)</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+                            <!-- Campo de Valor -->
+                            <div class="md:col-span-2">
+                                <label for="quick-converter-amount" class="block text-sm font-medium text-gray-600">Valor a converter</label>
+                                <input type="text" id="quick-converter-amount" inputmode="decimal" class="mt-1 w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-lg font-mono" placeholder="100,00">
+                            </div>
+                    
+                            <!-- Seletores de Moeda e Alternador -->
+                            <div class="md:col-span-3 flex items-end gap-2">
+                                <div class="flex-1">
+                                    <label for="quick-converter-from" class="block text-sm font-medium text-gray-600">De</label>
+                                    <select id="quick-converter-from" class="custom-select mt-1 w-full p-3 bg-white border border-gray-300 rounded-lg font-semibold">
+                                        <option value="USD">🇺🇸 USD</option>
+                                        <option value="EUR">🇪🇺 EUR</option>
+                                        <option value="AOA">🇦🇴 AOA</option>
+                                    </select>
+                                </div>
+                                <button id="quick-converter-switch" class="p-3 mb-0.5 bg-gray-200 hover:bg-gray-300 rounded-full transition-transform duration-300 focus:outline-none"><svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg></button>
+                                <div class="flex-1">
+                                    <label for="quick-converter-to" class="block text-sm font-medium text-gray-600">Para</label>
+                                    <select id="quick-converter-to" class="custom-select mt-1 w-full p-3 bg-white border border-gray-300 rounded-lg font-semibold">
+                                        <option value="AOA">🇦🇴 AOA</option>
+                                        <option value="USD">🇺🇸 USD</option>
+                                        <option value="EUR">🇪🇺 EUR</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="quick-converter-result" class="mt-4 text-center text-2xl font-bold text-gray-800 h-8"></div>
+                    </div>
+
+                    <div id="formal-market-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 min-h-[200px]">
+                        <!-- Skeleton para Mercado Formal -->
+                        ${Array(3).fill(0).map(() => `
+                        <div class="p-4 rounded-xl border-l-4 border-gray-200 bg-gray-50 shadow-sm h-full">
+                            <div class="skeleton h-6 w-1/4 mb-2"></div>
+                            <div class="skeleton h-4 w-1/2 mb-6"></div>
+                            <div class="space-y-4 mt-4">
+                                <div>
+                                    <div class="flex justify-between items-baseline">
+                                        <div class="skeleton h-5 w-1/3"></div>
+                                        <div class="skeleton h-6 w-1/4"></div>
+                                    </div>
+                                    <div class="skeleton h-4 w-1/3 ml-auto mt-1"></div>
+                                </div>
+                                <div class="pt-3 border-t border-gray-200">
+                                    <div class="flex justify-between items-baseline">
+                                        <div class="skeleton h-5 w-1/3"></div>
+                                        <div class="skeleton h-6 w-1/4"></div>
+                                    </div>
+                                    <div class="skeleton h-4 w-1/3 ml-auto mt-1"></div>
+                                </div>
+                            </div>
+                        </div>`).join('')}
+                    </div>
+                </div>
+             </div>
+             <div id="informal-market-panel" role="tabpanel" class="hidden">
+                 <div class="market-container p-6 md:p-8">
+                    <div class="flex flex-col md:flex-row justify-between md:items-center mb-6">
+                       <h3 class="text-2xl font-bold text-gray-800 flex items-center mb-4 md:mb-0">🏪 MERCADO INFORMAL</h3>
+                       <div id="province-tabs" class="flex space-x-4 border-b md:border-b-0 border-gray-200 overflow-x-auto" role="tablist">
+                       </div>
+                    </div>
+                    <div id="informal-market-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 min-h-[150px]">
+                        <!-- Skeleton para Mercado Informal -->
+                        ${Array(4).fill(0).map(() => `
+                        <div class="bg-gray-50 border border-gray-200 p-4 rounded-xl">
+                            <div class="skeleton h-5 w-3/4 mb-2"></div>
+                            <div class="skeleton h-8 w-1/2 mb-4"></div>
+                            <div class="mt-3 pt-3 border-t border-gray-200">
+                                <div class="skeleton h-4 w-full"></div>
+                            </div>
+                        </div>`).join('')}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="calculator-panel" class="hidden" role="tabpanel">
+          <div id="calculator-card-container" class="w-full max-w-xl mx-auto calculator-card min-h-[400px]">
+            <!-- Skeleton para Calculadora -->
+            <div class="p-8">
+                <div class="text-center mb-8">
+                    <div class="skeleton-dark h-9 w-3/4 mx-auto mb-3"></div>
+                    <div class="skeleton-dark h-5 w-1/2 mx-auto"></div>
+                </div>
+                <div class="skeleton-dark h-6 w-1/3 mb-3"></div>
+                <div class="skeleton-dark h-16 w-full mb-6"></div>
+                <div class="skeleton-dark h-16 w-full"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+    <!-- Secção de Apoiadores -->
+    <section id="supporters-section" class="w-full bg-white py-16 mt-24 hidden">
+        <div class="max-w-7xl mx-auto px-6">
+            <h2 class="text-3xl font-bold text-slate-800 text-center mb-12">Os Nossos Apoiadores</h2>
+            <div id="supporters-container-wrapper" class="relative flex overflow-x-hidden group affiliate-scroller">
+                <!-- Skeleton para Apoiadores -->
+                <div id="supporters-container" class="flex items-center justify-center w-full min-h-[100px]">
+                ${Array(5).fill(0).map(() => `
+                    <div class="flex flex-col items-center mx-8">
+                        <div class="skeleton h-16 w-36"></div>
+                        <div class="skeleton h-4 w-24 mt-2"></div>
+                    </div>`).join('')}
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="bg-slate-800 text-slate-300">
+        <!-- Secção de Afiliados movida para dentro de um div -->
+        <div class="w-full max-w-7xl mx-auto px-6 py-16">
+            <h2 class="text-3xl font-bold text-white text-center mb-12">Ofertas dos Nossos Parceiros</h2>
+            <div id="affiliate-links-wrapper" class="relative flex overflow-x-hidden group affiliate-scroller">
+                <div id="affiliate-links-container" class="w-full flex justify-center items-center min-h-[200px]"><div class="loader" style="border-left-color: white;"></div></div>
+            </div>
+            <p class="text-xs text-slate-500 text-center mt-12">Ao clicar nestes links e fazer uma compra, poderemos receber uma comissão sem custo adicional para si.</p>
+        </div>
+    </div>
+
+    <footer class="bg-slate-900 text-slate-400 py-8">
+        <div class="max-w-7xl mx-auto px-6 text-center text-sm">
+            <div id="footer-contact-info" class="mb-4 space-y-2">
+                <!-- As informações de contato serão carregadas aqui -->
+            </div>
+            <p>&copy; 2024 Mercado Cambial. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+    
+    <script type="module">
+        // --- CONFIGURAÇÃO ---
+        const WEBSOCKET_URL = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}`;
+
+        let SESSION_ID;
+        let dbClient;
+        let ws;
+        let marketData; // Declarada no escopo do módulo
+
+        const appState = {
+            selectedBank: { code: 'BNA', usd_rate: 0, eur_rate: 0 },
+            _listeners: [], addListener(fn) { this._listeners.push(fn); },
+            updateSelectedBank(bankData) { this.selectedBank = bankData; this._listeners.forEach(fn => fn(bankData)); }
+        };
+
+        const currencyFlags = { USD: '🇺🇸', EUR: '🇪🇺', AOA: '🇦🇴', USDT: '🪙' };
+
+        // --- FUNÇÕES DE UTILIDADE ---
+        function getOrCreateSessionId() {
+            let sessionId = sessionStorage.getItem('app_session_id');
+            if (!sessionId) {
+                sessionId = crypto.randomUUID();
+                sessionStorage.setItem('app_session_id', sessionId);
+            }
+            return sessionId;
+        }
+
+        function formatNumber(num) {
+            if (typeof num !== 'number') return 'N/A';
+            return num.toLocaleString('pt-AO', { minimumFractionDigits: 2, maximumFractionDigits: 4 });
+        }
+
+        function formatCurrency(value, currency = 'AOA') {
+            if (typeof value !== 'number') return 'N/A';
+            return new Intl.NumberFormat('pt-AO', { style: 'currency', currency }).format(value);
+        }
+
+        // --- FUNÇÕES DE NAVEGAÇÃO ---
+        function switchTab(tabName) {
+            const [calculatorTab, marketTab] = [document.getElementById('calculator-tab'), document.getElementById('market-tab')];
+            const [calculatorPanel, marketPanel] = [document.getElementById('calculator-panel'), document.getElementById('market-panel')];
+            if (tabName === 'calculator') {
+                marketPanel.classList.add('hidden'); calculatorPanel.classList.remove('hidden');
+                marketTab.classList.replace('tab-active', 'tab-inactive'); calculatorTab.classList.replace('tab-inactive', 'tab-active');
+                logActivity('tab_switch', { tab: 'Calculadora' });
+            } else {
+                calculatorPanel.classList.add('hidden'); marketPanel.classList.remove('hidden');
+                calculatorTab.classList.replace('tab-active', 'tab-inactive'); marketTab.classList.replace('tab-inactive', 'tab-active');
+                logActivity('tab_switch', { tab: 'Mercado' });
+            }
+        }
+
+        function switchMarketTab(tabName) {
+            const [formalTabBtn, informalTabBtn] = [document.getElementById('formal-market-tab-btn'), document.getElementById('informal-market-tab-btn')];
+            const [formalPanel, informalPanel] = [document.getElementById('formal-market-panel'), document.getElementById('informal-market-panel')];
+            const activeClasses = ['bg-white', 'text-[var(--theme-color)]', 'shadow-md'], inactiveClasses = ['text-gray-600'];
+            
+            formalPanel.classList.toggle('hidden', tabName !== 'formal');
+            informalPanel.classList.toggle('hidden', tabName === 'formal');
+            
+            formalTabBtn.classList.add(...(tabName === 'formal' ? activeClasses : inactiveClasses));
+            formalTabBtn.classList.remove(...(tabName !== 'formal' ? activeClasses : inactiveClasses));
+            
+            informalTabBtn.classList.add(...(tabName !== 'formal' ? activeClasses : inactiveClasses));
+            informalTabBtn.classList.remove(...(tabName === 'formal' ? activeClasses : inactiveClasses));
+        }
+
+        function setupEventListeners() {
+            document.getElementById('market-tab').addEventListener('click', () => switchTab('market'));
+            document.getElementById('calculator-tab').addEventListener('click', () => switchTab('calculator'));
+            document.getElementById('formal-market-tab-btn').addEventListener('click', () => switchMarketTab('formal'));
+            document.getElementById('informal-market-tab-btn').addEventListener('click', () => switchMarketTab('informal'));
+        }
+
+        // --- MÓDULO DO MERCADO ---
+        const MarketModule = (function() {
+            function renderBankCards(containerId, banks) {
+                const gridContainer = document.getElementById(containerId);
+                if (!gridContainer || !banks || banks.length === 0) {
+                    if(gridContainer) gridContainer.innerHTML = '<p class="col-span-full text-center text-slate-500 py-8">Nenhum banco disponível de momento.</p>';
+                    return;
+                };
+                
+                const bna = banks.find(b => b.code === 'BNA') || banks[0];
+                if (bna) {
+                    appState.updateSelectedBank({ code: bna.code, usd_rate: bna.usd_rate, eur_rate: bna.eur_rate });
+                }
+
+                const displayBanks = banks.filter(b => b.code !== 'BNA').sort((a,b) => (a.usd_rate || Infinity) - (b.usd_rate || Infinity));
+                
+                gridContainer.innerHTML = displayBanks.map(bank => {
+                    const themeCode = CalculatorModule.getThemeCode(bank.code.toLowerCase());
+                    const usd_equivalence = bank.usd_rate ? formatNumber(100 * bank.usd_rate) : 'N/A';
+                    const eur_equivalence = bank.eur_rate ? formatNumber(100 * bank.eur_rate) : 'N/A';
+                    return `
+                        <div class="p-4 rounded-xl border-l-4 border-theme-${themeCode} bg-theme-${themeCode}-faded shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between h-full">
+                            <div>
+                                <p class="font-bold text-lg text-gray-800">${bank.code}</p><p class="text-xs text-gray-500">${bank.name}</p>
+                                <div class="space-y-4 mt-4">
+                                    <div>
+                                        <div class="flex justify-between items-baseline"><span class="text-sm font-semibold text-gray-600">${currencyFlags.USD} USD/AOA</span><span class="text-lg font-bold text-theme-${themeCode} font-mono">${formatNumber(bank.usd_rate)}</span></div>
+                                        <p class="text-xs text-gray-500 text-right">100 USD ≈ ${usd_equivalence} AOA</p>
+                                    </div>
+                                    <div class="pt-3 border-t border-gray-100">
+                                        <div class="flex justify-between items-baseline"><span class="text-sm font-semibold text-gray-600">${currencyFlags.EUR} EUR/AOA</span><span class="text-lg font-bold text-theme-${themeCode} font-mono">${formatNumber(bank.eur_rate)}</span></div>
+                                        <p class="text-xs text-gray-500 text-right">100 EUR ≈ ${eur_equivalence} AOA</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>`;
+                }).join('');
+            }
+
+            function renderInformalMarket(data) { // data is informal_rates_by_province
+                const tabsContainer = document.getElementById('province-tabs');
+                if (!tabsContainer || !data || Object.keys(data).length === 0) {
+                    document.getElementById('informal-market-grid').innerHTML = '<p class="col-span-full text-center text-slate-500 py-8">Nenhuma taxa informal disponível de momento.</p>';
+                    return;
+                }
+                
+                const provinces = Object.keys(data);
+                tabsContainer.innerHTML = provinces.map(provinceCode => `<button data-provider-id="${data[provinceCode][0]?.provider_id}" data-province="${provinceCode}" class="province-tab font-semibold pb-2 px-1">${provinceCode}</button>`).join('');
+
+                document.querySelectorAll('.province-tab').forEach(tab => {
+                     tab.addEventListener('click', () => {
+                        document.querySelectorAll('.province-tab').forEach(t => t.classList.remove('province-tab-active'));
+                        tab.classList.add('province-tab-active');
+                        renderInformalGrid(tab.dataset.province, data);
+                        loadSupporters(tab.dataset.providerId); // Carrega os apoiadores da província selecionada
+                    });
+                });
+
+                if(provinces.length > 0) {
+                    const defaultProvince = provinces[0];
+                    tabsContainer.querySelector(`[data-province="${defaultProvince}"]`).classList.add('province-tab-active');
+                    renderInformalGrid(defaultProvince, data);
+                    loadSupporters(tabsContainer.querySelector(`[data-province="${defaultProvince}"]`).dataset.providerId); // Carrega os apoiadores da província padrão
+                }
+            }
+
+            function renderInformalGrid(province, data) {
+                const gridContainer = document.getElementById('informal-market-grid');
+                const provinceRates = data[province] || [];
+                const requiredPairs = ['USD/AOA', 'EUR/AOA', 'USDT/AOA'];
+
+                gridContainer.innerHTML = requiredPairs.map(pair => {
+                    const item = provinceRates.find(p => p.pair === pair);
+                    const [from, to] = pair.split('/');
+                    const fromFlag = currencyFlags[from] || '🏳️';
+                    const toFlag = currencyFlags[to] || '🏳️';
+
+                    if (item) {
+                        const equivalence = formatNumber(100 * item.rate);
+                        return `
+                            <div class="bg-gray-50 border border-gray-200 p-4 rounded-xl hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
+                                <p class="text-sm text-gray-500 font-bold">${fromFlag} ${from} / ${toFlag} ${to}</p>
+                                <p class="text-2xl font-bold text-gray-800 mt-1">${formatNumber(item.rate)}</p>
+                                <div class="mt-3 pt-3 border-t border-gray-200">
+                                    <p class="text-xs text-gray-500">100 ${from} <span class="font-semibold">≈</span> ${equivalence} ${to}</p>
+                                </div>
+                            </div>`;
+                    }
+                    return `
+                            <div class="bg-gray-50 border border-gray-200 p-4 rounded-xl opacity-60">
+                                <p class="text-sm text-gray-500 font-bold">${fromFlag} ${from} / ${toFlag} ${to}</p>
+                                <p class="text-2xl font-bold text-gray-400 mt-1">N/A</p>
+                                <div class="mt-3 pt-3 border-t border-gray-200">
+                                    <p class="text-xs text-gray-400">Dados indisponíveis</p>
+                                </div>
+                            </div>`;
+                }).join('');
+            }
+
+            function setupQuickConverter() {
+                const amountInput = document.getElementById('quick-converter-amount');
+                const switchBtn = document.getElementById('quick-converter-switch');
+                const fromSelect = document.getElementById('quick-converter-from');
+                const toSelect = document.getElementById('quick-converter-to');
+                const resultDisplay = document.getElementById('quick-converter-result');
+
+                appState.addListener((bankData) => {
+                    document.getElementById('quick-converter-bank-name').textContent = bankData.code;
+                    calculate();
+                });
+
+                const calculate = () => {
+                    const amountStr = amountInput.value.replace(/\./g, '').replace(',', '.');
+                    const amount = parseFloat(amountStr);
+                    if (isNaN(amount) || amount === 0) {
+                        resultDisplay.textContent = '';
+                        return;
+                    }
+
+                    const from = fromSelect.value, to = toSelect.value;
+                    const rates = appState.selectedBank;
+                    let rate = 0;
+                    if (from === 'USD' && to === 'AOA') rate = rates.usd_rate;
+                    else if (from === 'AOA' && to === 'USD') rate = 1 / rates.usd_rate;
+                    else if (from === 'EUR' && to === 'AOA') rate = rates.eur_rate;
+                    else if (from === 'AOA' && to === 'EUR') rate = 1 / rates.eur_rate;
+                    else if (from === 'USD' && to === 'EUR') rate = rates.usd_rate / rates.eur_rate;
+                    else if (from === 'EUR' && to === 'USD') rate = rates.eur_rate / rates.usd_rate;
+                    else if (from === to) rate = 1;
+
+                    resultDisplay.textContent = (rate && isFinite(rate)) 
+                        ? `≈ ${formatNumber(amount * rate)} ${to}`
+                        : 'Taxa indisponível';
+                };
+
+                [amountInput, fromSelect, toSelect].forEach(el => el.addEventListener('input', calculate));
+                switchBtn.addEventListener('click', () => { [fromSelect.value, toSelect.value] = [toSelect.value, fromSelect.value]; calculate(); });
+            }
+
+            function init(data) {
+                renderBankCards('formal-market-grid', data.formal_rates || []);
+                renderInformalMarket(data.informal_rates_by_province || {});
+                setupQuickConverter();
+            }
+
+            return { init };
+        })();
+
+        // --- MÓDULO DA CALCULADORA ---
+        const CalculatorModule = (function() {
+            const container = document.getElementById('calculator-card-container');
+            let purchasePriceInput, bankSelectorBtn, bankOptionsPanel, selectedBankCode, bankExchangeRateInput, bankFeeMarginInput, bankFeeFinalInput, calculateBtn, calculatorCard, dropdownArrow;
+            const themes = { 
+                bai: { card: 'theme-bai', color: '#0194b3' }, 
+                bfa: { card: 'theme-bfa', color: '#f7931e' }, 
+                bic: { card: 'theme-bic', color: '#d42128' },
+                bpc: { card: 'theme-bpc', color: '#00529b' },
+                bci: { card: 'theme-bci', color: '#1f3a38' },
+                yetu: { card: 'theme-yetu', color: '#EAA900' },
+                default: { card: 'theme-default', color: '#3b82f6' } // Tema azul padrão
+            };
+
+            function getThemeCode(bankCode) {
+                const code = bankCode.toLowerCase();
+                return themes[code] ? code : 'default';
+            }
+
+            function render(banks) {
+                container.innerHTML = `
+                    <div class="p-8">
+                        <div class="text-center mb-8"><h2 class="text-3xl font-bold text-white mb-3">Calculadora de Câmbio</h2><p class="text-gray-200">Estime o custo da sua compra</p></div>
+                        <div class="mb-6">
+                            <label for="purchasePrice" class="block text-base font-semibold text-gray-200 mb-3">Valor em Dólar</label>
+                            <div class="flex items-center rounded-2xl bg-white/90 ring-4 ring-transparent focus-within:ring-green-400 transition">
+                                <input type="text" inputmode="decimal" id="purchasePrice" class="flex-1 w-full bg-transparent text-lg p-4 text-gray-900 placeholder-gray-500 focus:outline-none calc-input" placeholder="0,00" />
+                                <div class="relative" id="bank-selector-wrapper">
+                                    <input type="hidden" id="bankExchangeRate" /><input type="hidden" id="bankFeeMargin" /><input type="hidden" id="bankFeeFinal" />
+                                    <button type="button" id="bankSelectorBtn" class="flex items-center justify-between w-32 text-left text-gray-800 text-base p-4 border-l border-gray-400/50">
+                                        <span id="selectedBankCode" class="font-bold"></span>
+                                        <svg class="w-5 h-5 text-gray-600 transform transition-transform" id="dropdown-arrow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                                    </button>
+                                    <div id="bankOptionsPanel" class="hidden absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg z-20 border border-gray-200">${populateBankSelector(banks)}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <button id="calculateBtn" class="w-full text-white font-bold py-4 px-6 rounded-2xl transition-all duration-300 text-lg transform hover:scale-105 focus:outline-none focus:ring-4">Calcular Custo</button>
+                        <div id="result" class="mt-8 border-t border-white/20 pt-6 space-y-4 opacity-0 transition-opacity duration-500">
+                            <div><p class="text-base font-semibold text-gray-200">Conversão Direta (AOA):</p><p id="directConversionValue" class="text-2xl font-bold text-white mt-1">0,00</p></div>
+                            <div class="bg-white/15 backdrop-blur-sm p-5 rounded-2xl border border-white/10"><p class="text-base font-semibold text-white">Valor total a ser descontado (AOA)</p><p id="totalCost" class="text-4xl font-bold text-white mt-1">0,00</p></div>
+                        </div>
+                    </div>`;
+                
+                calculatorCard = container;
+                purchasePriceInput = document.getElementById('purchasePrice');
+                bankSelectorBtn = document.getElementById('bankSelectorBtn');
+                bankOptionsPanel = document.getElementById('bankOptionsPanel');
+                selectedBankCode = document.getElementById('selectedBankCode');
+                dropdownArrow = document.getElementById('dropdown-arrow');
+                bankExchangeRateInput = document.getElementById('bankExchangeRate');
+                bankFeeMarginInput = document.getElementById('bankFeeMargin');
+                bankFeeFinalInput = document.getElementById('bankFeeFinal');
+                calculateBtn = document.getElementById('calculateBtn');
+            }
+
+            function toggleDropdown() { bankOptionsPanel.classList.toggle('hidden'); dropdownArrow.classList.toggle('rotate-180'); }
+
+            function populateBankSelector(banks) {
+                if (!banks || banks.length === 0) return '<div class="px-4 py-3 text-sm text-gray-500">Nenhum banco disponível.</div>';
+                return banks.sort((a,b) => a.code.localeCompare(b.code)).map(bank => 
+                    `<div class="bank-option px-4 py-3 hover:bg-gray-100 cursor-pointer text-gray-800 text-sm" data-code="${bank.code}" data-rate="${bank.usd_rate}" data-fee-margin="${bank.fee_margin}" data-fee-final="${bank.fee_final}"><span class="font-bold">${bank.code}</span></div>`
+                ).join('');
+            }
+
+            function selectBank(bankData) {
+                selectedBankCode.textContent = bankData.code;
+                bankExchangeRateInput.value = bankData.rate;
+                bankFeeMarginInput.value = bankData.feeMargin;
+                bankFeeFinalInput.value = bankData.feeFinal;
+                
+                const themeCode = getThemeCode(bankData.code);
+                const theme = themes[themeCode];
+                calculatorCard.className = `w-full max-w-xl mx-auto calculator-card min-h-[400px] ${theme ? theme.card : ''}`;
+                document.documentElement.style.setProperty('--theme-color', theme.color);
+            }
+            
+            function handleCalculation() {
+                const priceStr = purchasePriceInput.value.replace(/\./g, '').replace(',', '.');
+                const [price, rate, margin, finalFee] = [priceStr, bankExchangeRateInput.value, bankFeeMarginInput.value, bankFeeFinalInput.value].map(parseFloat);
+                const resultPanel = document.getElementById('result');
+
+                if (![price, rate].every(v => !isNaN(v) && v > 0)) { resultPanel.classList.add('opacity-0'); return; }
+                
+                const directConversion = price * rate;
+                const totalCost = directConversion * (1 + (margin/100 || 0)) * (1 + (finalFee/100 || 0));
+                
+                document.getElementById('directConversionValue').textContent = `${directConversion.toLocaleString('pt-AO', { style: 'currency', currency: 'AOA' })}`;
+                document.getElementById('totalCost').textContent = `${totalCost.toLocaleString('pt-AO', { style: 'currency', currency: 'AOA' })}`;
+                resultPanel.classList.remove('opacity-0');
+            }
+
+            function formatInput(e) {
+                let value = e.target.value.replace(/\D/g, '');
+                if (value === '') { e.target.value = ''; return; }
+                const num = BigInt(value);
+                const formatted = new Intl.NumberFormat('pt-PT', { minimumFractionDigits: 2 }).format(Number(num) / 100);
+                e.target.value = formatted;
+            }
+
+            function init(banks) {
+                if (!banks || banks.length === 0) {
+                    container.innerHTML = `<div class="p-8 text-center text-white"><h3 class="font-bold text-lg">Calculadora Indisponível</h3><p>Não foi possível carregar os dados dos bancos.</p></div>`;
+                    return;
+                }
+                render(banks);
+                
+                const firstBank = banks.find(b => b.code === 'BAI') || banks[0];
+                selectBank({ code: firstBank.code, rate: firstBank.usd_rate, feeMargin: firstBank.fee_margin, feeFinal: firstBank.fee_final });
+                
+                bankSelectorBtn.addEventListener('click', toggleDropdown);
+                calculateBtn.addEventListener('click', handleCalculation);
+                purchasePriceInput.addEventListener('input', formatInput);
+                
+                bankOptionsPanel.addEventListener('click', (e) => {
+                    if (e.target.closest('.bank-option')) {
+                        selectBank(e.target.closest('.bank-option').dataset);
+                        toggleDropdown();
+                    }
+                });
+
+                document.addEventListener('click', (e) => {
+                    if (!document.getElementById('bank-selector-wrapper').contains(e.target)) {
+                        bankOptionsPanel.classList.add('hidden'); dropdownArrow.classList.remove('rotate-180');
+                    }
+                });
+            }
+            return { init, getThemeCode };
+        })();
+
+        // --- MÓDULO WEBSOCKET ---
+        const WebSocketModule = (function() {
+            function connect() {
+                try {
+                    ws = new WebSocket(WEBSOCKET_URL);
+                    ws.onopen = () => console.log('WebSocket conectado.');
+                    ws.onmessage = (event) => {
+                        const message = JSON.parse(event.data);
+                        if (message.type === 'rates_updated') {
+                            console.log('Recebida notificação de atualização de taxas. A recarregar dados...');
+                            showLiveUpdateToast();
+                            reloadMarketData();
+                        }
+                    };
+                    ws.onclose = () => setTimeout(connect, 5000);
+                    ws.onerror = (err) => console.error('Erro no WebSocket:', err);
+                } catch(e) {
+                    console.error("Falha ao conectar ao WebSocket:", e)
+                }
+            }
+            function send(data) {
+                if (ws && ws.readyState === WebSocket.OPEN) {
+                    ws.send(JSON.stringify(data));
+                }
+            }
+            return { connect, send };
+        })();
+        
+        function showLiveUpdateToast() {
+            const toast = document.createElement('div');
+            toast.className = 'fixed top-5 right-5 bg-blue-500 text-white py-3 px-6 rounded-lg shadow-lg transform translate-x-[120%] transition-transform duration-300 ease-out z-50';
+            toast.innerHTML = `<p>As taxas foram atualizadas!</p>`;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => toast.classList.remove('translate-x-[120%]'), 100);
+            setTimeout(() => {
+                toast.classList.add('translate-x-[120%]');
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+
+        // --- FUNÇÃO PRINCIPAL ---
+        async function main() {
+            setupEventListeners();
+            SESSION_ID = getOrCreateSessionId();
+            switchTab('market'); 
+            switchMarketTab('formal');
+            
+            WebSocketModule.connect();
+
+            await reloadMarketData();
+            loadAffiliateLinks();
+            loadSupporters();
+            loadFooterContactInfo();
+
+            logActivity('page_view');
+        }
+
+        async function reloadMarketData() {
+            try {
+                const { data, error } = await dbClient.rpc('get_market_data');
+                if (error) throw error;
+                marketData = data; 
+                if (!marketData || (!marketData.formal_rates && !marketData.informal_rates_by_province)) {
+                   throw new Error("A função RPC 'get_market_data' não retornou dados válidos.");
+                }
+            } catch (rpcError) {
+                console.warn("RPC 'get_market_data' falhou. Tentando fallback.", rpcError.message);
+                marketData = await fallbackFetchMarketData();
+            }
+
+            if (!marketData) {
+                console.error("Não foi possível obter os dados do mercado.");
+                document.getElementById('myTabContent').innerHTML = `<div class="text-center p-8 bg-red-50 text-red-700 rounded-2xl"><h3 class="font-bold text-lg">Erro ao Carregar Dados</h3><p>Não foi possível comunicar com a base de dados. Tente mais tarde.</p></div>`;
+                return;
+            }
+
+            document.querySelectorAll('.loader-container').forEach(el => el.style.display = 'none');
+            MarketModule.init(marketData);
+            const banksForCalculator = marketData.formal_rates?.filter(bank => bank.code !== 'BNA') || [];
+            CalculatorModule.init(banksForCalculator);
+        }
+
+        async function fallbackFetchMarketData() {
+            try {
+                const { data: providers, error } = await dbClient.from('rate_providers').select('*, exchange_rates(*)').eq('is_active', true);
+                if (error) throw error;
+
+                return {
+                    formal_rates: providers.filter(p => p.type === 'FORMAL').map(p => ({
+                        code: p.code, name: p.name,
+                        usd_rate: p.exchange_rates.find(r => r.currency_pair === 'USD/AOA')?.sell_rate || null,
+                        eur_rate: p.exchange_rates.find(r => r.currency_pair === 'EUR/AOA')?.sell_rate || null,
+                        fee_margin: p.fee_margin, fee_final: p.fee_final
+                    })),
+                    informal_rates_by_province: providers.filter(p => p.type === 'INFORMAL' && p.exchange_rates.length > 0)
+                        .reduce((acc, p) => {
+                            acc[p.name] = p.exchange_rates.map(rate => ({ pair: rate.currency_pair, rate: rate.sell_rate, provider_id: p.id }));
+                            return acc;
+                        }, {})
+                };
+            } catch (fallbackError) {
+                console.error("Falha no fallback:", fallbackError);
+                return null;
+            }
+        }
+
+        async function loadAffiliateLinks() {
+            const container = document.getElementById('affiliate-links-container');
+            const { data, error } = await dbClient // A query é feita aqui
+                .from('affiliate_links')
+                .select('*')
+                .eq('is_active', true)
+                .limit(8) 
+                .order('created_at', { ascending: false });
+
+            const footer = container.closest('footer');
+            const wrapper = document.getElementById('affiliate-links-wrapper');
+            if (error || !data || data.length === 0) {
+                if (error) console.error('Erro ao carregar links de afiliados:', error);
+                wrapper.closest('.bg-slate-800').classList.add('hidden');
+                return;
+            }
+
+            // Preenche com skeletons enquanto carrega
+            container.innerHTML = Array(4).fill(0).map(() => `
+                <div class="block bg-slate-700 rounded-lg overflow-hidden shadow-lg w-48 md:w-56 flex-shrink-0 mx-4">
+                    <div class="skeleton-dark h-32 w-full"></div>
+                    <div class="p-3">
+                        <div class="skeleton-dark h-5 w-full mb-2"></div>
+                        <div class="skeleton-dark h-6 w-3/4"></div>
+                    </div>
+                </div>
+            `).join(''); // Skeletons don't need the full slideshow structure yet
+
+
+            const bnaRate = marketData?.formal_rates?.find(r => r.code === 'BNA')?.usd_rate;
+            if (!bnaRate) {
+                console.warn("Taxa do BNA não encontrada para converter preços de afiliados.");
+            }
+
+            const linksHTML = data.map(link => `
+                <a href="details.html?id=${link.id}" class="affiliate-link-item group block bg-slate-700 rounded-lg overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-300 w-48 md:w-56 flex-shrink-0">
+                        <img src="${link.image_url || 'https://placehold.co/300x300'}" alt="Imagem de ${link.title}" class="w-full h-32 object-cover group-hover:opacity-80 transition-opacity">
+                        <div class="p-3">
+                            <h3 class="text-sm font-semibold text-white truncate">${link.title}</h3>
+                            <p class="text-base font-bold text-emerald-400 mt-1">
+                                ${bnaRate ? formatCurrency(((link.price || 0) + (link.shipping_cost_usd || 0)) * bnaRate, 'AOA') : 'Ver detalhes'}
+                            </p>
+                        </div>
+                    </a>`).join('');
+            
+            // Duplica o conteúdo para um scroll infinito e suave
+            container.innerHTML = `
+                <div class="scrolling-content flex py-4">
+                    <div class="flex flex-shrink-0 gap-x-8 animate-scroll">
+                        ${linksHTML}${linksHTML}
+                    </div>
+                </div>
+            `;
+
+            // Adiciona event listeners para os novos links de afiliados
+            container.querySelectorAll('.affiliate-link-item').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    // Não previne a navegação, apenas regista a atividade
+                    logActivity('affiliate_click', { link_id: link.href.split('id=')[1], product_title: link.querySelector('h3').textContent });
+                });
+            });
+        }
+        
+        async function loadSupporters(providerId = null) {
+            const container = document.getElementById('supporters-container');
+            const wrapper = document.getElementById('supporters-container-wrapper');
+            const section = document.getElementById('supporters-section');
+
+            // Simplificado: Carrega todos os apoiadores globais ativos
+            const query = dbClient.from('supporters').select('*').eq('is_active', true);
+
+            const { data, error } = await query.order('name');
+
+             if (error || !data || data.length === 0) {
+                if (error) console.error('Erro ao carregar apoiadores:', error);
+                section.classList.add('hidden');
+                return;
+            }
+
+            const logosHTML = data.map(supporter => `
+                <div class="flex flex-col items-center text-center flex-shrink-0 w-40">
+                    <a href="${supporter.website_url}" target="_blank" rel="noopener sponsored" title="${supporter.name}" class="supporter-link h-16 flex items-center justify-center" data-supporter-id="${supporter.id}" data-supporter-name="${supporter.name}">
+                        <img src="${supporter.logo_url}" alt="${supporter.name}" class="max-h-12 max-w-[150px] object-contain transition duration-300">
+                    </a>
+                    <p class="text-xs text-gray-500 mt-2 truncate w-full">${supporter.name}</p>
+                </div>
+            `).join('');
+
+            // Renderiza os logotipos numa única linha flexível
+            container.innerHTML = `
+                <div class="scrolling-content flex items-center justify-center w-full">
+                    <div class="flex flex-shrink-0 gap-x-10 py-4">
+                        ${logosHTML}
+                    </div>
+                </div>
+            `;
+            section.classList.remove('hidden');
+
+            // Adiciona event listeners para os novos links de apoiadores
+            container.querySelectorAll('.supporter-link').forEach(link => {
+                link.addEventListener('click', () => {
+                    logActivity('supporter_click', { supporter_id: link.dataset.supporterId, supporter_name: link.dataset.supporterName });
+                });
+            });
+            checkSupporterOverflow(); // Verifica se a animação é necessária
+        }
+
+        function checkSupporterOverflow() {
+            const container = document.getElementById('supporters-container');
+            if (!container) return;
+            const contentWrapper = container.querySelector('.scrolling-content > div');
+            if (!contentWrapper || !contentWrapper.firstElementChild) return;
+
+            const isOverflowing = contentWrapper.scrollWidth > container.clientWidth;
+            
+            contentWrapper.classList.toggle('animate-scroll', isOverflowing);
+            contentWrapper.parentElement.classList.toggle('justify-center', !isOverflowing);
+
+            // Garante que o conteúdo só é duplicado se houver overflow e se ainda não tiver sido duplicado
+            if (isOverflowing && contentWrapper.children.length === 1) {
+                contentWrapper.innerHTML = `${contentWrapper.innerHTML}${contentWrapper.innerHTML}`;
+            }
+        }
+
+        async function loadFooterContactInfo() {
+            const container = document.getElementById('footer-contact-info');
+            if (!container) return;
+
+            try {
+                const { data, error } = await dbClient.from('site_settings').select('key, value').in('key', ['contact_email', 'contact_phone']);
+                if (error) throw error;
+
+                const settings = data.reduce((acc, { key, value }) => { acc[key] = value; return acc; }, {});
+
+                let html = '';
+                if (settings.contact_email) {
+                    html += `<a href="mailto:${settings.contact_email}" class="inline-block mx-2 hover:text-white transition-colors">${settings.contact_email}</a>`;
+                }
+                if (settings.contact_phone) {
+                    html += `<a href="tel:${settings.contact_phone}" class="inline-block mx-2 hover:text-white transition-colors">${settings.contact_phone}</a>`;
+                }
+                container.innerHTML = html;
+            } catch (error) {
+                console.error("Erro ao carregar informações de contato do rodapé:", error);
+            }
+        }
+
+        async function logActivity(type, details = {}) {
+            try {
+                if (!type) return;
+                // Monta o objeto com a estrutura correta que a tabela 'user_activity' espera
+                const activityData = { event_type: type, details, session_id: SESSION_ID };
+                
+                // Envia os dados para o servidor via WebSocket, que por sua vez os insere na BD
+                // e notifica o painel de administração.
+                WebSocketModule.send({ type: 'log_activity', payload: activityData });
+            } catch (error) {
+                console.error('Erro crítico ao registrar atividade:', error);
+            }
+        }
+
+        async function initializeApp() {
+            const style = document.createElement('style');
+
+            try {
+                const response = await fetch('/api/config');
+                if (!response.ok) throw new Error('Falha ao carregar a configuração do servidor.');
+                const config = await response.json();
+                
+                dbClient = supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
+                main();
+            } catch (error) {
+                console.error("Erro de inicialização:", error);
+                document.body.innerHTML = `<div class="p-8 m-8 text-center bg-red-100 text-red-800 rounded-lg"><strong>Erro Crítico:</strong> Não foi possível carregar a configuração da aplicação.</div>`;
+                return;
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', initializeApp);
+        window.addEventListener('resize', checkSupporterOverflow);
+    </script>
+
+  </body>
+</html>
