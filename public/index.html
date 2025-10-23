@@ -19,6 +19,32 @@
       :root { --theme-color: #19b57f; }
       body { font-family: "Inter", sans-serif; background-color: #f3f4f6; color: #1f2937; min-height: 100vh; }
       .market-container { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 28px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05); }
+      /* Carousel arrows */
+      .carousel-arrow {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 30;
+        background: rgba(15, 23, 42, 0.6);
+        color: white;
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background-color 0.2s;
+      }
+      @media (min-width: 768px) {
+        .carousel-arrow {
+          width: 40px;
+          height: 40px;
+          border-radius: 8px;
+        }
+      }
+      .carousel-arrow:hover { background: rgba(15, 23, 42, 0.8); }
       .calculator-card { box-shadow: 0 32px 64px rgba(0, 0, 0, 0.3); transition: all 0.5s ease-in-out; border-radius: 24px; }
       .theme-bai { background-image: linear-gradient(to bottom, #0194b3, #006c6e, #b56b3e); }
       .theme-bfa { background-image: radial-gradient(circle, #f7931e, #eb5c28); }
@@ -84,6 +110,25 @@
         /* A duração é ajustada com base no número de itens, mas um valor padrão pode ser definido */
         animation: scroll 60s linear infinite;
       }
+            /* Carousel arrows and helpers */
+            .carousel-arrow {
+                position: absolute;
+                top: 50%;
+                transform: translateY(-50%);
+                z-index: 30;
+                background: rgba(15, 23, 42, 0.6);
+                color: white;
+                width: 40px;
+                height: 40px;
+                border-radius: 8px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: 700;
+            }
+            .carousel-arrow:hover { background: rgba(15,23,42,0.8); }
+            .no-scrollbar::-webkit-scrollbar { display: none; }
+            .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
   </head>
   <body class="min-h-screen">
@@ -215,15 +260,17 @@
     <!-- Secção de Apoiadores -->
     <section id="supporters-section" class="w-full bg-white py-16 mt-24 hidden">
         <div class="max-w-7xl mx-auto px-6">
-            <h2 class="text-3xl font-bold text-slate-800 text-center mb-12">Os Nossos Apoiadores</h2>
-            <div id="supporters-container-wrapper" class="relative flex overflow-x-hidden group affiliate-scroller">
-                <!-- Skeleton para Apoiadores -->
-                <div id="supporters-container" class="flex items-center justify-center w-full min-h-[100px]">
-                ${Array(5).fill(0).map(() => `
-                    <div class="flex flex-col items-center mx-8">
-                        <div class="skeleton h-16 w-36"></div>
-                        <div class="skeleton h-4 w-24 mt-2"></div>
-                    </div>`).join('')}
+            <div id="supporters-container-wrapper" class="relative max-w-4xl mx-auto">
+                <button id="supporter-prev" aria-label="Anterior" class="carousel-arrow left-2 flex">◀</button>
+                <!-- Container para Apoiadores -->
+                <div id="supporters-container" class="relative overflow-hidden">
+                    <div class="flex items-center justify-center w-full min-h-[200px]">
+                        <div class="skeleton h-48 w-full max-w-2xl rounded-xl"></div>
+                    </div>
+                </div>
+                <button id="supporter-next" aria-label="Próximo" class="carousel-arrow right-2 flex">▶</button>
+                <!-- Indicadores de slide -->
+                <div id="supporter-indicators" class="flex justify-center gap-2 mt-4">
                 </div>
             </div>
         </div>
@@ -233,8 +280,14 @@
         <!-- Secção de Afiliados movida para dentro de um div -->
         <div class="w-full max-w-7xl mx-auto px-6 py-16">
             <h2 class="text-3xl font-bold text-white text-center mb-12">Ofertas dos Nossos Parceiros</h2>
-            <div id="affiliate-links-wrapper" class="relative flex overflow-x-hidden group affiliate-scroller">
-                <div id="affiliate-links-container" class="w-full flex justify-center items-center min-h-[200px]"><div class="loader" style="border-left-color: white;"></div></div>
+            <div id="affiliate-links-wrapper" class="relative group">
+                <button id="affiliate-prev" aria-label="Anterior" class="carousel-arrow left-2 flex">◀</button>
+                <div class="relative flex overflow-x-hidden affiliate-scroller">
+                    <div id="affiliate-links-container" class="w-full flex justify-center items-center min-h-[200px]">
+                        <div class="loader" style="border-left-color: white;"></div>
+                    </div>
+                </div>
+                <button id="affiliate-next" aria-label="Próximo" class="carousel-arrow right-2 flex">▶</button>
             </div>
             <p class="text-xs text-slate-500 text-center mt-12">Ao clicar nestes links e fazer uma compra, poderemos receber uma comissão sem custo adicional para si.</p>
         </div>
@@ -710,22 +763,22 @@
 
         async function loadAffiliateLinks() {
             const container = document.getElementById('affiliate-links-container');
-            const { data, error } = await dbClient // A query é feita aqui
-                .from('affiliate_links')
-                .select('*')
-                .eq('is_active', true)
-                .limit(8) 
-                .order('created_at', { ascending: false });
+                const { data, error } = await dbClient // A query é feita aqui
+                    .from('affiliate_links')
+                    .select('*')
+                    .eq('is_active', true)
+                    .limit(8)
+                    .order('created_at', { ascending: false });
 
-            const footer = container.closest('footer');
             const wrapper = document.getElementById('affiliate-links-wrapper');
+
             if (error || !data || data.length === 0) {
                 if (error) console.error('Erro ao carregar links de afiliados:', error);
                 wrapper.closest('.bg-slate-800').classList.add('hidden');
                 return;
             }
 
-            // Preenche com skeletons enquanto carrega
+            // Mostra skeletons antes de renderizar
             container.innerHTML = Array(4).fill(0).map(() => `
                 <div class="block bg-slate-700 rounded-lg overflow-hidden shadow-lg w-48 md:w-56 flex-shrink-0 mx-4">
                     <div class="skeleton-dark h-32 w-full"></div>
@@ -734,13 +787,9 @@
                         <div class="skeleton-dark h-6 w-3/4"></div>
                     </div>
                 </div>
-            `).join(''); // Skeletons don't need the full slideshow structure yet
-
+            `).join('');
 
             const bnaRate = marketData?.formal_rates?.find(r => r.code === 'BNA')?.usd_rate;
-            if (!bnaRate) {
-                console.warn("Taxa do BNA não encontrada para converter preços de afiliados.");
-            }
 
             const linksHTML = data.map(link => `
                 <a href="details.html?id=${link.id}" class="affiliate-link-item group block bg-slate-700 rounded-lg overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-300 w-48 md:w-56 flex-shrink-0">
@@ -752,85 +801,218 @@
                             </p>
                         </div>
                     </a>`).join('');
-            
-            // Duplica o conteúdo para um scroll infinito e suave
+
             container.innerHTML = `
                 <div class="scrolling-content flex py-4">
-                    <div class="flex flex-shrink-0 gap-x-8 animate-scroll">
+                    <div id="affiliate-track" class="flex flex-shrink-0 gap-x-8 animate-scroll">
                         ${linksHTML}${linksHTML}
                     </div>
                 </div>
             `;
 
-            // Adiciona event listeners para os novos links de afiliados
+            // Adiciona event listeners para os links de afiliados
             container.querySelectorAll('.affiliate-link-item').forEach(link => {
                 link.addEventListener('click', (e) => {
-                    // Não previne a navegação, apenas regista a atividade
                     logActivity('affiliate_click', { link_id: link.href.split('id=')[1], product_title: link.querySelector('h3').textContent });
                 });
             });
+
+            // Configurar navegação com setas
+            const track = document.getElementById('affiliate-track');
+            const prevBtn = document.getElementById('affiliate-prev');
+            const nextBtn = document.getElementById('affiliate-next');
+
+            function getScrollDistance() {
+                const card = track.querySelector('.affiliate-link-item');
+                if (!card) return 240;
+                return card.offsetWidth + 32; // largura + gap
+            }
+
+            if (prevBtn && nextBtn) {
+                prevBtn.addEventListener('click', () => {
+                    track.style.animationPlayState = 'paused';
+                    const distance = getScrollDistance();
+                    const scroller = track.closest('.affiliate-scroller');
+                    const currentScroll = scroller.scrollLeft;
+                    scroller.scrollTo({
+                        left: currentScroll - distance,
+                        behavior: 'smooth'
+                    });
+                    setTimeout(() => track.style.animationPlayState = 'running', 1000);
+                });
+
+                nextBtn.addEventListener('click', () => {
+                    track.style.animationPlayState = 'paused';
+                    const distance = getScrollDistance();
+                    const scroller = track.closest('.affiliate-scroller');
+                    const currentScroll = scroller.scrollLeft;
+                    scroller.scrollTo({
+                        left: currentScroll + distance,
+                        behavior: 'smooth'
+                    });
+                    setTimeout(() => track.style.animationPlayState = 'running', 1000);
+                });
+            }
         }
         
         async function loadSupporters(providerId = null) {
             const container = document.getElementById('supporters-container');
             const wrapper = document.getElementById('supporters-container-wrapper');
             const section = document.getElementById('supporters-section');
+            const indicators = document.getElementById('supporter-indicators');
 
-            // Simplificado: Carrega todos os apoiadores globais ativos
+            // Carrega todos os apoiadores globais ativos
             const query = dbClient.from('supporters').select('*').eq('is_active', true);
-
             const { data, error } = await query.order('name');
 
-             if (error || !data || data.length === 0) {
+            if (error || !data || data.length === 0) {
                 if (error) console.error('Erro ao carregar apoiadores:', error);
                 section.classList.add('hidden');
                 return;
             }
 
-            const logosHTML = data.map(supporter => `
-                <div class="flex flex-col items-center text-center flex-shrink-0 w-40">
-                    <a href="${supporter.website_url}" target="_blank" rel="noopener sponsored" title="${supporter.name}" class="supporter-link h-16 flex items-center justify-center" data-supporter-id="${supporter.id}" data-supporter-name="${supporter.name}">
-                        <img src="${supporter.logo_url}" alt="${supporter.name}" class="max-h-12 max-w-[150px] object-contain transition duration-300">
+            let currentSlide = 0;
+            let slideInterval;
+
+            const bannersHTML = data.map((supporter, index) => `
+                <div class="supporter-slide absolute inset-0 transition-transform duration-500 transform ${index === 0 ? 'translate-x-0' : 'translate-x-full'}"
+                     data-slide="${index}">
+                    <a href="${supporter.website_url}" target="_blank" rel="noopener sponsored" 
+                       class="supporter-link block w-full h-full" 
+                       data-supporter-id="${supporter.id}" 
+                       data-supporter-name="${supporter.name}">
+                        <img src="${supporter.banner_url || supporter.logo_url}" 
+                             alt="${supporter.name}"
+                             class="w-full h-[200px] object-contain rounded-xl">
                     </a>
-                    <p class="text-xs text-gray-500 mt-2 truncate w-full">${supporter.name}</p>
                 </div>
             `).join('');
 
-            // Renderiza os logotipos numa única linha flexível
+            // Renderiza os banners e indicadores
             container.innerHTML = `
-                <div class="scrolling-content flex items-center justify-center w-full">
-                    <div class="flex flex-shrink-0 gap-x-10 py-4">
-                        ${logosHTML}
-                    </div>
+                <div class="relative w-full h-[200px]">
+                    ${bannersHTML}
                 </div>
             `;
-            section.classList.remove('hidden');
 
-            // Adiciona event listeners para os novos links de apoiadores
+            // Cria indicadores
+            indicators.innerHTML = data.map((_, index) => `
+                <button class="h-2 w-2 rounded-full transition-all duration-300 ${index === 0 ? 'bg-emerald-500 w-4' : 'bg-gray-300'}"
+                        data-indicator="${index}"
+                        aria-label="Ir para slide ${index + 1}"></button>
+            `).join('');
+
+            function showSlide(index, direction = 'next') {
+                const slides = container.querySelectorAll('.supporter-slide');
+                const dots = indicators.querySelectorAll('button');
+                
+                // Normaliza o índice
+                if (index >= slides.length) index = 0;
+                if (index < 0) index = slides.length - 1;
+                
+                const oldIndex = currentSlide;
+                currentSlide = index;
+
+                // Posiciona o novo slide
+                const newSlide = slides[index];
+                const oldSlide = slides[oldIndex];
+                
+                // Define a direção do deslize
+                const incomingClass = direction === 'next' ? 'translate-x-full' : '-translate-x-full';
+                const outgoingClass = direction === 'next' ? '-translate-x-full' : 'translate-x-full';
+                
+                // Reseta posições
+                slides.forEach((slide, i) => {
+                    if (i !== oldIndex && i !== index) {
+                        slide.classList.remove('-translate-x-full', 'translate-x-full', 'translate-x-0');
+                        slide.classList.add(incomingClass);
+                    }
+                });
+
+                // Posiciona novo slide e anima
+                newSlide.classList.remove('-translate-x-full', 'translate-x-full', 'translate-x-0');
+                newSlide.classList.add(incomingClass);
+                
+                // Força reflow
+                newSlide.offsetHeight;
+                
+                // Anima ambos os slides
+                newSlide.classList.remove(incomingClass);
+                newSlide.classList.add('translate-x-0');
+                oldSlide.classList.remove('translate-x-0');
+                oldSlide.classList.add(outgoingClass);
+
+                // Atualiza indicadores
+                dots.forEach((dot, i) => {
+                    dot.classList.toggle('bg-emerald-500', i === index);
+                    dot.classList.toggle('w-4', i === index);
+                    dot.classList.toggle('bg-gray-300', i !== index);
+                    dot.classList.toggle('w-2', i !== index);
+                });
+            }
+
+            function startSlideshow() {
+                if (slideInterval) clearInterval(slideInterval);
+                slideInterval = setInterval(() => {
+                    showSlide(currentSlide + 1, 'next');
+                }, 5000); // Muda a cada 5 segundos
+            }
+
+            function stopSlideshow() {
+                if (slideInterval) {
+                    clearInterval(slideInterval);
+                    slideInterval = null;
+                }
+            }
+
+            // Event listeners para navegação
+            const prevBtn = document.getElementById('supporter-prev');
+            const nextBtn = document.getElementById('supporter-next');
+
+            prevBtn.addEventListener('click', () => {
+                showSlide(currentSlide - 1, 'prev');
+                stopSlideshow();
+                startSlideshow();
+            });
+
+            nextBtn.addEventListener('click', () => {
+                showSlide(currentSlide + 1, 'next');
+                stopSlideshow();
+                startSlideshow();
+            });
+
+            // Click nos indicadores
+            indicators.addEventListener('click', (e) => {
+                const dot = e.target.closest('button');
+                if (dot) {
+                    const slideIndex = parseInt(dot.dataset.indicator);
+                    const direction = slideIndex > currentSlide ? 'next' : 'prev';
+                    showSlide(slideIndex, direction);
+                    stopSlideshow();
+                    startSlideshow();
+                }
+            });
+
+            // Adiciona event listeners para os links
             container.querySelectorAll('.supporter-link').forEach(link => {
                 link.addEventListener('click', () => {
-                    logActivity('supporter_click', { supporter_id: link.dataset.supporterId, supporter_name: link.dataset.supporterName });
+                    logActivity('supporter_click', {
+                        supporter_id: link.dataset.supporterId,
+                        supporter_name: link.dataset.supporterName
+                    });
                 });
             });
-            checkSupporterOverflow(); // Verifica se a animação é necessária
+
+            // Inicia o slideshow
+            section.classList.remove('hidden');
+            startSlideshow();
+
+            // Pausa o slideshow quando o mouse está sobre o banner
+            wrapper.addEventListener('mouseenter', stopSlideshow);
+            wrapper.addEventListener('mouseleave', startSlideshow);
         }
 
-        function checkSupporterOverflow() {
-            const container = document.getElementById('supporters-container');
-            if (!container) return;
-            const contentWrapper = container.querySelector('.scrolling-content > div');
-            if (!contentWrapper || !contentWrapper.firstElementChild) return;
-
-            const isOverflowing = contentWrapper.scrollWidth > container.clientWidth;
-            
-            contentWrapper.classList.toggle('animate-scroll', isOverflowing);
-            contentWrapper.parentElement.classList.toggle('justify-center', !isOverflowing);
-
-            // Garante que o conteúdo só é duplicado se houver overflow e se ainda não tiver sido duplicado
-            if (isOverflowing && contentWrapper.children.length === 1) {
-                contentWrapper.innerHTML = `${contentWrapper.innerHTML}${contentWrapper.innerHTML}`;
-            }
-        }
+        // Removida função checkSupporterOverflow() pois não é mais necessária com o novo formato de slideshow
 
         async function loadFooterContactInfo() {
             const container = document.getElementById('footer-contact-info');

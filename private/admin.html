@@ -18,15 +18,51 @@
         .scrolling-wrapper {
             animation: scroll 40s linear infinite;
         }
-        :root { --accent-color: #4f46e5; }
-        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
-        .sidebar { transition: transform 0.3s ease-in-out; }
-        .sidebar-link { transition: all 0.2s ease; }
-        .sidebar-link.active, .sidebar-link:hover { background-color: #312e81; color: #f8fafc; }
-        .stat-card { background-color: white; border-radius: 1rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); transition: all 0.3s ease; opacity: 0; }
-        .stat-card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1); }
-        .modal-overlay { transition: opacity 0.3s ease; }
-        .modal-content { transition: transform 0.3s ease; }
+        :root { 
+            --accent-color: #4f46e5;
+            --accent-dark: #4338ca;
+            --accent-light: #e0e7ff;
+        }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #f8fafc;
+        }
+        .sidebar { 
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+        }
+        .sidebar-link { 
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        .sidebar-link.active { 
+            background-color: #4f46e5;
+            color: white; 
+        }
+        .sidebar-link:hover:not(.active) { 
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .sidebar-link.active svg {
+            color: white;
+        }
+        .stat-card { 
+            background-color: white; 
+            border-radius: 1rem; 
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            opacity: 0;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        .stat-card:hover { 
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+        .modal-overlay { 
+            transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(4px);
+        }
+        .modal-content { 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
         .toggle-switch { position: relative; display: inline-block; width: 40px; height: 24px; }
         .toggle-switch input { opacity: 0; width: 0; height: 0; }
         .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
@@ -35,44 +71,224 @@
         input:checked + .toggle-slider:before { transform: translateX(16px); }
         .editable-cell { cursor: pointer; position: relative; }
         .editable-cell:hover:after { content: '✎'; position: absolute; right: 8px; top: 50%; transform: translateY(-50%); color: var(--accent-color); font-size: 1.2em; }
-        .btn-primary { background-color: var(--accent-color); color: white; font-weight: bold; padding: 0.5rem 1rem; border-radius: 0.5rem; transition: background-color 0.3s ease; }
-        .btn-primary:hover { background-color: #4338ca; }
-        .btn-secondary { background-color: #e2e8f0; color: #475569; font-weight: bold; padding: 0.5rem 1rem; border-radius: 0.5rem; transition: background-color 0.3s ease; }
-        .btn-secondary:hover { background-color: #cbd5e1; }
-        .informal-tab.active-tab { border-color: var(--accent-color); color: var(--accent-color); }
+        .btn-primary { 
+            background-color: var(--accent-color); 
+            color: white; 
+            font-weight: 600; 
+            padding: 0.625rem 1.25rem; 
+            border-radius: 0.5rem; 
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+            box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        }
+        .btn-primary:hover { 
+            background-color: var(--accent-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        .btn-secondary { 
+            background-color: white; 
+            color: #475569; 
+            font-weight: 600; 
+            padding: 0.625rem 1.25rem; 
+            border-radius: 0.5rem; 
+            transition: all 0.2s ease;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        }
+        .btn-secondary:hover { 
+            background-color: #f8fafc;
+            border-color: #cbd5e1;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        .informal-tab { 
+            position: relative;
+            transition: all 0.2s ease;
+        }
+        .informal-tab.active-tab { 
+            border-color: var(--accent-color); 
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+        .informal-tab.active-tab::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background-color: var(--accent-color);
+        }
+        input[type="text"],
+        input[type="email"],
+        input[type="url"],
+        input[type="tel"],
+        input[type="number"],
+        input[type="search"] {
+            display: block;
+            width: 100%;
+            padding: 0.625rem 1rem;
+            color: #111827;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            background-color: white;
+            transition: all 0.2s ease;
+        }
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        input[type="url"]:focus,
+        input[type="tel"]:focus,
+        input[type="number"]:focus,
+        input[type="search"]:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+        select {
+            display: block;
+            width: 100%;
+            padding: 0.625rem 2.5rem 0.625rem 1rem;
+            color: #111827;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            background-color: white;
+            transition: all 0.2s ease;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
+        select:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         .fade-in-up { animation: fadeInUp 0.6s ease-out forwards; }
         @keyframes spin { to { transform: rotate(360deg); } }
         .loader { border: 4px solid rgba(0, 0, 0, 0.1); border-left-color: var(--accent-color); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Table Styles */
+        .admin-table {
+            border-radius: 0.75rem;
+            overflow: hidden;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+        }
+        .admin-table thead {
+            background-color: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .admin-table th {
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+            color: #475569;
+            padding: 0.875rem 1.5rem;
+        }
+        .admin-table td {
+            padding: 1rem 1.5rem;
+            color: #1e293b;
+        }
+        .admin-table tbody tr {
+            border-bottom: 1px solid #e2e8f0;
+            transition: all 0.2s ease;
+        }
+        .admin-table tbody tr:hover {
+            background-color: #f8fafc;
+        }
+        .admin-table tbody tr:last-child {
+            border-bottom: none;
+        }
     </style>
 </head>
 <body class="flex h-screen overflow-hidden">
 
-    <aside class="sidebar w-64 bg-slate-800 text-slate-100 flex-shrink-0 flex flex-col fixed lg:relative inset-y-0 left-0 transform -translate-x-full lg:translate-x-0 z-30">
-        <div class="px-6 py-4 flex items-center justify-between">
+    <aside class="sidebar w-64 bg-gradient-to-b from-slate-800 to-slate-900 text-slate-100 flex-shrink-0 flex flex-col fixed lg:relative inset-y-0 left-0 transform -translate-x-full lg:translate-x-0 z-30 shadow-xl">
+        <div class="px-6 py-6 flex items-center justify-between border-b border-slate-700/50">
             <h1 class="text-xl font-bold text-white">Admin Cambial</h1>
             <button id="close-sidebar-btn" class="lg:hidden text-slate-400 hover:text-white">&times;</button>
         </div>
-        <nav class="flex-1 px-4 py-4 space-y-2">
-            <a href="#dashboard" class="sidebar-link active flex items-center space-x-3 px-4 py-2 rounded-lg"><span>Dashboard</span></a>
-            <a href="#bancos" class="sidebar-link flex items-center space-x-3 px-4 py-2 rounded-lg"><span>Bancos</span></a>
-            <a href="#mercado_informal" class="sidebar-link flex items-center space-x-3 px-4 py-2 rounded-lg"><span>Mercado Informal</span></a>
-            <a href="#afiliados" class="sidebar-link flex items-center space-x-3 px-4 py-2 rounded-lg"><span>Afiliados</span></a>
-            <a href="#apoiadores" class="sidebar-link flex items-center space-x-3 px-4 py-2 rounded-lg"><span>Apoiadores</span></a>
-            <a href="#moedas" class="sidebar-link flex items-center space-x-3 px-4 py-2 rounded-lg"><span>Moedas</span></a>
-            <a href="#configuracoes" class="sidebar-link flex items-center space-x-3 px-4 py-2 rounded-lg"><span>Configurações</span></a>
+        <nav class="flex-1 px-4 py-6 space-y-1">
+            <a href="#dashboard" class="sidebar-link active flex items-center space-x-3 px-4 py-3 rounded-lg">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                </svg>
+                <span>Dashboard</span>
+            </a>
+            <a href="#bancos" class="sidebar-link flex items-center space-x-3 px-4 py-3 rounded-lg">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"></path>
+                </svg>
+                <span>Bancos</span>
+            </a>
+            <a href="#mercado_informal" class="sidebar-link flex items-center space-x-3 px-4 py-3 rounded-lg">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span>Mercado Informal</span>
+            </a>
+            <a href="#afiliados" class="sidebar-link flex items-center space-x-3 px-4 py-3 rounded-lg">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+                </svg>
+                <span>Afiliados</span>
+            </a>
+            <a href="#apoiadores" class="sidebar-link flex items-center space-x-3 px-4 py-3 rounded-lg">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                </svg>
+                <span>Apoiadores</span>
+            </a>
+            <a href="#moedas" class="sidebar-link flex items-center space-x-3 px-4 py-3 rounded-lg">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span>Moedas</span>
+            </a>
+            <div class="border-t border-slate-700/50 my-4"></div>
+            <a href="#configuracoes" class="sidebar-link flex items-center space-x-3 px-4 py-3 rounded-lg">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                </svg>
+                <span>Configurações</span>
+            </a>
         </nav>
-        <div class="p-4 mt-auto">
-            <button id="logout-btn" class="w-full text-left flex items-center space-x-3 px-4 py-2 rounded-lg text-slate-400 hover:bg-red-900/50 hover:text-red-300 transition-colors"><span>Sair</span></button>
+        <div class="p-4 mt-auto border-t border-slate-700/50">
+            <button id="logout-btn" class="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-slate-400 hover:bg-red-500/10 hover:text-red-400 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                </svg>
+                <span>Sair</span>
+            </button>
         </div>
     </aside>
 
-    <div class="flex-1 flex flex-col">
-        <header class="bg-white shadow-sm p-4 flex items-center justify-between lg:justify-end">
-             <button id="open-sidebar-btn" class="lg:hidden text-slate-600"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg></button>
-            <div class="flex items-center space-x-4"><span class="font-semibold text-slate-700">Bem-vindo, Admin</span></div>
+    <div class="flex-1 flex flex-col bg-slate-50">
+        <header class="bg-white shadow-sm px-6 py-4 flex items-center justify-between border-b border-slate-200">
+            <div class="flex items-center space-x-4">
+                <button id="open-sidebar-btn" class="lg:hidden text-slate-600 hover:text-slate-900 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
+                <h2 class="text-lg font-semibold text-slate-900 hidden lg:block" id="current-section-title">Dashboard</h2>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-2 text-slate-700">
+                    <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                    </svg>
+                    <span class="font-medium">Admin</span>
+                </div>
+            </div>
         </header>
 
         <main class="flex-1 overflow-y-auto p-6 md:p-8">
@@ -111,7 +327,7 @@
                         <button id="add-bank-btn" class="btn-primary flex-shrink-0">Adicionar Banco</button>
                     </div>
                 </div>
-                <div class="bg-white rounded-lg shadow overflow-hidden"><div class="overflow-x-auto max-w-full"><table class="w-full text-sm text-left text-gray-500"><thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr><th scope="col" class="px-6 py-3">Banco</th><th scope="col" class="px-6 py-3">Taxa USD</th><th scope="col" class="px-6 py-3">Taxa EUR</th><th scope="col" class="px-6 py-3">Última Atualização</th><th scope="col" class="px-6 py-3">Taxa Cartão (%)</th><th scope="col" class="px-6 py-3">Taxa Final (%)</th><th scope="col" class="px-6 py-3">Status</th><th scope="col" class="px-6 py-3 text-center">Ações</th></tr></thead><tbody id="banks-table-body"><tr class="h-48"><td colspan="8" class="text-center"><div class="loader mx-auto"></div></td></tr></tbody></table></div></div>
+                <div class="admin-table"><div class="overflow-x-auto max-w-full"><table class="w-full"><thead><tr><th scope="col">Banco</th><th scope="col">Cotação USD/AOA</th><th scope="col">Cotação EUR/AOA</th><th scope="col">Última Atualização</th><th scope="col">Comissão (%)</th><th scope="col">Status</th><th scope="col" class="text-center">Ações</th></tr></thead><tbody id="banks-table-body"><tr class="h-48"><td colspan="8" class="text-center"><div class="loader mx-auto"></div></td></tr></tbody></table></div></div>
             </section>
             
             <!-- Mercado Informal Section -->
@@ -132,19 +348,19 @@
                         <button id="add-affiliate-btn" class="btn-primary flex-shrink-0">Adicionar Link</button>
                     </div>
                 </div>
-                <div class="bg-white rounded-lg shadow overflow-hidden"><div class="overflow-x-auto max-w-full"><table class="w-full text-xs md:text-sm text-left text-gray-500"><thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr><th scope="col" class="px-6 py-3">Produto</th><th scope="col" class="px-6 py-3 text-center">Preço</th><th scope="col" class="px-6 py-3 text-center">Cliques</th><th scope="col" class="px-6 py-3">Status</th><th scope="col" class="px-6 py-3 text-center">Ações</th></tr></thead><tbody id="affiliates-table-body"><tr class="h-48"><td colspan="5" class="text-center"><div class="loader mx-auto"></div></td></tr></tbody></table></div></div>
+                <div class="admin-table"><div class="overflow-x-auto max-w-full"><table class="w-full"><thead><tr><th scope="col">Produto</th><th scope="col" class="text-center">Preço</th><th scope="col" class="text-center">Cliques</th><th scope="col">Status</th><th scope="col" class="text-center">Ações</th></tr></thead><tbody id="affiliates-table-body"><tr class="h-48"><td colspan="5" class="text-center"><div class="loader mx-auto"></div></td></tr></tbody></table></div></div>
             </section>
 
             <!-- Apoiadores Section -->
             <section id="apoiadores" class="admin-section hidden">
                 <div class="flex items-center justify-between mb-6"><h2 class="text-3xl font-bold text-slate-800">Gerir Apoiadores</h2><button id="add-supporter-btn" class="btn-primary">Adicionar Apoiador</button></div>
-                <div class="bg-white rounded-lg shadow overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-xs md:text-sm text-left text-gray-500"><thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr><th scope="col" class="px-6 py-3">Apoiador</th><th scope="col" class="px-6 py-3">Status</th><th scope="col" class="px-6 py-3 text-center">Ações</th></tr></thead><tbody id="supporters-table-body"><tr class="h-48"><td colspan="3" class="text-center"><div class="loader mx-auto"></div></td></tr></tbody></table></div></div>
+                <div class="admin-table"><div class="overflow-x-auto"><table class="w-full"><thead><tr><th scope="col">Apoiador</th><th scope="col">Status</th><th scope="col" class="text-center">Ações</th></tr></thead><tbody id="supporters-table-body"><tr class="h-48"><td colspan="3" class="text-center"><div class="loader mx-auto"></div></td></tr></tbody></table></div></div>
             </section>
 
             <!-- Moedas Section -->
             <section id="moedas" class="admin-section hidden">
                 <div class="flex items-center justify-between mb-6"><h2 class="text-3xl font-bold text-slate-800">Gerir Moedas</h2><button id="add-currency-btn" class="btn-primary">Adicionar Moeda</button></div>
-                <div class="bg-white rounded-lg shadow overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-xs md:text-sm text-left text-gray-500"><thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr><th scope="col" class="px-6 py-3">Código</th><th scope="col" class="px-6 py-3">Nome</th><th scope="col" class="px-6 py-3">Símbolo</th><th scope="col" class="px-6 py-3">Status</th><th scope="col" class="px-6 py-3 text-center">Ações</th></tr></thead><tbody id="currencies-table-body"><tr class="h-48"><td colspan="5" class="text-center"><div class="loader mx-auto"></div></td></tr></tbody></table></div></div>
+                <div class="admin-table"><div class="overflow-x-auto"><table class="w-full"><thead><tr><th scope="col">Código</th><th scope="col">Nome</th><th scope="col">Símbolo</th><th scope="col">Status</th><th scope="col" class="text-center">Ações</th></tr></thead><tbody id="currencies-table-body"><tr class="h-48"><td colspan="5" class="text-center"><div class="loader mx-auto"></div></td></tr></tbody></table></div></div>
             </section>
 
             <!-- Configurações Section -->
@@ -179,10 +395,98 @@
     </div>
     
     <!-- Modals -->
-    <div id="bank-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-40"><div class="modal-content bg-white rounded-lg shadow-xl p-8 w-full max-w-md transform scale-95"><h3 class="text-2xl font-bold text-slate-800 mb-6" id="bank-modal-title">Adicionar Novo Banco</h3><form id="bank-form"><input type="hidden" id="bank-id-input"><div class="space-y-4"><div><label for="bank_code" class="block text-sm font-medium text-slate-700">Código (ex: BAI)</label><input type="text" id="bank_code" name="bank_code" required class="mt-1 block w-full border border-slate-300 rounded-md shadow-sm p-2" maxlength="10"></div><div><label for="bank_name" class="block text-sm font-medium text-slate-700">Nome Completo</label><input type="text" id="bank_name" name="bank_name" required class="mt-1 block w-full border border-slate-300 rounded-md shadow-sm p-2"></div></div><div class="flex justify-end space-x-4 mt-8"><button type="button" id="cancel-bank-modal" class="btn-secondary">Cancelar</button><button type="submit" class="btn-primary">Guardar</button></div></form></div></div>
+    <div id="bank-modal" class="modal-overlay fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center hidden z-40">
+        <div class="modal-content bg-white rounded-xl shadow-xl p-8 w-full max-w-md transform scale-95 border border-slate-200">
+            <h3 class="text-2xl font-bold text-slate-800 mb-6" id="bank-modal-title">Adicionar Novo Banco</h3>
+            <form id="bank-form">
+                <input type="hidden" id="bank-id-input">
+                <div class="space-y-4">
+                    <div>
+                        <label for="bank_code" class="block text-sm font-medium text-slate-700">Código (ex: BAI)</label>
+                        <input type="text" id="bank_code" name="bank_code" required class="mt-1 block w-full border border-slate-300 rounded-md shadow-sm p-2" maxlength="10">
+                    </div>
+                    <div>
+                        <label for="bank_name" class="block text-sm font-medium text-slate-700">Nome Completo</label>
+                        <input type="text" id="bank_name" name="bank_name" required class="mt-1 block w-full border border-slate-300 rounded-md shadow-sm p-2">
+                    </div>
+                    <div>
+                        <label for="bank_usd_rate" class="block text-sm font-medium text-slate-700">Cotação USD/AOA</label>
+                        <input type="number" id="bank_usd_rate" name="bank_usd_rate" step="0.0001" required class="mt-1 block w-full border border-slate-300 rounded-md shadow-sm p-2">
+                    </div>
+                    <div>
+                        <label for="bank_eur_rate" class="block text-sm font-medium text-slate-700">Cotação EUR/AOA</label>
+                        <input type="number" id="bank_eur_rate" name="bank_eur_rate" step="0.0001" required class="mt-1 block w-full border border-slate-300 rounded-md shadow-sm p-2">
+                    </div>
+                    <div>
+                        <label for="bank_commission" class="block text-sm font-medium text-slate-700">Comissão (%)</label>
+                        <input type="number" id="bank_commission" name="bank_commission" step="0.01" value="3" required class="mt-1 block w-full border border-slate-300 rounded-md shadow-sm p-2">
+                        <p class="mt-1 text-xs text-slate-500">Comissão aplicada sobre o valor em AOA (padrão: 3%)</p>
+                    </div>
+                </div>
+                <div class="flex justify-end space-x-4 mt-8">
+                    <button type="button" id="cancel-bank-modal" class="btn-secondary">Cancelar</button>
+                    <button type="submit" class="btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
     <div id="currency-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-40"><div class="modal-content bg-white rounded-lg shadow-xl p-8 w-full max-w-md transform scale-95"><h3 id="currency-modal-title" class="text-2xl font-bold text-slate-800 mb-6">Adicionar Nova Moeda</h3><form id="currency-form" class="space-y-4"><input type="hidden" id="currency_id" name="currency_id"><div><label for="currency_code" class="block text-sm font-medium text-slate-700">Código (ex: USD)</label><input type="text" name="currency_code" id="currency_code" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md" required maxlength="10"></div><div><label for="currency_name" class="block text-sm font-medium text-slate-700">Nome (ex: Dólar Americano)</label><input type="text" name="currency_name" id="currency_name" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md" required></div><div><label for="currency_symbol" class="block text-sm font-medium text-slate-700">Símbolo (ex: $)</label><input type="text" name="currency_symbol" id="currency_symbol" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md" maxlength="5"></div><div class="flex justify-end space-x-4 pt-4"><button type="button" class="btn-secondary" id="cancel-currency-modal">Cancelar</button><button type="submit" id="save-currency-btn" class="btn-primary">Adicionar</button></div></form></div></div>
     <div id="affiliate-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-40"><div class="modal-content bg-white rounded-lg shadow-xl p-8 w-full max-w-lg transform scale-95 max-h-[90vh] overflow-y-auto"><h3 id="affiliate-modal-title" class="text-2xl font-bold text-slate-800 mb-6">Adicionar Novo Link</h3><form id="affiliate-form" class="space-y-4"><input type="hidden" id="affiliate_id" name="affiliate_id"><div><label for="affiliate_title" class="block text-sm font-medium text-slate-700">Título do Produto</label><input type="text" name="affiliate_title" id="affiliate_title" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md" required></div><div><label for="affiliate_url" class="block text-sm font-medium text-slate-700">URL de Afiliado (Link de Compra)</label><input type="url" name="affiliate_url" id="affiliate_url" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md" required></div><div><label for="affiliate_image_url" class="block text-sm font-medium text-slate-700">URL da Imagem do Produto</label><input type="url" name="affiliate_image_url" id="affiliate_image_url" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md"></div><div class="grid grid-cols-2 gap-4"><div><label for="affiliate_price" class="block text-sm font-medium text-slate-700">Preço do Produto (USD)</label><input type="number" step="0.01" name="affiliate_price" id="affiliate_price" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md"></div><div><label for="affiliate_shipping" class="block text-sm font-medium text-slate-700">Custo de Frete (USD)</label><input type="number" step="0.01" name="affiliate_shipping" id="affiliate_shipping" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md"></div></div><div><label for="affiliate_proof_video_url" class="block text-sm font-medium text-slate-700">URL do Vídeo de Prova (Opcional)</label><input type="url" name="affiliate_proof_video_url" id="affiliate_proof_video_url" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md"></div><div class="flex justify-end space-x-4 pt-4"><button type="button" class="btn-secondary" id="cancel-affiliate-modal">Cancelar</button><button type="submit" id="save-affiliate-btn" class="btn-primary">Adicionar</button></div></form></div></div>
-    <div id="supporter-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-40"><div class="modal-content bg-white rounded-lg shadow-xl p-8 w-full max-w-lg transform scale-95"><h3 id="supporter-modal-title" class="text-2xl font-bold text-slate-800 mb-6">Adicionar Novo Apoiador</h3><form id="supporter-form" class="space-y-4"><input type="hidden" id="supporter_id" name="supporter_id"><div><label for="supporter_name" class="block text-sm font-medium text-slate-700">Nome do Apoiador</label><input type="text" name="supporter_name" id="supporter_name" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md" required></div><div><label for="supporter_website_url" class="block text-sm font-medium text-slate-700">URL do Website</label><input type="url" name="supporter_website_url" id="supporter_website_url" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md" required></div><div><label for="supporter_logo_url" class="block text-sm font-medium text-slate-700">URL do Logotipo</label><input type="url" name="supporter_logo_url" id="supporter_logo_url" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md" placeholder="https://exemplo.com/logo.png" required></div><div class="flex justify-end space-x-4 pt-4"><button type="button" class="btn-secondary" id="cancel-supporter-modal">Cancelar</button><button type="submit" id="save-supporter-btn" class="btn-primary">Adicionar</button></div></form></div></div>
+    <div id="supporter-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-40">
+        <div class="modal-content bg-white rounded-lg shadow-xl p-8 w-full max-w-lg transform scale-95">
+            <h3 id="supporter-modal-title" class="text-2xl font-bold text-slate-800 mb-6">Adicionar Novo Apoiador</h3>
+            <form id="supporter-form" class="space-y-4" enctype="multipart/form-data">
+                <input type="hidden" id="supporter_id" name="supporter_id">
+                
+                <div>
+                    <label for="supporter_name" class="block text-sm font-medium text-slate-700">Nome do Apoiador</label>
+                    <input type="text" name="supporter_name" id="supporter_name" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md" required>
+                </div>
+
+                <div>
+                    <label for="supporter_website_url" class="block text-sm font-medium text-slate-700">URL do Website</label>
+                    <input type="url" name="supporter_website_url" id="supporter_website_url" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md" required>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Imagem do Banner</label>
+                    <div class="flex items-center space-x-4">
+                        <div class="flex-1">
+                            <label for="supporter_banner" class="cursor-pointer flex items-center justify-center w-full px-4 py-2 border-2 border-gray-300 border-dashed rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors">
+                                <input type="file" id="supporter_banner" name="supporter_banner" accept="image/*" required>
+                                <span id="supporter_banner_name">Escolher imagem...</span>
+                            </label>
+                        </div>
+                        <div id="supporter_banner_preview" class="w-32 h-16 border rounded-lg flex items-center justify-center bg-gray-50">
+                            <span class="text-gray-400">Prévia</span>
+                        </div>
+                    </div>
+                    <p class="mt-1 text-xs text-gray-500">Tamanho recomendado: 1200x400 pixels</p>
+                </div>
+
+                <div class="flex justify-end space-x-4 pt-4">
+                    <button type="button" class="btn-secondary" id="cancel-supporter-modal">Cancelar</button>
+                    <button type="submit" id="save-supporter-btn" class="btn-primary">Adicionar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Adiciona preview da imagem quando selecionada
+        document.getElementById('supporter_banner').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                document.getElementById('supporter_banner_name').textContent = file.name;
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('supporter_banner_preview');
+                    preview.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-contain">`;
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
     <div id="delete-confirm-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50"><div class="modal-content bg-white rounded-lg shadow-xl p-8 w-full max-w-sm transform scale-95"><h3 class="text-xl font-bold text-slate-800 mb-4">Confirmar Exclusão</h3><p id="delete-confirm-message" class="text-slate-600 mb-6"></p><div class="flex justify-end space-x-4"><button type="button" id="cancel-delete-btn" class="btn-secondary">Cancelar</button><button type="button" id="confirm-delete-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">Apagar</button></div></div></div>
 
     <!-- Notifications -->
@@ -408,7 +712,7 @@
             ? `<tr><td colspan="3" class="text-center p-4 text-gray-500">Nenhum apoiador encontrado.</td></tr>`
             : data.map(supporter => `
                 <tr class="bg-white border-b hover:bg-indigo-50/50" data-supporter-id="${supporter.id}">
-                    <td class="px-6 py-4"><div class="flex items-center space-x-3"><img src="${supporter.logo_url}" alt="${supporter.name}" class="h-8 w-auto object-contain bg-slate-100 p-1 rounded"><span class="font-medium text-gray-900">${supporter.name}</span></div></td>
+                    <td class="px-6 py-4"><div class="flex items-center space-x-3"><img src="${supporter.banner_url}" alt="${supporter.name}" class="h-8 w-24 object-cover bg-slate-100 p-1 rounded"><span class="font-medium text-gray-900">${supporter.name}</span></div></td>
                     <td class="px-6 py-4"><label class="toggle-switch"><input type="checkbox" class="toggle-status" data-type="supporter" ${supporter.is_active ? 'checked' : ''} data-id="${supporter.id}"><span class="toggle-slider"></span></label></td>
                     <td class="px-6 py-4 text-center space-x-2"><button class="edit-btn text-slate-500 hover:text-indigo-600" data-type="supporter" data-id="${supporter.id}">Editar</button><button class="delete-btn text-slate-500 hover:text-red-600" data-type="supporter" data-id="${supporter.id}">Apagar</button></td>
                 </tr>`).join('');
@@ -564,13 +868,14 @@
 
     function updateRealtimeFeed(activity) {
         const feedContainer = document.getElementById('realtime-feed');
-        // Atualiza contadores em tempo real
         if (activity.event_type === 'page_view') {
             const todayStatEl = document.getElementById('today-access-stat');
             const currentCount = parseInt(todayStatEl.textContent.replace(/\./g, '')) || 0;
             todayStatEl.textContent = (currentCount + 1).toLocaleString('pt-PT');
-            // Nota: A taxa de rejeição é complexa para atualizar em tempo real.
-            // É melhor recarregar os dados do dashboard periodicamente ou manualmente.
+        } else if (activity.event_type === 'affiliate_click') {
+            loadAffiliateLinks().then(() => renderAffiliateChart());
+        } else if (activity.event_type === 'tab_switch') {
+            renderTabVisitsChart();
         } else if (activity.event_type === 'affiliate_click' && activity.details?.link_id) {
             loadAffiliateLinks().then(() => renderAffiliateChart());
         } else if (activity.event_type === 'tab_switch') {

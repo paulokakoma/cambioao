@@ -7,6 +7,7 @@ const http = require("http");
 const { WebSocketServer } = require("ws");
 const session = require("express-session");
 const bcrypt = require("bcrypt");
+const multer = require("multer");
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -73,7 +74,7 @@ wss.on("connection", (ws, req) => {
         });
 
         // 2. Se for um clique de afiliado, incrementa o contador na tabela principal
-        if (data.payload.event_type === 'affiliate_click' && data.payload.details?.link_id) {
+        if ((data.payload.event_type === 'affiliate_click' || data.payload.event_type === 'buy_now_click') && data.payload.details?.link_id) {
             supabase.rpc('increment_affiliate_click', { link_id_to_inc: data.payload.details.link_id })
               .then(({ error }) => {
                 if (error) {
@@ -119,6 +120,10 @@ const isAdmin = (req, res, next) => {
 // Isto permite que a página /admin carregue os seus próprios CSS e JS de forma segura.
 app.use('/admin/assets', isAdmin, express.static(path.join(__dirname, 'private')));
 
+// Configuração do Multer para upload de imagens em memória
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
+
 
 // --- GESTÃO DE ERROS CENTRALIZADA ---
 function handleSupabaseError(error, res) {
@@ -132,6 +137,48 @@ function handleSupabaseError(error, res) {
 }
 
 // --- ROTAS PÚBLICAS DA API ---
+
+// Rota para criar/atualizar Apoiadores com upload de imagem
+app.post("/api/supporter", isAdmin, upload.single('banner_image'), async (req, res) => {
+    const { id, name, website_url, is_active } = req.body;
+    let banner_url;
+
+    try {
+        // Se um ficheiro foi enviado, faz o upload para o Supabase Storage
+        if (req.file) {
+            const file = req.file;
+            const fileName = `supporter-${Date.now()}-${file.originalname.replace(/\s/g, '_')}`;
+            
+            // O bucket 'site-assets' deve ser público no Supabase
+            const { data: uploadData, error: uploadError } = await supabase.storage
+                .from('site-assets')
+                .upload(`public/${fileName}`, file.buffer, {
+                    contentType: file.mimetype,
+                    upsert: true,
+                });
+
+            if (uploadError) throw uploadError;
+
+            // Obtém o URL público do ficheiro
+            const { data: urlData } = supabase.storage.from('site-assets').getPublicUrl(uploadData.path);
+            banner_url = urlData.publicUrl;
+        }
+
+        const supporterData = { name, website_url, is_active: is_active === 'true' };
+        if (banner_url) {
+            supporterData.banner_url = banner_url;
+        }
+
+        // Se existe um ID, atualiza o registo. Caso contrário, cria um novo.
+        const query = id ? supabase.from('supporters').update(supporterData).eq('id', id) : supabase.from('supporters').insert(supporterData);
+        const { error } = await query;
+
+        if (error) return handleSupabaseError(error, res);
+        res.status(200).json({ success: true, message: "Apoiador salvo com sucesso." });
+    } catch (error) {
+        handleSupabaseError(error, res);
+    }
+});
 
 // --- ROTAS DE AUTENTICAÇÃO ---
 app.post('/api/login', async (req, res) => {
@@ -187,24 +234,6 @@ app.post("/api/notify-update", isAdmin, (req, res) => {
   res.status(200).json({ success: true, message: "Notificação enviada." });
 });
 
-// Endpoint para Bancos (Criar/Atualizar)
-app.post("/api/bank", isAdmin, async (req, res) => {
-    const { id, code, name } = req.body;
-    if (!code || !name) return res.status(400).json({ message: "Código e nome são obrigatórios." });
-    
-    if (id) { // Atualizar
-        const { error } = await supabase.from('rate_providers').update({ code: code.toUpperCase(), name }).eq('id', id);
-        if (error) return handleSupabaseError(error, res);
-        return res.status(200).json({ success: true, message: "Banco atualizado." });
-    } else { // Criar
-        const { data, error } = await supabase.from('rate_providers').insert({ code: code.toUpperCase(), name, type: 'FORMAL' }).select().single();
-        if (error) return handleSupabaseError(error, res);
-        const { error: ratesError } = await supabase.from('exchange_rates').insert([{ provider_id: data.id, currency_pair: 'USD/AOA', sell_rate: 0 }, { provider_id: data.id, currency_pair: 'EUR/AOA', sell_rate: 0 }]);
-        if (ratesError) return handleSupabaseError(ratesError, res);
-        res.status(201).json({ success: true, message: "Banco criado." });
-    }
-});
-
 app.post("/api/add-province", isAdmin, async (req, res) => {
     const { name } = req.body;
     if (!name) return res.status(400).json({ message: "O nome da província é obrigatório." });
@@ -237,7 +266,7 @@ app.post("/api/update-cell", isAdmin, async (req, res) => {
     let query;
     if (field === 'sell_rate') {
         query = supabase.from('exchange_rates').update({ sell_rate: value }).eq('provider_id', providerId).eq('currency_pair', pair);
-    } else if (['fee_margin', 'fee_final'].includes(field)) {
+    } else if (field === 'fee_margin') {
         query = supabase.from('rate_providers').update({ [field]: value }).eq('id', providerId);
     } else {
         return res.status(400).json({ message: "Campo inválido." });
@@ -288,10 +317,9 @@ app.get("/api/affiliate-details/:id", async (req, res) => {
 
     try {
         // Busca o produto, as taxas informais e as configurações em paralelo
-        const [productRes, informalRatesRes, settingsRes] = await Promise.all([
+        const [productRes, informalRatesRes] = await Promise.all([
             supabase.from('affiliate_links').select('*').eq('id', id).single(),
-            supabase.rpc('get_average_informal_rate', { p_pair: 'USD/AOA' }),
-            supabase.from('site_settings').select('key, value')
+            supabase.rpc('get_average_informal_rate', { p_pair: 'USD/AOA' })
         ]);
 
         // Verificação robusta dos resultados do Promise.all
@@ -304,10 +332,6 @@ app.get("/api/affiliate-details/:id", async (req, res) => {
         }
 
         const product = productRes.data;
-        const globalSettings = (settingsRes?.data || []).reduce((acc, { key, value }) => {
-            acc[key] = value;
-            return acc;
-        }, {});
 
         let exchangeRate;
         if (informalRatesRes?.data && informalRatesRes.data > 0) {
@@ -324,10 +348,6 @@ app.get("/api/affiliate-details/:id", async (req, res) => {
             console.error("Nenhuma taxa de câmbio (nem informal, nem BNA) foi encontrada para calcular o preço.");
             return res.status(503).json({ message: "Serviço indisponível: Nenhuma taxa de câmbio foi encontrada para calcular o preço." });
         }
-
-        // Combina as configurações globais com as do produto (as do produto têm prioridade)
-        product.tutorial_video_url = globalSettings.tutorial_video_url; // Sempre usa o tutorial global
-        product.social_media_links = product.social_media_links || globalSettings.social_media_links;
 
         const totalCostAOA = ((product.price || 0) + (product.shipping_cost_usd || 0)) * exchangeRate;
 
@@ -367,7 +387,7 @@ app.get("/sobre", (req, res) => {
 // --- ROTAS GENÉRICAS (DEVEM VIR NO FIM) ---
 app.delete("/api/:resource/:id", isAdmin, async (req, res) => {
     const { resource, id } = req.params; 
-    const tableMap = { bank: 'rate_providers', province: 'rate_providers', affiliate: 'affiliate_links', currency: 'currencies', supporter: 'supporters' };
+    const tableMap = { rate_providers: 'rate_providers', bank: 'rate_providers', province: 'rate_providers', affiliate: 'affiliate_links', currency: 'currencies', supporter: 'supporters' };
     const tableName = tableMap[resource];
     if (!tableName) return res.status(404).json({ message: "Recurso não encontrado." });
 
@@ -402,12 +422,9 @@ app.post("/api/reset-stats", isAdmin, async (req, res) => {
 app.post("/api/:resource", isAdmin, async (req, res) => {
     const { resource } = req.params;
     const { id, ...data } = req.body;
-    const tableMap = { affiliate: 'affiliate_links', currency: 'currencies', province: 'rate_providers', supporter: 'supporters' };
+    const tableMap = { affiliate: 'affiliate_links', currency: 'currencies', province: 'rate_providers', rate_providers: 'rate_providers' };
     const tableName = tableMap[resource];
     if (!tableName) return res.status(404).json({ message: "Recurso não encontrado." });
-
-    // Remove o campo tutorial_video_url se ele existir no corpo da requisição para afiliados
-    if (resource === 'affiliate' && data.hasOwnProperty('tutorial_video_url')) delete data.tutorial_video_url;
 
     // Garante que a propriedade 'id' não é enviada na inserção ou atualização, pois é gerida pela BD.
     delete data.id;
