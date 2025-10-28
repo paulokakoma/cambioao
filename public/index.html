@@ -3,9 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Mercado Cambial</title>
+    <title>cambioao</title>
     <link rel="icon" href="/favicon.ico" sizes="any">
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/css/output.css">
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -96,19 +96,16 @@
       .scrollbar-hide::-webkit-scrollbar { display: none; }
       .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
       @keyframes scroll-left {
-        from { transform: translateX(0); }
-        to { transform: translateX(-50%); }
-      }
-      .affiliate-scroller:hover .scrolling-content {
-        animation-play-state: paused;
-      }
-      @keyframes scroll {
-        from { transform: translateX(0); }
-        to { transform: translateX(-50%); }
       }
       .animate-scroll {
-        /* A duração é ajustada com base no número de itens, mas um valor padrão pode ser definido */
-        animation: scroll 60s linear infinite;
+        /* Animação infinita - move 33.33% (1/3) da distância total já que temos 3 cópias */
+        animation: scroll 40s linear infinite;
+      }
+      
+      /* Otimização de performance para animação suave */
+      .scrolling-content {
+        will-change: transform;
+        transform: translateZ(0);
       }
             /* Carousel arrows and helpers */
             .carousel-arrow {
@@ -134,7 +131,7 @@
   <body class="min-h-screen">
     <header class="bg-white shadow-sm sticky top-0 z-10">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-            <a href="/" class="text-2xl font-bold text-emerald-600">Mercado Cambial</a>
+            <a href="/" class="text-2xl font-bold text-emerald-600">cambioao</a>
             <nav class="flex items-center space-x-4 md:space-x-8">
                 <a href="/" class="text-sm md:text-base font-semibold text-emerald-600 hover:text-emerald-700 transition-colors">Mercado</a>
                 <a href="/sobre" class="text-sm md:text-base font-semibold text-slate-600 hover:text-emerald-600 transition-colors">Sobre Nós</a>
@@ -258,20 +255,19 @@
       </section>
     </main>
     <!-- Secção de Apoiadores -->
-    <section id="supporters-section" class="w-full bg-white py-16 mt-24 hidden">
+    <section id="supporters-section" class="w-full bg-white mt-12 hidden">
         <div class="max-w-7xl mx-auto px-6">
-            <div id="supporters-container-wrapper" class="relative max-w-4xl mx-auto">
-                <button id="supporter-prev" aria-label="Anterior" class="carousel-arrow left-2 flex">◀</button>
-                <!-- Container para Apoiadores -->
-                <div id="supporters-container" class="relative overflow-hidden">
-                    <div class="flex items-center justify-center w-full min-h-[200px]">
-                        <div class="skeleton h-48 w-full max-w-2xl rounded-xl"></div>
-                    </div>
+            <h2 class="text-3xl font-bold text-slate-800 text-center mb-8">Nossos Apoiadores</h2>
+        </div>
+        <div id="supporters-container-wrapper" class="relative w-full">
+            <!-- Container para Apoiadores -->
+            <div id="supporters-container" class="relative overflow-hidden">
+                <div class="flex items-center justify-center w-full">
+                    <div class="skeleton h-[400px] w-full"></div>
                 </div>
-                <button id="supporter-next" aria-label="Próximo" class="carousel-arrow right-2 flex">▶</button>
-                <!-- Indicadores de slide -->
-                <div id="supporter-indicators" class="flex justify-center gap-2 mt-4">
-                </div>
+            </div>
+            <!-- Indicadores de slide -->
+            <div id="supporter-indicators" class="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex justify-center gap-3 z-10">
             </div>
         </div>
     </section>
@@ -279,16 +275,38 @@
     <div class="bg-slate-800 text-slate-300">
         <!-- Secção de Afiliados movida para dentro de um div -->
         <div class="w-full max-w-7xl mx-auto px-6 py-16">
-            <h2 class="text-3xl font-bold text-white text-center mb-12">Ofertas dos Nossos Parceiros</h2>
+            <h2 class="text-3xl font-bold text-white text-center mb-12">Ofertas dos Nossos Parceiros</h2> 
             <div id="affiliate-links-wrapper" class="relative group">
-                <button id="affiliate-prev" aria-label="Anterior" class="carousel-arrow left-2 flex">◀</button>
-                <div class="relative flex overflow-x-hidden affiliate-scroller">
-                    <div id="affiliate-links-container" class="w-full flex justify-center items-center min-h-[200px]">
-                        <div class="loader" style="border-left-color: white;"></div>
+                <!-- Botão de Recuar -->
+                <button id="affiliate-prev-btn" class="carousel-arrow left-0 md:-left-5 opacity-0 group-hover:opacity-100 transition-opacity">
+                    &#x2190;
+                </button>
+
+                <!-- Container com scroll -->
+                <div id="affiliate-links-container" class="flex overflow-x-auto scroll-smooth no-scrollbar -mx-4 px-4">
+                    <!-- Conteúdo dinâmico -->
+                    <div id="affiliate-track" class="flex flex-shrink-0 gap-x-8 py-4">
+                        <!-- Skeleton Loader -->
+                        <div class="flex gap-x-4 px-4">
+                            ${Array(4).fill(0).map(() => `
+                                <div class="block bg-slate-700 rounded-lg overflow-hidden shadow-lg w-48 md:w-56 flex-shrink-0">
+                                    <div class="skeleton-dark h-32 w-full"></div>
+                                    <div class="p-3">
+                                        <div class="skeleton-dark h-5 w-full mb-2"></div>
+                                        <div class="skeleton-dark h-6 w-3/4"></div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
                     </div>
                 </div>
-                <button id="affiliate-next" aria-label="Próximo" class="carousel-arrow right-2 flex">▶</button>
+
+                <!-- Botão de Avançar -->
+                <button id="affiliate-next-btn" class="carousel-arrow right-0 md:-right-5 opacity-0 group-hover:opacity-100 transition-opacity">
+                    &#x2192;
+                </button>
             </div>
+
             <p class="text-xs text-slate-500 text-center mt-12">Ao clicar nestes links e fazer uma compra, poderemos receber uma comissão sem custo adicional para si.</p>
         </div>
     </div>
@@ -298,7 +316,13 @@
             <div id="footer-contact-info" class="mb-4 space-y-2">
                 <!-- As informações de contato serão carregadas aqui -->
             </div>
-            <p>&copy; 2024 Mercado Cambial. Todos os direitos reservados.</p>
+            <div class="mt-6">
+                <h4 class="text-slate-300 font-semibold mb-3">Siga-nos</h4>
+                <div id="social-media-links" class="flex justify-center space-x-4">
+                    <!-- Social media links will be loaded here -->
+                </div>
+            </div>
+            <p class="mt-6">&copy; 2024 cambioao. Todos os direitos reservados.</p>
         </div>
     </footer>
     
@@ -310,6 +334,7 @@
         let dbClient;
         let ws;
         let marketData; // Declarada no escopo do módulo
+        let affiliateAutoScrollInterval; // Variável para controlar o auto-scroll
 
         const appState = {
             selectedBank: { code: 'BNA', usd_rate: 0, eur_rate: 0 },
@@ -535,7 +560,8 @@
                 bpc: { card: 'theme-bpc', color: '#00529b' },
                 bci: { card: 'theme-bci', color: '#1f3a38' },
                 yetu: { card: 'theme-yetu', color: '#EAA900' },
-                default: { card: 'theme-default', color: '#3b82f6' } // Tema azul padrão
+                // Fallback para novos bancos: usar o tema do BPC
+                default: { card: 'theme-bpc', color: '#00529b' }
             };
 
             function getThemeCode(bankCode) {
@@ -699,15 +725,15 @@
         async function main() {
             setupEventListeners();
             SESSION_ID = getOrCreateSessionId();
-            switchTab('market'); 
+            switchTab('market');
             switchMarketTab('formal');
             
             WebSocketModule.connect();
 
-            await reloadMarketData();
+            await reloadMarketData(); // Garante que marketData está disponível
             loadAffiliateLinks();
             loadSupporters();
-            loadFooterContactInfo();
+            loadFooterInfo();
 
             logActivity('page_view');
         }
@@ -762,13 +788,14 @@
         }
 
         async function loadAffiliateLinks() {
-            const container = document.getElementById('affiliate-links-container');
+            const track = document.getElementById('affiliate-track');
+            const container = document.getElementById('affiliate-links-container'); // Container com scroll
                 const { data, error } = await dbClient // A query é feita aqui
                     .from('affiliate_links')
                     .select('*')
                     .eq('is_active', true)
-                    .limit(8)
-                    .order('created_at', { ascending: false });
+                    .order('created_at', { ascending: false })
+                    .limit(12);
 
             const wrapper = document.getElementById('affiliate-links-wrapper');
 
@@ -778,22 +805,11 @@
                 return;
             }
 
-            // Mostra skeletons antes de renderizar
-            container.innerHTML = Array(4).fill(0).map(() => `
-                <div class="block bg-slate-700 rounded-lg overflow-hidden shadow-lg w-48 md:w-56 flex-shrink-0 mx-4">
-                    <div class="skeleton-dark h-32 w-full"></div>
-                    <div class="p-3">
-                        <div class="skeleton-dark h-5 w-full mb-2"></div>
-                        <div class="skeleton-dark h-6 w-3/4"></div>
-                    </div>
-                </div>
-            `).join('');
-
             const bnaRate = marketData?.formal_rates?.find(r => r.code === 'BNA')?.usd_rate;
 
             const linksHTML = data.map(link => `
                 <a href="details.html?id=${link.id}" class="affiliate-link-item group block bg-slate-700 rounded-lg overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-300 w-48 md:w-56 flex-shrink-0">
-                        <img src="${link.image_url || 'https://placehold.co/300x300'}" alt="Imagem de ${link.title}" class="w-full h-32 object-cover group-hover:opacity-80 transition-opacity">
+                        <img src="${link.image_url || '/assets/error-state.svg'}" alt="Imagem de ${link.title}" class="w-full h-32 object-cover group-hover:opacity-80 transition-opacity bg-slate-600" loading="lazy" decoding="async" onerror="this.onerror=null; this.src='/assets/error-state.svg'; this.classList.add('p-4');">
                         <div class="p-3">
                             <h3 class="text-sm font-semibold text-white truncate">${link.title}</h3>
                             <p class="text-base font-bold text-emerald-400 mt-1">
@@ -802,57 +818,76 @@
                         </div>
                     </a>`).join('');
 
-            container.innerHTML = `
-                <div class="scrolling-content flex py-4">
-                    <div id="affiliate-track" class="flex flex-shrink-0 gap-x-8 animate-scroll">
-                        ${linksHTML}${linksHTML}
-                    </div>
-                </div>
-            `;
+            // Verifica se há dados válidos antes de renderizar
+            if (!linksHTML || linksHTML.trim() === '') {
+                wrapper.closest('.bg-slate-800').classList.add('hidden');
+                return;
+            }
+
+            // Duplica o conteúdo para o efeito de loop infinito
+            track.innerHTML = linksHTML + linksHTML;
 
             // Adiciona event listeners para os links de afiliados
-            container.querySelectorAll('.affiliate-link-item').forEach(link => {
+            track.querySelectorAll('.affiliate-link-item').forEach(link => {
                 link.addEventListener('click', (e) => {
                     logActivity('affiliate_click', { link_id: link.href.split('id=')[1], product_title: link.querySelector('h3').textContent });
                 });
             });
 
-            // Configurar navegação com setas
+            // Inicia o auto-scroll
+            startAffiliateAutoScroll();
+
+            // Lógica dos botões de navegação do carrossel
+            const prevBtn = document.getElementById('affiliate-prev-btn');
+            const nextBtn = document.getElementById('affiliate-next-btn');
+
+            nextBtn.addEventListener('click', () => {
+                pauseAffiliateAutoScroll();
+                container.scrollBy({ left: container.offsetWidth / 2, behavior: 'smooth' });
+            });
+
+            prevBtn.addEventListener('click', () => {
+                pauseAffiliateAutoScroll();
+                container.scrollBy({ left: -container.offsetWidth / 2, behavior: 'smooth' });
+            });
+
+            // Pausa o scroll quando o mouse está sobre o container
+            wrapper.addEventListener('mouseenter', () => clearInterval(affiliateAutoScrollInterval));
+
+            // Reinicia o scroll quando o mouse sai
+            wrapper.addEventListener('mouseleave', startAffiliateAutoScroll);
+        }
+
+        function startAffiliateAutoScroll() {
+            // Limpa qualquer intervalo existente para evitar aceleração
+            if (affiliateAutoScrollInterval) clearInterval(affiliateAutoScrollInterval);
+
+            const container = document.getElementById('affiliate-links-container');
             const track = document.getElementById('affiliate-track');
-            const prevBtn = document.getElementById('affiliate-prev');
-            const nextBtn = document.getElementById('affiliate-next');
+            
+            // Ponto médio onde o scroll deve ser reiniciado
+            const scrollWidth = track.scrollWidth / 2;
 
-            function getScrollDistance() {
-                const card = track.querySelector('.affiliate-link-item');
-                if (!card) return 240;
-                return card.offsetWidth + 32; // largura + gap
-            }
+            affiliateAutoScrollInterval = setInterval(() => {
+                // Se o scroll passou do ponto médio, reinicia silenciosamente
+                if (container.scrollLeft >= scrollWidth) {
+                    container.scrollLeft = 0;
+                }
+                // Move o scroll um pouco para a direita
+                container.scrollLeft += 1;
+            }, 25); // Ajuste este valor para mudar a velocidade (menor = mais rápido)
+        }
 
-            if (prevBtn && nextBtn) {
-                prevBtn.addEventListener('click', () => {
-                    track.style.animationPlayState = 'paused';
-                    const distance = getScrollDistance();
-                    const scroller = track.closest('.affiliate-scroller');
-                    const currentScroll = scroller.scrollLeft;
-                    scroller.scrollTo({
-                        left: currentScroll - distance,
-                        behavior: 'smooth'
-                    });
-                    setTimeout(() => track.style.animationPlayState = 'running', 1000);
-                });
-
-                nextBtn.addEventListener('click', () => {
-                    track.style.animationPlayState = 'paused';
-                    const distance = getScrollDistance();
-                    const scroller = track.closest('.affiliate-scroller');
-                    const currentScroll = scroller.scrollLeft;
-                    scroller.scrollTo({
-                        left: currentScroll + distance,
-                        behavior: 'smooth'
-                    });
-                    setTimeout(() => track.style.animationPlayState = 'running', 1000);
-                });
-            }
+        function pauseAffiliateAutoScroll() {
+            // Limpa o intervalo de auto-scroll
+            clearInterval(affiliateAutoScrollInterval);
+            
+            // Define um temporizador para reiniciar o auto-scroll após um período de inatividade
+            let timeoutId;
+            clearTimeout(timeoutId); // Limpa qualquer temporizador anterior
+            timeoutId = setTimeout(() => {
+                startAffiliateAutoScroll();
+            }, 5000); // Reinicia após 5 segundos
         }
         
         async function loadSupporters(providerId = null) {
@@ -861,36 +896,56 @@
             const section = document.getElementById('supporters-section');
             const indicators = document.getElementById('supporter-indicators');
 
-            // Carrega todos os apoiadores globais ativos
-            const query = dbClient.from('supporters').select('*').eq('is_active', true);
-            const { data, error } = await query.order('name');
+            // Carrega todos os apoiadores globais ativos e suas URLs de banner
+            const [supportersResult, settingsResult] = await Promise.all([
+                dbClient.from('supporters').select('*').eq('is_active', true).order('name'),
+                dbClient.from('site_settings').select('*').like('key', 'supporter_%_banner_url')
+            ]);
 
-            if (error || !data || data.length === 0) {
-                if (error) console.error('Erro ao carregar apoiadores:', error);
+            if (supportersResult.error || !supportersResult.data || supportersResult.data.length === 0) {
+                if (supportersResult.error) console.error('Erro ao carregar apoiadores:', supportersResult.error);
                 section.classList.add('hidden');
                 return;
             }
+
+            const bannerUrls = (settingsResult.data || []).reduce((acc, setting) => {
+                const supporterId = setting.key.match(/supporter_(\d+)_banner_url/)?.[1];
+                if (supporterId) {
+                    acc[supporterId] = setting.value;
+                }
+                return acc;
+            }, {});
+
+            const data = supportersResult.data.map(supporter => ({
+                ...supporter,
+                banner_url: bannerUrls[supporter.id]
+            }));
 
             let currentSlide = 0;
             let slideInterval;
 
             const bannersHTML = data.map((supporter, index) => `
-                <div class="supporter-slide absolute inset-0 transition-transform duration-500 transform ${index === 0 ? 'translate-x-0' : 'translate-x-full'}"
+                <div class="supporter-slide absolute inset-0 transition-opacity duration-700 ${index === 0 ? 'opacity-100' : 'opacity-0'}"
                      data-slide="${index}">
                     <a href="${supporter.website_url}" target="_blank" rel="noopener sponsored" 
                        class="supporter-link block w-full h-full" 
                        data-supporter-id="${supporter.id}" 
                        data-supporter-name="${supporter.name}">
-                        <img src="${supporter.banner_url || supporter.logo_url}" 
-                             alt="${supporter.name}"
-                             class="w-full h-[200px] object-contain rounded-xl">
+                        <div class="relative w-full h-full bg-slate-100 flex items-center justify-center overflow-hidden rounded-xl shadow-lg">
+                            <img src="${supporter.banner_url || supporter.logo_url || '/assets/error-state.svg'}" 
+                                 alt="${supporter.name}"
+                                 class="w-full h-full object-cover"
+                                 loading="lazy" decoding="async"
+                                 onerror="this.onerror=null; this.src='/assets/error-state.svg'; this.classList.add('p-8');">
+                            <div class="absolute inset-0 bg-gradient-to-b from-transparent to-black/30"></div>
+                        </div>
                     </a>
                 </div>
             `).join('');
 
             // Renderiza os banners e indicadores
             container.innerHTML = `
-                <div class="relative w-full h-[200px]">
+                <div class="relative w-full h-[400px] rounded-xl">
                     ${bannersHTML}
                 </div>
             `;
@@ -898,11 +953,11 @@
             // Cria indicadores
             indicators.innerHTML = data.map((_, index) => `
                 <button class="h-2 w-2 rounded-full transition-all duration-300 ${index === 0 ? 'bg-emerald-500 w-4' : 'bg-gray-300'}"
-                        data-indicator="${index}"
+                        data-indicator="${index}" 
                         aria-label="Ir para slide ${index + 1}"></button>
             `).join('');
 
-            function showSlide(index, direction = 'next') {
+            function showSlide(index) {
                 const slides = container.querySelectorAll('.supporter-slide');
                 const dots = indicators.querySelectorAll('button');
                 
@@ -910,52 +965,35 @@
                 if (index >= slides.length) index = 0;
                 if (index < 0) index = slides.length - 1;
                 
-                const oldIndex = currentSlide;
                 currentSlide = index;
 
-                // Posiciona o novo slide
-                const newSlide = slides[index];
-                const oldSlide = slides[oldIndex];
-                
-                // Define a direção do deslize
-                const incomingClass = direction === 'next' ? 'translate-x-full' : '-translate-x-full';
-                const outgoingClass = direction === 'next' ? '-translate-x-full' : 'translate-x-full';
-                
-                // Reseta posições
                 slides.forEach((slide, i) => {
-                    if (i !== oldIndex && i !== index) {
-                        slide.classList.remove('-translate-x-full', 'translate-x-full', 'translate-x-0');
-                        slide.classList.add(incomingClass);
+                    if (i === index) {
+                        slide.classList.remove('opacity-0');
+                        slide.classList.add('opacity-100');
+                    } else {
+                        slide.classList.remove('opacity-100');
+                        slide.classList.add('opacity-0');
                     }
                 });
 
-                // Posiciona novo slide e anima
-                newSlide.classList.remove('-translate-x-full', 'translate-x-full', 'translate-x-0');
-                newSlide.classList.add(incomingClass);
-                
-                // Força reflow
-                newSlide.offsetHeight;
-                
-                // Anima ambos os slides
-                newSlide.classList.remove(incomingClass);
-                newSlide.classList.add('translate-x-0');
-                oldSlide.classList.remove('translate-x-0');
-                oldSlide.classList.add(outgoingClass);
-
-                // Atualiza indicadores
                 dots.forEach((dot, i) => {
-                    dot.classList.toggle('bg-emerald-500', i === index);
-                    dot.classList.toggle('w-4', i === index);
-                    dot.classList.toggle('bg-gray-300', i !== index);
-                    dot.classList.toggle('w-2', i !== index);
+                    if (i === index) {
+                        dot.classList.remove('bg-white/40', 'w-2');
+                        dot.classList.add('bg-white', 'w-8');
+                    } else {
+                        dot.classList.remove('bg-white', 'w-8');
+                        dot.classList.add('bg-white/40', 'w-2');
+                    }
                 });
             }
 
+            // Configuração do slideshow automático
             function startSlideshow() {
                 if (slideInterval) clearInterval(slideInterval);
                 slideInterval = setInterval(() => {
-                    showSlide(currentSlide + 1, 'next');
-                }, 5000); // Muda a cada 5 segundos
+                    showSlide(currentSlide + 1);
+                }, 6000); // Aumentado para 6 segundos para melhor leitura
             }
 
             function stopSlideshow() {
@@ -965,31 +1003,23 @@
                 }
             }
 
-            // Event listeners para navegação
-            const prevBtn = document.getElementById('supporter-prev');
-            const nextBtn = document.getElementById('supporter-next');
-
-            prevBtn.addEventListener('click', () => {
-                showSlide(currentSlide - 1, 'prev');
-                stopSlideshow();
-                startSlideshow();
-            });
-
-            nextBtn.addEventListener('click', () => {
-                showSlide(currentSlide + 1, 'next');
-                stopSlideshow();
-                startSlideshow();
-            });
-
-            // Click nos indicadores
+            // Click nos indicadores com novo estilo
+            indicators.innerHTML = data.map((_, index) => `
+                <button class="h-2 rounded-full transition-all duration-500 ${index === 0 ? 'bg-white w-6' : 'bg-white/40 w-2'}"
+                        data-indicator="${index}"
+                        aria-label="Ir para slide ${index + 1}"></button>
+            `).join('');
+            
+            // Event listener para indicadores
             indicators.addEventListener('click', (e) => {
                 const dot = e.target.closest('button');
                 if (dot) {
                     const slideIndex = parseInt(dot.dataset.indicator);
-                    const direction = slideIndex > currentSlide ? 'next' : 'prev';
-                    showSlide(slideIndex, direction);
-                    stopSlideshow();
-                    startSlideshow();
+                    showSlide(slideIndex);
+                    if (slideInterval) {
+                        clearInterval(slideInterval);
+                        startSlideshow();
+                    }
                 }
             });
 
@@ -1007,22 +1037,30 @@
             section.classList.remove('hidden');
             startSlideshow();
 
-            // Pausa o slideshow quando o mouse está sobre o banner
-            wrapper.addEventListener('mouseenter', stopSlideshow);
-            wrapper.addEventListener('mouseleave', startSlideshow);
+            // Não pausa o slideshow ao passar o mouse
         }
 
         // Removida função checkSupporterOverflow() pois não é mais necessária com o novo formato de slideshow
 
-        async function loadFooterContactInfo() {
+        async function loadFooterInfo() {
             const container = document.getElementById('footer-contact-info');
-            if (!container) return;
+            const socialContainer = document.getElementById('social-media-links');
+            if (!container || !socialContainer) return;
 
             try {
-                const { data, error } = await dbClient.from('site_settings').select('key, value').in('key', ['contact_email', 'contact_phone']);
-                if (error) throw error;
+                const { data: contactData, error: contactError } = await dbClient
+                    .from('site_settings')
+                    .select('key, value')
+                    .in('key', ['contact_email', 'contact_phone']);
+                if (contactError) throw contactError;
 
-                const settings = data.reduce((acc, { key, value }) => { acc[key] = value; return acc; }, {});
+                const { data: socialData, error: socialError } = await dbClient
+                    .from('site_settings')
+                    .select('key, value')
+                    .in('key', ['facebook_url', 'instagram_url', 'linkedin_url', 'whatsapp_url']);
+                if (socialError) throw socialError;
+
+                const settings = contactData.reduce((acc, { key, value }) => { acc[key] = value; return acc; }, {});
 
                 let html = '';
                 if (settings.contact_email) {
@@ -1069,7 +1107,6 @@
         }
         
         document.addEventListener('DOMContentLoaded', initializeApp);
-        window.addEventListener('resize', checkSupporterOverflow);
     </script>
 
   </body>

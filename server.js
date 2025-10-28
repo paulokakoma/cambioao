@@ -7,13 +7,43 @@ const http = require("http");
 const { WebSocketServer } = require("ws");
 const session = require("express-session");
 const bcrypt = require("bcrypt");
+const sharp = require("sharp");
 const multer = require("multer");
 
 const app = express();
 const port = process.env.PORT || 3000;
+const isDevelopment = process.env.NODE_ENV !== 'production';
 
 // Cria um servidor HTTP a partir da aplicação Express
 const server = http.createServer(app);
+
+// --- MIDDLEWARE DE SUBDOMÍNIO ---
+// Detecta se o request é para o subdomínio admin ou domínio principal
+// IMPORTANTE: Este middleware deve vir ANTES de servir ficheiros estáticos
+app.use((req, res, next) => {
+    const host = req.get('host') || '';
+    
+    // Remove porta do host para análise
+    const hostWithoutPort = host.split(':')[0];
+    const parts = hostWithoutPort.split('.');
+    
+    // Detecta subdomínio admin
+    // Em dev: admin.localhost -> parts = ['admin', 'localhost']
+    // Em prod: admin.dominio.com -> parts = ['admin', 'dominio', 'com']
+    // localhost -> parts = ['localhost']
+    const isAdminSubdomain = parts[0] === 'admin' && parts.length > 1;
+    
+    // Define flag no request para uso nas rotas
+    req.isAdminSubdomain = isAdminSubdomain;
+    req.isMainDomain = !isAdminSubdomain;
+    
+    // Debug em desenvolvimento
+    if (isDevelopment) {
+        console.log(`[${req.method}] ${req.path} - Host: ${host} - Admin: ${isAdminSubdomain}`);
+    }
+    
+    next();
+});
 
 // Configuração do Supabase (usando a service_role key para ter permissões de escrita)
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -28,14 +58,13 @@ if (!supabaseUrl || !supabaseServiceKey || !supabaseAnonKey || !adminPasswordHas
   process.exit(1);
 }
 
-// Corrige o erro 'TypeError: fetch failed' ao garantir que cada pedido
-// para o Supabase usa uma nova ligação, desativando o 'keep-alive'.
-// Isto é especialmente importante em ambientes de servidor Node.js.
-const supabase = createClient(supabaseUrl, supabaseServiceKey, { 
-    global: { 
-        fetch: (input, init) => fetch(input, { ...init, keepalive: false }) 
-    } 
-}); 
+// Inicializa o cliente Supabase com configurações adequadas para Node.js
+const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false
+  }
+});
 
 // --- Configuração do WebSocket ---
 const wss = new WebSocketServer({ server });
@@ -97,23 +126,39 @@ wss.on("connection", (ws, req) => {
 
 // --- MIDDLEWARES ---
 // Servir ficheiros estáticos da pasta 'public' (CSS, JS, imagens).
-// Esta linha deve vir ANTES de outras rotas para garantir que os ficheiros são encontrados.
-app.use(express.static("public"));
+// IMPORTANTE: Não serve index.html automaticamente - isso é controlado pelas rotas
+app.use(express.static("public", { index: false }));
 app.use(express.json());
 app.use(session({
     secret: sessionSecret,
-    resave: false,
+    resave: true, // Renova o cookie em cada request
     saveUninitialized: false,
+    rolling: true, // Faz roll da expiração em cada request
     cookie: { 
         secure: process.env.NODE_ENV === 'production', // Usar cookies seguros em produção
         httpOnly: true, // Previne acesso via JS no cliente
-        maxAge: 24 * 60 * 60 * 1000 // Expira em 24 horas
+        maxAge: 30 * 24 * 60 * 60 * 1000, // Expira em 30 dias
+        // Em produção, usa o domínio base para compartilhar cookies entre subdomínios
+        // Em dev, não define domain para funcionar com localhost
+        domain: isDevelopment ? undefined : (process.env.COOKIE_DOMAIN || undefined)
     }
 }));
 
 // Middleware de verificação de autenticação
 const isAdmin = (req, res, next) => {
-    req.session.isAdmin ? next() : res.redirect('/login.html');
+    // Em produção, só permite acesso ao admin via subdomínio admin
+    if (!isDevelopment && !req.isAdminSubdomain && req.path.startsWith('/admin')) {
+        return res.status(403).send('Acesso ao admin apenas via subdomínio admin.');
+    }
+
+    if (req.session.isAdmin) return next();
+
+    // Para chamadas de API, retornar JSON 401 em vez de redirecionar (evita sucesso falso no frontend)
+    if (req.path.startsWith('/api')) {
+        return res.status(401).json({ success: false, message: 'Sessão expirada ou não autenticada.' });
+    }
+    // Para páginas, redireciona para login
+    return res.redirect('/login.html');
 };
 
 // Middleware para servir ficheiros estáticos da pasta 'private' APENAS para administradores.
@@ -135,50 +180,6 @@ function handleSupabaseError(error, res) {
     console.error("Erro do Supabase:", error);
     return res.status(500).json({ message: error.message });
 }
-
-// --- ROTAS PÚBLICAS DA API ---
-
-// Rota para criar/atualizar Apoiadores com upload de imagem
-app.post("/api/supporter", isAdmin, upload.single('banner_image'), async (req, res) => {
-    const { id, name, website_url, is_active } = req.body;
-    let banner_url;
-
-    try {
-        // Se um ficheiro foi enviado, faz o upload para o Supabase Storage
-        if (req.file) {
-            const file = req.file;
-            const fileName = `supporter-${Date.now()}-${file.originalname.replace(/\s/g, '_')}`;
-            
-            // O bucket 'site-assets' deve ser público no Supabase
-            const { data: uploadData, error: uploadError } = await supabase.storage
-                .from('site-assets')
-                .upload(`public/${fileName}`, file.buffer, {
-                    contentType: file.mimetype,
-                    upsert: true,
-                });
-
-            if (uploadError) throw uploadError;
-
-            // Obtém o URL público do ficheiro
-            const { data: urlData } = supabase.storage.from('site-assets').getPublicUrl(uploadData.path);
-            banner_url = urlData.publicUrl;
-        }
-
-        const supporterData = { name, website_url, is_active: is_active === 'true' };
-        if (banner_url) {
-            supporterData.banner_url = banner_url;
-        }
-
-        // Se existe um ID, atualiza o registo. Caso contrário, cria um novo.
-        const query = id ? supabase.from('supporters').update(supporterData).eq('id', id) : supabase.from('supporters').insert(supporterData);
-        const { error } = await query;
-
-        if (error) return handleSupabaseError(error, res);
-        res.status(200).json({ success: true, message: "Apoiador salvo com sucesso." });
-    } catch (error) {
-        handleSupabaseError(error, res);
-    }
-});
 
 // --- ROTAS DE AUTENTICAÇÃO ---
 app.post('/api/login', async (req, res) => {
@@ -209,6 +210,175 @@ app.get("/api/config", (req, res) => {
     supabaseUrl: supabaseUrl,
     supabaseAnonKey: supabaseAnonKey
   });
+});
+
+// --- ROTAS PÚBLICAS DA API ---
+
+// Singleton para garantir que a verificação do bucket ocorra apenas uma vez.
+const bucketCheckPromises = {};
+async function ensureStorageBucketExists(bucketName) {
+    if (!bucketCheckPromises[bucketName]) {
+        bucketCheckPromises[bucketName] = (async () => {
+            try {
+                const { data: buckets, error: listError } = await supabase.storage.listBuckets();
+                if (listError) throw listError;
+
+                const bucketExists = buckets.some(bucket => bucket.name === bucketName);
+
+                if (!bucketExists) {
+                    console.log(`Bucket '${bucketName}' não encontrado. Criando...`);
+                    const { error: createError } = await supabase.storage.createBucket(bucketName, {
+                        public: true,
+                        fileSizeLimit: 5 * 1024 * 1024, // 5MB
+                        allowedMimeTypes: ['image/png', 'image/jpeg', 'image/gif', 'image/webp'],
+                    });
+                    if (createError) throw createError;
+                    console.log(`Bucket '${bucketName}' criado com sucesso.`);
+                } else {
+                    console.log(`Bucket '${bucketName}' já existe.`);
+                }
+            } catch (error) {
+                console.error(`Falha crítica ao garantir a existência do bucket '${bucketName}':`, error.message);
+                // Libera a promessa em caso de erro para permitir nova tentativa
+                delete bucketCheckPromises[bucketName];
+                throw error; // Propaga o erro para a chamada original
+            }
+        })();
+    }
+    // Aguarda a conclusão da verificação/criação
+    return bucketCheckPromises[bucketName];
+}
+
+// Rota para criar/atualizar Apoiadores com upload de imagem
+app.post("/api/supporter", isAdmin, upload.single('banner_image'), async (req, res) => {
+    const { id, name, website_url, is_active } = req.body;
+    let banner_url;
+
+    try {
+        // Validação básica dos campos
+        if (!name || !website_url) {
+            return res.status(400).json({ message: "Nome e URL do website são obrigatórios." });
+        }
+
+        // Se um ficheiro foi enviado, faz o upload para o Supabase Storage
+        if (req.file) {
+            const file = req.file;
+            
+            // Validação do tipo de arquivo
+            if (!file.mimetype.startsWith('image/')) {
+                return res.status(400).json({ message: "Apenas arquivos de imagem são permitidos." });
+            }
+            
+            // Validação do tamanho do arquivo (5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                return res.status(400).json({ message: "O arquivo é muito grande. O tamanho máximo é 5MB." });
+            }
+
+            try {
+                // Garante que o bucket existe
+                await ensureStorageBucketExists('site-assets');
+                
+                // Otimiza a imagem antes do upload
+                const optimizedBuffer = await sharp(file.buffer)
+                    .resize({ width: 1200, withoutEnlargement: true }) // Redimensiona para max 1200px de largura, sem ampliar
+                    .webp({ quality: 80 }) // Converte para WebP com 80% de qualidade
+                    .toBuffer();
+
+                // Sanitiza o nome do ficheiro original e muda a extensão para .webp
+                const originalNameWithoutExt = path.parse(file.originalname).name;
+                const sanitizedOriginalName = originalNameWithoutExt
+                    .normalize("NFD") // Separa acentos dos caracteres (ex: 'é' -> 'e' + '´')
+                    .replace(/[\u0300-\u036f]/g, "") // Remove os acentos
+                    .replace(/[^a-zA-Z0-9._-]/g, '_'); // Substitui caracteres inválidos por '_'
+                
+                const fileName = `supporter-${Date.now()}-${sanitizedOriginalName}.webp`;
+                
+                // O bucket 'site-assets' deve ser público no Supabase
+                const { data: uploadData, error: uploadError } = await supabase.storage.from('site-assets')
+                    .upload(fileName, optimizedBuffer, {
+                        contentType: 'image/webp', // Define o content type para webp
+                        upsert: true,
+                    });
+
+                if (uploadError) throw uploadError;
+                if (!uploadData?.path) throw new Error('Caminho do arquivo não retornado pelo upload');
+
+                // Obtém o URL público do ficheiro. O Supabase serve o ficheiro com o Content-Type correto
+                // independentemente da extensão, mas usar a extensão correta é uma boa prática.
+                const { data: urlData } = supabase.storage
+                    .from('site-assets')
+                    .getPublicUrl(fileName);
+
+                if (!urlData?.publicUrl) throw new Error('Não foi possível obter o URL público do arquivo');
+
+                banner_url = urlData.publicUrl;
+            } catch (storageError) {
+                console.error('Erro no storage:', storageError);
+                return res.status(500).json({ 
+                    message: `Erro ao fazer upload da imagem: ${storageError.message || 'Erro desconhecido'}.` 
+                });
+            }
+        }
+
+        // Prepara os dados do apoiador
+        const supporterData = { 
+            name: name.trim(), 
+            website_url: website_url.trim(), 
+            is_active: is_active === 'true',
+            ...(banner_url && { logo_url: banner_url }) // Adiciona logo_url apenas se banner_url existir
+        };
+
+        let result;
+
+        // Se existe um ID, atualiza o registo. Caso contrário, cria um novo.
+        if (id) {
+            const { data: updateData, error: updateError } = await supabase
+                .from('supporters')
+                .update(supporterData)
+                .eq('id', id)
+                .select()
+                .single();
+            
+            if (updateError) return handleSupabaseError(updateError, res);
+            result = updateData;
+        } else {
+            const { data: insertData, error: insertError } = await supabase
+                .from('supporters')
+                .insert(supporterData)
+                .select()
+                .single();
+            
+            if (insertError) return handleSupabaseError(insertError, res);
+            result = insertData;
+        }
+
+        // Se temos uma URL de banner, salvamos na tabela site_settings
+        if (banner_url && result?.id) {
+            const settingKey = `supporter_${result.id}_banner_url`;
+            const { error: settingError } = await supabase
+                .from('site_settings')
+                .upsert({ 
+                    key: settingKey,
+                    value: banner_url 
+                }, { 
+                    onConflict: 'key' 
+                });
+
+            if (settingError) {
+                console.error('Erro ao salvar banner_url em site_settings:', settingError);
+                // Não retornamos erro aqui pois o apoiador já foi salvo
+            }
+        }
+
+        res.status(200).json({ 
+            success: true, 
+            message: `Apoiador ${id ? 'atualizado' : 'adicionado'} com sucesso.`,
+            data: result
+        });
+    } catch (error) {
+        console.error('Erro inesperado na rota /api/supporter:', error);
+        handleSupabaseError(error, res);
+    }
 });
 
 // --- ROTAS PROTEGIDAS DA API (REQUEREM LOGIN) ---
@@ -263,15 +433,31 @@ app.post("/api/update-status", isAdmin, async (req, res) => {
 
 app.post("/api/update-cell", isAdmin, async (req, res) => {
     const { field, value, providerId, pair } = req.body;
-    let query;
+    let error;
+    
     if (field === 'sell_rate') {
-        query = supabase.from('exchange_rates').update({ sell_rate: value }).eq('provider_id', providerId).eq('currency_pair', pair);
+        // Usar upsert para criar ou atualizar o registro de taxa
+        const { error: upsertError } = await supabase
+            .from('exchange_rates')
+            .upsert(
+                { 
+                    provider_id: providerId, 
+                    currency_pair: pair, 
+                    sell_rate: value 
+                },
+                { onConflict: 'provider_id,currency_pair' }
+            );
+        error = upsertError;
     } else if (field === 'fee_margin') {
-        query = supabase.from('rate_providers').update({ [field]: value }).eq('id', providerId);
+        const { error: updateError } = await supabase
+            .from('rate_providers')
+            .update({ [field]: value })
+            .eq('id', providerId);
+        error = updateError;
     } else {
         return res.status(400).json({ message: "Campo inválido." });
     }
-    const { error } = await query;
+    
     if (error) return handleSupabaseError(error, res);
     res.status(200).json({ success: true });
 });
@@ -358,29 +544,73 @@ app.get("/api/affiliate-details/:id", async (req, res) => {
 });
 
 // --- ROTAS PARA SERVIR PÁGINAS HTML ---
+
+// Rota para o domínio principal - página inicial
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
+    // Se estiver no subdomínio admin, redireciona para /admin (que depois verifica auth e mostra login se necessário)
+    if (req.isAdminSubdomain) {
+        return res.redirect('/admin');
+    }
+    // Serve a página principal apenas no domínio principal
+    res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-// Rota "secreta" para iniciar o processo de login de administrador.
-// Em vez de aceder a /admin, use este URL. Ele irá redirecionar para o login se não estiver autenticado.
-app.get(adminSecretPath, isAdmin, (req, res) => {
-    res.redirect('/admin'); // A página de admin continua a ser /admin
-});
-
-// Rota para a página de login
+// Rota para a página de login (disponível em ambos os domínios)
 app.get("/login", (req, res) => {
     res.sendFile(path.join(__dirname, "public", "login.html"));
 });
 
-// Rota para o painel de admin (agora protegida)
-app.get("/admin", isAdmin, (req, res) => {
+// Rota para o painel de admin - APENAS no subdomínio admin
+app.get("/admin", (req, res) => {
+    // Em produção, só permite acesso via subdomínio admin
+    if (!isDevelopment && !req.isAdminSubdomain) {
+        const protocol = req.protocol;
+        const host = req.get('host') || '';
+        const hostWithoutPort = host.split(':')[0];
+        const adminUrl = `${protocol}://admin.${hostWithoutPort}${req.originalUrl}`;
+        return res.redirect(adminUrl);
+    }
+    
+    // Verifica autenticação
+    if (!req.session.isAdmin) {
+        return res.redirect('/login');
+    }
+    
     // Serve o ficheiro a partir da pasta 'private' para garantir que não é acessível publicamente
     res.sendFile(path.join(__dirname, "private", "admin.html"));
 });
 
-// Rota para a nova página "Sobre Nós"
+// Rota "secreta" para iniciar o processo de login de administrador (redireciona para subdomínio admin)
+app.get(adminSecretPath, (req, res) => {
+    if (req.session.isAdmin) {
+        // Se já estiver autenticado e no subdomínio admin, vai direto para /admin
+        if (req.isAdminSubdomain) {
+            return res.redirect('/admin');
+        }
+        // Se não estiver no subdomínio admin, redireciona
+        const protocol = req.protocol;
+        const host = req.get('host') || 'localhost:3000';
+        const hostWithoutPort = host.split(':')[0];
+        const adminUrl = isDevelopment 
+            ? `${protocol}://admin.localhost:${port}/admin`
+            : `${protocol}://admin.${hostWithoutPort}/admin`;
+        return res.redirect(adminUrl);
+    }
+    // Se não estiver autenticado, redireciona para login no subdomínio admin
+    const protocol = req.protocol;
+    const host = req.get('host') || 'localhost:3000';
+    const hostWithoutPort = host.split(':')[0];
+    const loginUrl = isDevelopment 
+        ? `${protocol}://admin.localhost:${port}/login`
+        : `${protocol}://admin.${hostWithoutPort}/login`;
+    return res.redirect(loginUrl);
+});
+
+// Rota para a nova página "Sobre Nós" (apenas no domínio principal)
 app.get("/sobre", (req, res) => {
+    if (req.isAdminSubdomain) {
+        return res.status(404).send('Página não encontrada');
+    }
     res.sendFile(path.join(__dirname, "public", "about.html"));
 });
 
@@ -422,23 +652,90 @@ app.post("/api/reset-stats", isAdmin, async (req, res) => {
 app.post("/api/:resource", isAdmin, async (req, res) => {
     const { resource } = req.params;
     const { id, ...data } = req.body;
-    const tableMap = { affiliate: 'affiliate_links', currency: 'currencies', province: 'rate_providers', rate_providers: 'rate_providers' };
+    const tableMap = { bank: 'rate_providers', affiliate: 'affiliate_links', currency: 'currencies', province: 'rate_providers', rate_providers: 'rate_providers' };
     const tableName = tableMap[resource];
     if (!tableName) return res.status(404).json({ message: "Recurso não encontrado." });
 
-    // Garante que a propriedade 'id' não é enviada na inserção ou atualização, pois é gerida pela BD.
-    delete data.id;
+    try {
+        console.log(`Tentando ${id ? 'atualizar' : 'criar'} ${resource}:`, data);
 
-    const query = id ? supabase.from(tableName).update(data).eq('id', id) : supabase.from(tableName).insert(data);
-    const { error } = await query;
+        // Guardar valores extras que não devem ir para a tabela principal (apenas para bancos)
+        let extraData = {};
+        if (resource === 'bank') {
+            extraData = { usd_rate: data.usd_rate, eur_rate: data.eur_rate };
+            delete data.usd_rate;
+            delete data.eur_rate;
+        }
 
-    if (error) return handleSupabaseError(error, res);
-    res.status(200).json({ success: true });
+        // Garante que a propriedade 'id' não é enviada na inserção ou atualização, pois é gerida pela BD.
+        delete data.id;
+
+        let query;
+        if (id) {
+            query = supabase.from(tableName).update(data).eq('id', id);
+        } else {
+            // Para novos registros, garante que is_active está definido
+            if (!data.hasOwnProperty('is_active')) {
+                data.is_active = true;
+            }
+            // Se for um banco novo, garantir que tem type='FORMAL'
+            if (resource === 'bank' && !data.type) {
+                data.type = 'FORMAL';
+            }
+            query = supabase.from(tableName).insert(data);
+        }
+
+        const { data: result, error } = await query;
+        
+        if (error) {
+            console.error(`Erro ao ${id ? 'atualizar' : 'criar'} ${resource}:`, error);
+            return handleSupabaseError(error, res);
+        }
+
+        // Se foi criado um novo banco, criar registos de taxas de câmbio (usando valores iniciais se fornecidos)
+        if (!id && resource === 'bank' && result?.[0]?.id) {
+            const providerId = result[0].id;
+            const providedUsd = parseFloat(String(extraData.usd_rate ?? ''));
+            const providedEur = parseFloat(String(extraData.eur_rate ?? ''));
+            const usdRate = isNaN(providedUsd) ? 0 : providedUsd;
+            const eurRate = isNaN(providedEur) ? 0 : providedEur;
+            const currencyPairs = [
+                { pair: 'USD/AOA', rate: usdRate },
+                { pair: 'EUR/AOA', rate: eurRate },
+                { pair: 'USDT/AOA', rate: 0 }
+            ];
+            const ratesToInsert = currencyPairs.map(({ pair, rate }) => ({
+                provider_id: providerId,
+                currency_pair: pair,
+                sell_rate: rate
+            }));
+            const { error: ratesError } = await supabase.from('exchange_rates').insert(ratesToInsert);
+            if (ratesError) {
+                console.error('Erro ao inserir taxas iniciais do banco novo:', ratesError);
+                // Não falhamos a criação do banco; apenas reportamos a falha das taxas
+            }
+        }
+
+        console.log(`${resource} ${id ? 'atualizado' : 'criado'} com sucesso:`, result);
+        res.status(200).json({ success: true, data: result });
+    } catch (error) {
+        console.error(`Erro inesperado ao ${id ? 'atualizar' : 'criar'} ${resource}:`, error);
+        res.status(500).json({ success: false, message: "Erro interno do servidor", error: error.message });
+    }
 });
 
 // --- INICIAR O SERVIDOR ---
-server.listen(port, () => {
-  console.log(`Servidor a correr em http://localhost:${port}`);
+server.listen(port, '0.0.0.0', () => {
+  if (isDevelopment) {
+    console.log(`Servidor a correr em desenvolvimento:`);
+    console.log(`  📱 Página Principal: http://localhost:${port}`);
+    console.log(`  🔐 Admin: http://admin.localhost:${port}`);
+    console.log(`\nNota: Se admin.localhost não funcionar no seu navegador,`);
+    console.log(`adicione ao /etc/hosts: 127.0.0.1 admin.localhost`);
+  } else {
+    console.log(`Servidor a correr em produção na porta ${port}`);
+    console.log(`Certifique-se de configurar DNS para o subdomínio admin`);
+  }
 });
 
 module.exports = app;
