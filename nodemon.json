@@ -1,0 +1,5 @@
+{
+  "watch": ["server.js", "private/", "public/"],
+  "ignore": ["public/css/output.css"],
+  "ext": "js,json,html"
+}

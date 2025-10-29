@@ -6,8 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "build": "npm run build:css",
-    "build:css": "tailwindcss -i ./public/css/input.css -o ./public/css/output.css",
-    "dev": "nodemon --watch public/css/input.css --exec \"npm run build:css\" & nodemon server.js"
+    "build:css": "tailwindcss -i ./public/css/input.css -o ./public/css/output.css --watch",
+    "dev": "concurrently \"npm:build:css\" \"nodemon server.js\""
   },
   "keywords": [
     "express",

@@ -2,8 +2,9 @@
 <html lang="pt">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Detalhes do Produto</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">    
+    <title>Detalhes do Produto - cambioao</title>
+    <meta name="description" content="Veja os detalhes do produto, o custo estimado em Kwanzas (AOA) com base no câmbio atual do dólar, e como comprar.">
     <link rel="stylesheet" href="/css/output.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -82,8 +83,8 @@
                     <!-- Grid responsivo: 1 coluna em mobile, 2 em telas médias e maiores. O espaçamento aumenta em telas largas. -->
                     <div class="grid grid-cols-1 md:grid-cols-2 md:gap-x-8 lg:gap-x-12">
                         <!-- Imagem do Produto: padding responsivo -->
-                        <div class="p-4 sm:p-6">
-                            <img src="${product.image_url || '/assets/error-state.svg'}" alt="${product.title}" class="w-full h-auto object-cover rounded-xl bg-slate-700 p-8" onerror="this.onerror=null; this.src='/assets/error-state.svg'; this.classList.add('p-8');">
+                        <div class="p-4 sm:p-6 flex items-center justify-center">
+                            <img src="${product.image_url || '/assets/error-state.svg'}" alt="${product.title}" class="w-full h-auto object-contain rounded-xl" onerror="this.onerror=null; this.src='/assets/error-state.svg'; this.classList.add('p-8', 'bg-slate-100');">
                         </div>
 
                         <!-- Detalhes, Custos e Ação: padding responsivo -->

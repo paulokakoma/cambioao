@@ -2,8 +2,10 @@
 <html lang="pt">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>cambioao</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />    
+    <title>Câmbio Angola Hoje - Taxas Dólar Kwanza, Euro Kwanza | cambioao</title>
+    <meta name="description" content="Consulte as taxas de câmbio do dólar, euro e outras divisas em Angola. Compare o mercado formal (bancos) e informal (kinguilas) em tempo real. Calculadora de custos de importação.">
+    <meta name="keywords" content="cambio angola, dolar kwanza, euro kwanza, cambioao, divisas angola, taxas de cambio, mercado informal, kinguilas, preço do dolar hoje angola">
     <link rel="icon" href="/favicon.ico" sizes="any">
     <link rel="stylesheet" href="/css/output.css">
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -45,6 +47,64 @@
         }
       }
       .carousel-arrow:hover { background: rgba(15, 23, 42, 0.8); }
+      
+      /* Dimensões responsivas dos banners baseadas em 1500x530 */
+      .banner-container {
+        /* Proporção 1500:530 ≈ 2.83:1 */
+        aspect-ratio: 1500 / 530;
+        max-width: 1500px;
+        width: 100%;
+      }
+      
+      /* Alturas específicas para diferentes breakpoints */
+      @media (max-width: 640px) {
+        .banner-container {
+          height: 85px; /* ~150px de largura */
+        }
+      }
+      
+      @media (min-width: 641px) and (max-width: 768px) {
+        .banner-container {
+          height: 110px; /* ~315px de largura */
+        }
+      }
+      
+      @media (min-width: 769px) and (max-width: 1024px) {
+        .banner-container {
+          height: 135px; /* ~387px de largura */
+        }
+      }
+      
+      @media (min-width: 1025px) and (max-width: 1280px) {
+        .banner-container {
+          height: 182px; /* ~522px de largura */
+        }
+      }
+      
+      @media (min-width: 1281px) {
+        .banner-container {
+          height: 250px; /* ~717px de largura */
+        }
+      }
+      
+      @media (min-width: 1500px) {
+        .banner-container {
+          height: 350px; /* ~1004px de largura */
+        }
+      }
+      
+      @media (min-width: 1800px) {
+        .banner-container {
+          height: 400px; /* ~1148px de largura */
+        }
+      }
+      
+      @media (min-width: 2000px) {
+        .banner-container {
+          height: 530px; /* 1500px de largura - dimensão original */
+        }
+      }
+      
       .calculator-card { box-shadow: 0 32px 64px rgba(0, 0, 0, 0.3); transition: all 0.5s ease-in-out; border-radius: 24px; }
       .theme-bai { background-image: linear-gradient(to bottom, #0194b3, #006c6e, #b56b3e); }
       .theme-bfa { background-image: radial-gradient(circle, #f7931e, #eb5c28); }
@@ -255,19 +315,37 @@
       </section>
     </main>
     <!-- Secção de Apoiadores -->
-    <section id="supporters-section" class="w-full bg-white mt-12 hidden">
-        <div class="max-w-7xl mx-auto px-6">
-            <h2 class="text-3xl font-bold text-slate-800 text-center mb-8">Nossos Apoiadores</h2>
+    <section id="supporters-section" class="w-full bg-slate-50 py-16 mt-12 hidden">
+        <div class="w-full max-w-7xl mx-auto">
+            <h2 class="text-4xl font-bold text-slate-800 text-center mb-12">Nossos Apoiadores</h2>
         </div>
-        <div id="supporters-container-wrapper" class="relative w-full">
+        <div id="supporters-container-wrapper" class="relative w-full group">
+            <!-- Botões de navegação -->
+            <button id="supporter-prev" class="absolute left-4 top-1/2 -translate-y-1/2 z-20 bg-white/80 backdrop-blur-sm hover:bg-white/90 p-3 rounded-full shadow-lg transition-all duration-300 opacity-0 group-hover:opacity-100 disabled:opacity-0">
+                <svg class="w-6 h-6 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+            </button>
+            <button id="supporter-next" class="absolute right-4 top-1/2 -translate-y-1/2 z-20 bg-white/80 backdrop-blur-sm hover:bg-white/90 p-3 rounded-full shadow-lg transition-all duration-300 opacity-0 group-hover:opacity-100 disabled:opacity-0">
+                <svg class="w-6 h-6 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+            </button>
+            
             <!-- Container para Apoiadores -->
-            <div id="supporters-container" class="relative overflow-hidden">
+            <div id="supporters-carousel-container" class="relative overflow-hidden">
                 <div class="flex items-center justify-center w-full">
-                    <div class="skeleton h-[400px] w-full"></div>
+                    <div class="relative w-full banner-container rounded-2xl">
+                        <div id="supporter-slides-wrapper" class="flex h-full transition-transform duration-700 ease-in-out">
+                            <!-- Skeleton Loader -->
+                            <div class="supporter-slide flex-shrink-0 w-full h-full flex items-center justify-center"><div class="skeleton h-full w-full animate-pulse"></div></div>
+                        </div>
+                    </div>
                 </div>
             </div>
+            
             <!-- Indicadores de slide -->
-            <div id="supporter-indicators" class="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex justify-center gap-3 z-10">
+            <div id="supporter-indicators" class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 flex justify-center items-center gap-2 z-10">
             </div>
         </div>
     </section>
@@ -283,7 +361,7 @@
                 </button>
 
                 <!-- Container com scroll -->
-                <div id="affiliate-links-container" class="flex overflow-x-auto scroll-smooth no-scrollbar -mx-4 px-4">
+                <div id="affiliate-links-container" class="flex overflow-x-auto no-scrollbar -mx-4 px-4">
                     <!-- Conteúdo dinâmico -->
                     <div id="affiliate-track" class="flex flex-shrink-0 gap-x-8 py-4">
                         <!-- Skeleton Loader -->
@@ -891,20 +969,19 @@
         }
         
         async function loadSupporters(providerId = null) {
-            const container = document.getElementById('supporters-container');
-            const wrapper = document.getElementById('supporters-container-wrapper');
+            const carouselContainer = document.getElementById('supporters-carousel-container'); // Renamed for clarity
             const section = document.getElementById('supporters-section');
             const indicators = document.getElementById('supporter-indicators');
 
             // Carrega todos os apoiadores globais ativos e suas URLs de banner
-            const [supportersResult, settingsResult] = await Promise.all([
+            const [supportersResult, settingsResult] = await Promise.all([ // eslint-disable-line no-unused-vars
                 dbClient.from('supporters').select('*').eq('is_active', true).order('name'),
                 dbClient.from('site_settings').select('*').like('key', 'supporter_%_banner_url')
             ]);
 
             if (supportersResult.error || !supportersResult.data || supportersResult.data.length === 0) {
                 if (supportersResult.error) console.error('Erro ao carregar apoiadores:', supportersResult.error);
-                section.classList.add('hidden');
+                section.classList.add('hidden'); // Hide the entire section if no supporters
                 return;
             }
 
@@ -921,110 +998,106 @@
                 banner_url: bannerUrls[supporter.id]
             }));
 
+            section.classList.remove('hidden'); // Show the section if there are supporters
+            
+            // Carousel state
             let currentSlide = 0;
             let slideInterval;
 
+            const slidesWrapper = document.getElementById('supporter-slides-wrapper');
+
             const bannersHTML = data.map((supporter, index) => `
-                <div class="supporter-slide absolute inset-0 transition-opacity duration-700 ${index === 0 ? 'opacity-100' : 'opacity-0'}"
-                     data-slide="${index}">
-                    <a href="${supporter.website_url}" target="_blank" rel="noopener sponsored" 
-                       class="supporter-link block w-full h-full" 
-                       data-supporter-id="${supporter.id}" 
-                       data-supporter-name="${supporter.name}">
-                        <div class="relative w-full h-full bg-slate-100 flex items-center justify-center overflow-hidden rounded-xl shadow-lg">
-                            <img src="${supporter.banner_url || supporter.logo_url || '/assets/error-state.svg'}" 
+                <div class="supporter-slide flex-shrink-0 w-full h-full" data-slide="${index}">
+                    <a href="${supporter.website_url}" target="_blank" rel="noopener sponsored"
+                       class="supporter-link block w-full h-full"
+                       data-supporter-id="${supporter.id}" data-supporter-name="${supporter.name}">
+                        <div class="relative w-full h-full bg-white flex items-center justify-center overflow-hidden rounded-2xl shadow-xl">
+                            <img src="${supporter.banner_url || supporter.logo_url || '/assets/error-state.svg'}"
                                  alt="${supporter.name}"
-                                 class="w-full h-full object-cover"
+                                 class="w-full h-full object-cover transform transition-transform duration-700 hover:scale-105"
                                  loading="lazy" decoding="async"
+                                 style="image-rendering: -webkit-optimize-contrast;"
                                  onerror="this.onerror=null; this.src='/assets/error-state.svg'; this.classList.add('p-8');">
-                            <div class="absolute inset-0 bg-gradient-to-b from-transparent to-black/30"></div>
                         </div>
                     </a>
                 </div>
             `).join('');
+            slidesWrapper.innerHTML = bannersHTML;
 
-            // Renderiza os banners e indicadores
-            container.innerHTML = `
-                <div class="relative w-full h-[400px] rounded-xl">
-                    ${bannersHTML}
-                </div>
-            `;
+            const slides = slidesWrapper.querySelectorAll('.supporter-slide');
+            const prevBtn = document.getElementById('supporter-prev');
+            const nextBtn = document.getElementById('supporter-next');
 
-            // Cria indicadores
-            indicators.innerHTML = data.map((_, index) => `
-                <button class="h-2 w-2 rounded-full transition-all duration-300 ${index === 0 ? 'bg-emerald-500 w-4' : 'bg-gray-300'}"
-                        data-indicator="${index}" 
-                        aria-label="Ir para slide ${index + 1}"></button>
-            `).join('');
+            function updateDots() {
+                const dots = indicators.querySelectorAll('button');
+                dots.forEach((dot, i) => {
+                    dot.classList.toggle('bg-emerald-500', i === currentSlide);
+                    dot.classList.toggle('w-6', i === currentSlide);
+                    dot.classList.toggle('bg-slate-300/50', i !== currentSlide);
+                    dot.classList.toggle('w-2', i !== currentSlide);
+                });
+            }
 
             function showSlide(index) {
-                const slides = container.querySelectorAll('.supporter-slide');
-                const dots = indicators.querySelectorAll('button');
-                
-                // Normaliza o índice
                 if (index >= slides.length) index = 0;
                 if (index < 0) index = slides.length - 1;
                 
                 currentSlide = index;
-
-                slides.forEach((slide, i) => {
-                    if (i === index) {
-                        slide.classList.remove('opacity-0');
-                        slide.classList.add('opacity-100');
-                    } else {
-                        slide.classList.remove('opacity-100');
-                        slide.classList.add('opacity-0');
-                    }
-                });
-
-                dots.forEach((dot, i) => {
-                    if (i === index) {
-                        dot.classList.remove('bg-white/40', 'w-2');
-                        dot.classList.add('bg-white', 'w-8');
-                    } else {
-                        dot.classList.remove('bg-white', 'w-8');
-                        dot.classList.add('bg-white/40', 'w-2');
-                    }
-                });
+                slidesWrapper.style.transform = `translateX(${-currentSlide * 100}%)`;
+                updateDots();
             }
+
+            // Cria indicadores
+            indicators.innerHTML = data.map((_, index) => `
+                <button class="h-2 rounded-full transition-all duration-300 ease-in-out transform hover:scale-110"
+                        data-indicator="${index}" 
+                        aria-label="Go to slide ${index + 1}"></button>
+            `).join('');
 
             // Configuração do slideshow automático
             function startSlideshow() {
                 if (slideInterval) clearInterval(slideInterval);
-                slideInterval = setInterval(() => {
-                    showSlide(currentSlide + 1);
-                }, 6000); // Aumentado para 6 segundos para melhor leitura
+                if (data.length > 1) {
+                    slideInterval = setInterval(() => {
+                        showSlide(currentSlide + 1);
+                    }, 6000);
+                }
             }
 
             function stopSlideshow() {
-                if (slideInterval) {
-                    clearInterval(slideInterval);
-                    slideInterval = null;
-                }
+                clearInterval(slideInterval);
             }
 
-            // Click nos indicadores com novo estilo
-            indicators.innerHTML = data.map((_, index) => `
-                <button class="h-2 rounded-full transition-all duration-500 ${index === 0 ? 'bg-white w-6' : 'bg-white/40 w-2'}"
-                        data-indicator="${index}"
-                        aria-label="Ir para slide ${index + 1}"></button>
-            `).join('');
-            
-            // Event listener para indicadores
-            indicators.addEventListener('click', (e) => {
-                const dot = e.target.closest('button');
-                if (dot) {
-                    const slideIndex = parseInt(dot.dataset.indicator);
-                    showSlide(slideIndex);
-                    if (slideInterval) {
-                        clearInterval(slideInterval);
-                        startSlideshow();
-                    }
-                }
+            // Event listeners for navigation buttons
+            prevBtn.addEventListener('click', () => {
+                stopSlideshow();
+                showSlide(currentSlide - 1);
+                startSlideshow();
+            });
+            nextBtn.addEventListener('click', () => {
+                stopSlideshow();
+                showSlide(currentSlide + 1);
+                startSlideshow();
             });
 
+            // Event listener para indicadores
+            indicators.querySelectorAll('button').forEach(dot => {
+                dot.addEventListener('click', () => {
+                    const slideIndex = parseInt(dot.dataset.indicator, 10);
+                    if (slideIndex !== currentSlide) {
+                        stopSlideshow();
+                        showSlide(slideIndex);
+                        startSlideshow();
+                    }
+                });
+            });
+
+            // Pausa no hover
+            carouselContainer.addEventListener('mouseenter', stopSlideshow);
+            carouselContainer.addEventListener('mouseleave', startSlideshow);
+
             // Adiciona event listeners para os links
-            container.querySelectorAll('.supporter-link').forEach(link => {
+            slidesWrapper.querySelectorAll('.supporter-link').forEach(link => {
                 link.addEventListener('click', () => {
                     logActivity('supporter_click', {
                         supporter_id: link.dataset.supporterId,
@@ -1032,15 +1105,19 @@
                     });
                 });
             });
-
-            // Inicia o slideshow
-            section.classList.remove('hidden');
-            startSlideshow();
-
-            // Não pausa o slideshow ao passar o mouse
+            
+            // Initial setup
+            showSlide(0);
+            if (data.length > 1) {
+                prevBtn.disabled = false;
+                nextBtn.disabled = false;
+                startSlideshow();
+            } else {
+                prevBtn.disabled = true;
+                nextBtn.disabled = true;
+                indicators.classList.add('hidden');
+            }
         }
-
-        // Removida função checkSupporterOverflow() pois não é mais necessária com o novo formato de slideshow
 
         async function loadFooterInfo() {
             const container = document.getElementById('footer-contact-info');

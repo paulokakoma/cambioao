@@ -280,7 +280,7 @@ app.post("/api/supporter", isAdmin, upload.single('banner_image'), async (req, r
                 
                 // Otimiza a imagem antes do upload
                 const optimizedBuffer = await sharp(file.buffer)
-                    .resize({ width: 1200, withoutEnlargement: true }) // Redimensiona para max 1200px de largura, sem ampliar
+                    .resize({ width: 1500, height: 530, fit: 'cover' }) // Garante 1500x530, cortando o excesso se necessário
                     .webp({ quality: 80 }) // Converte para WebP com 80% de qualidade
                     .toBuffer();
 
@@ -730,11 +730,14 @@ server.listen(port, '0.0.0.0', () => {
     console.log(`Servidor a correr em desenvolvimento:`);
     console.log(`  📱 Página Principal: http://localhost:${port}`);
     console.log(`  🔐 Admin: http://admin.localhost:${port}`);
-    console.log(`\nNota: Se admin.localhost não funcionar no seu navegador,`);
-    console.log(`adicione ao /etc/hosts: 127.0.0.1 admin.localhost`);
   } else {
     console.log(`Servidor a correr em produção na porta ${port}`);
-    console.log(`Certifique-se de configurar DNS para o subdomínio admin`);
+  }
+}).on('error', (e) => {
+  if (e.code === 'EADDRINUSE') {
+    console.error(`\n❌ ERRO: A porta ${port} já está em uso.`);
+    console.error('   Verifique se outra instância do servidor já não está a correr e tente novamente.');
+    process.exit(1); // Encerra o processo para que o nodemon não tente reiniciar indefinidamente
   }
 });
 

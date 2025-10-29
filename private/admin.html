@@ -461,7 +461,7 @@
                             <span class="text-gray-400">Prévia</span>
                         </div>
                     </div>
-                    <p class="mt-1 text-xs text-gray-500">Tamanho recomendado: 1200x400 pixels</p>
+                    <p class="mt-1 text-xs text-gray-500">Tamanho recomendado: 1500x530 pixels (proporção ~2.83:1)</p>
                 </div>
 
                 <!-- Container da Barra de Progresso -->
@@ -523,19 +523,30 @@
                     // Validar dimensões da imagem
                     const img = new Image();
                     img.onload = function() {
-                        const minWidth = 960; // Reduzido em 20% de 1200
-                        const minHeight = 320; // Reduzido em 20% de 400
-                        if (this.width < minWidth || this.height < minHeight) {
-                            // Validação: impede o upload se for muito pequeno
+                        const minWidth = 800; // Largura mínima reduzida para ser mais flexível
+                        const targetRatio = 1500 / 530; // Proporção ideal de ~2.83:1
+                        const tolerance = 0.2; // Tolerância aumentada para 20%
+                        const imageRatio = this.width / this.height;
+
+                        if (this.width < minWidth) {
                             if (typeof showError === 'function') {
-                                showError(`A imagem é muito pequena. As dimensões mínimas são ${minWidth}x${minHeight} pixels.`);
+                                showError(`A imagem é muito pequena. A largura mínima é de ${minWidth} pixels. Para melhor qualidade, recomenda-se 1500x530 pixels.`);
                             } else {
-                                alert(`A imagem é muito pequena. As dimensões mínimas são ${minWidth}x${minHeight} pixels.`);
+                                alert(`A imagem é muito pequena. A largura mínima é de ${minWidth} pixels. Para melhor qualidade, recomenda-se 1500x530 pixels.`);
                             }
-                            // Limpa o input e a pré-visualização para impedir o envio
-                            document.getElementById('supporter_banner').value = '';
-                            nameSpan.textContent = 'Escolher imagem...';
-                            preview.innerHTML = '<span class="text-gray-400">Prévia</span>';
+                            clearFileInput();
+                        } else if (imageRatio < targetRatio * (1 - tolerance) || imageRatio > targetRatio * (1 + tolerance)) {
+                            if (typeof showError === 'function') {
+                                showError(`A proporção da imagem está incorreta. A imagem deve ser horizontal, com proporção próxima a 2.83:1 (ex: 1500x530 pixels). Proporção atual: ${imageRatio.toFixed(2)}:1`);
+                            } else {
+                                alert(`A proporção da imagem está incorreta. A imagem deve ser horizontal, com proporção próxima a 2.83:1 (ex: 1500x530 pixels). Proporção atual: ${imageRatio.toFixed(2)}:1`);
+                            }
+                            clearFileInput();
+                        } else {
+                            // Mostrar informações da imagem aceita
+                            if (typeof showSuccess === 'function') {
+                                showSuccess(`Imagem aceita! Dimensões: ${this.width}x${this.height}px (proporção: ${imageRatio.toFixed(2)}:1)`);
+                            }
                         }
                     };
                     img.src = e.target.result;
@@ -555,6 +566,13 @@
                 preview.innerHTML = '<span class="text-gray-400">Prévia</span>';
             }
         });
+
+        function clearFileInput() {
+            const input = document.getElementById('supporter_banner');
+            input.value = ''; // Limpa o input
+            document.getElementById('supporter_banner_name').textContent = 'Escolher imagem...';
+            document.getElementById('supporter_banner_preview').innerHTML = '<span class="text-gray-400">Prévia</span>';
+        }
     </script>
     <!-- Elementos para a barra de progresso do upload do apoiador -->
     <div id="supporter-upload-progress-container" class="hidden mt-4">
@@ -853,8 +871,10 @@
                     <td class="px-6 py-4">
                         <div class="flex items-center space-x-3">
                             ${supporter.banner_url 
-                                ? `<img src="${supporter.banner_url}" alt="${supporter.name}" class="h-8 w-24 object-cover bg-slate-100 p-1 rounded" onerror="this.style.display='none'">`
-                                : `<div class="h-8 w-24 bg-slate-200 rounded flex items-center justify-center text-xs text-slate-500">Sem imagem</div>`
+                                ? `<img src="${supporter.banner_url}" alt="Banner de ${supporter.name}" class="h-10 w-24 object-contain bg-slate-100 rounded">`
+                                : `<div class="h-10 w-24 bg-slate-200 rounded flex items-center justify-center text-slate-400" title="Sem imagem de banner">
+                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                   </div>`
                             }
                             <div class="flex flex-col">
                                 <span class="font-medium text-gray-900">${supporter.name}</span>
