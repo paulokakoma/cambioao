@@ -6,6 +6,7 @@ const path = require("path");
 const http = require("http");
 const { WebSocketServer } = require("ws");
 const session = require("express-session");
+const FileStore = require('session-file-store')(session); // Adiciona o armazenamento em ficheiro
 const bcrypt = require("bcrypt");
 const sharp = require("sharp");
 const multer = require("multer");
@@ -69,6 +70,11 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
 // --- Configuração do WebSocket ---
 const wss = new WebSocketServer({ server });
 
+// Adiciona um listener de erro para o WebSocketServer
+wss.on('error', (error) => {
+  console.error('Erro no WebSocketServer (handshake ou geral):', error);
+});
+
 const broadcast = (data, target = 'all') => {
   const jsonData = JSON.stringify(data);
   wss.clients.forEach((client) => {
@@ -129,17 +135,22 @@ wss.on("connection", (ws, req) => {
 // IMPORTANTE: Não serve index.html automaticamente - isso é controlado pelas rotas
 app.use(express.static("public", { index: false }));
 app.use(express.json());
+
+// Configuração da sessão para ser persistente em ficheiros
 app.use(session({
+    store: new FileStore({
+        path: path.join(__dirname, 'sessions'), // Guarda as sessões numa pasta 'sessions'
+        ttl: 30 * 24 * 60 * 60, // Tempo de vida da sessão em segundos (30 dias)
+        logFn: function() {} // Desativa logs do session-file-store
+    }),
     secret: sessionSecret,
-    resave: true, // Renova o cookie em cada request
+    resave: false, // Não guarda a sessão se não for modificada
     saveUninitialized: false,
     rolling: true, // Faz roll da expiração em cada request
     cookie: { 
         secure: process.env.NODE_ENV === 'production', // Usar cookies seguros em produção
         httpOnly: true, // Previne acesso via JS no cliente
         maxAge: 30 * 24 * 60 * 60 * 1000, // Expira em 30 dias
-        // Em produção, usa o domínio base para compartilhar cookies entre subdomínios
-        // Em dev, não define domain para funcionar com localhost
         domain: isDevelopment ? undefined : (process.env.COOKIE_DOMAIN || undefined)
     }
 }));
@@ -251,7 +262,7 @@ async function ensureStorageBucketExists(bucketName) {
 
 // Rota para criar/atualizar Apoiadores com upload de imagem
 app.post("/api/supporter", isAdmin, upload.single('banner_image'), async (req, res) => {
-    const { id, name, website_url, is_active } = req.body;
+    const { id, name, website_url, is_active, display_order } = req.body;
     let banner_url;
 
     try {
@@ -325,6 +336,7 @@ app.post("/api/supporter", isAdmin, upload.single('banner_image'), async (req, r
             name: name.trim(), 
             website_url: website_url.trim(), 
             is_active: is_active === 'true',
+            display_order: parseInt(display_order, 10) || 0,
             ...(banner_url && { logo_url: banner_url }) // Adiciona logo_url apenas se banner_url existir
         };
 
@@ -503,9 +515,10 @@ app.get("/api/affiliate-details/:id", async (req, res) => {
 
     try {
         // Busca o produto, as taxas informais e as configurações em paralelo
-        const [productRes, informalRatesRes] = await Promise.all([
+        const [productRes, informalRatesRes, settingsRes] = await Promise.all([
             supabase.from('affiliate_links').select('*').eq('id', id).single(),
-            supabase.rpc('get_average_informal_rate', { p_pair: 'USD/AOA' })
+            supabase.rpc('get_average_informal_rate', { p_pair: 'USD/AOA' }),
+            supabase.from('site_settings').select('value').eq('key', 'social_media_links').single()
         ]);
 
         // Verificação robusta dos resultados do Promise.all
@@ -515,6 +528,11 @@ app.get("/api/affiliate-details/:id", async (req, res) => {
         if (informalRatesRes?.error) {
             console.warn("Erro ao buscar taxa média informal:", informalRatesRes.error.message);
             // Não retornamos erro aqui, pois podemos usar o fallback.
+        }
+
+        // Adiciona os links das redes sociais ao objeto do produto
+        if (settingsRes?.data?.value) {
+            productRes.data.social_media_links = settingsRes.data.value;
         }
 
         const product = productRes.data;
