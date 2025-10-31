@@ -632,6 +632,22 @@ app.get("/sobre", (req, res) => {
     res.sendFile(path.join(__dirname, "public", "about.html"));
 });
 
+// Rota para a página "Termos e Condições"
+app.get("/termos", (req, res) => {
+    if (req.isAdminSubdomain) {
+        return res.status(404).send('Página não encontrada');
+    }
+    res.sendFile(path.join(__dirname, "public", "termos.html"));
+});
+
+// Rota para a página "Política de Privacidade"
+app.get("/privacidade", (req, res) => {
+    if (req.isAdminSubdomain) {
+        return res.status(404).send('Página não encontrada');
+    }
+    res.sendFile(path.join(__dirname, "public", "privacidade.html"));
+});
+
 // --- ROTAS GENÉRICAS (DEVEM VIR NO FIM) ---
 app.delete("/api/:resource/:id", isAdmin, async (req, res) => {
     const { resource, id } = req.params; 

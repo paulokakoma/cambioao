@@ -56,55 +56,6 @@
         width: 100%;
       }
       
-      /* Alturas específicas para diferentes breakpoints */
-      @media (max-width: 640px) {
-        .banner-container {
-          height: 85px; /* ~150px de largura */
-        }
-      }
-      
-      @media (min-width: 641px) and (max-width: 768px) {
-        .banner-container {
-          height: 110px; /* ~315px de largura */
-        }
-      }
-      
-      @media (min-width: 769px) and (max-width: 1024px) {
-        .banner-container {
-          height: 135px; /* ~387px de largura */
-        }
-      }
-      
-      @media (min-width: 1025px) and (max-width: 1280px) {
-        .banner-container {
-          height: 182px; /* ~522px de largura */
-        }
-      }
-      
-      @media (min-width: 1281px) {
-        .banner-container {
-          height: 250px; /* ~717px de largura */
-        }
-      }
-      
-      @media (min-width: 1500px) {
-        .banner-container {
-          height: 350px; /* ~1004px de largura */
-        }
-      }
-      
-      @media (min-width: 1800px) {
-        .banner-container {
-          height: 400px; /* ~1148px de largura */
-        }
-      }
-      
-      @media (min-width: 2000px) {
-        .banner-container {
-          height: 530px; /* 1500px de largura - dimensão original */
-        }
-      }
-      
       .calculator-card { box-shadow: 0 32px 64px rgba(0, 0, 0, 0.3); transition: all 0.5s ease-in-out; border-radius: 24px; }
       .theme-bai { background-image: linear-gradient(to bottom, #0194b3, #006c6e, #b56b3e); }
       .theme-bfa { background-image: radial-gradient(circle, #f7931e, #eb5c28); }
@@ -198,7 +149,7 @@
             </nav>
         </div>
     </header>
-    <main class="w-full max-w-7xl mx-auto mt-12 px-6 pb-12">
+    <main class="w-full max-w-7xl mx-auto mt-12 px-6 pb-4 md:pb-8">
       <div class="mb-12">
         <div class="grid grid-cols-2 gap-4 rounded-3xl bg-white shadow-md p-3" role="tablist">
           <button class="tab-button tab-active rounded-2xl py-4 px-8 text-lg font-bold focus:outline-none" id="market-tab" type="button" role="tab">🏦 Mercado</button>
@@ -252,28 +203,7 @@
                     </div>
 
                     <div id="formal-market-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 min-h-[200px]">
-                        <!-- Skeleton para Mercado Formal -->
-                        ${Array(3).fill(0).map(() => `
-                        <div class="p-4 rounded-xl border-l-4 border-gray-200 bg-gray-50 shadow-sm h-full">
-                            <div class="skeleton h-6 w-1/4 mb-2"></div>
-                            <div class="skeleton h-4 w-1/2 mb-6"></div>
-                            <div class="space-y-4 mt-4">
-                                <div>
-                                    <div class="flex justify-between items-baseline">
-                                        <div class="skeleton h-5 w-1/3"></div>
-                                        <div class="skeleton h-6 w-1/4"></div>
-                                    </div>
-                                    <div class="skeleton h-4 w-1/3 ml-auto mt-1"></div>
-                                </div>
-                                <div class="pt-3 border-t border-gray-200">
-                                    <div class="flex justify-between items-baseline">
-                                        <div class="skeleton h-5 w-1/3"></div>
-                                        <div class="skeleton h-6 w-1/4"></div>
-                                    </div>
-                                    <div class="skeleton h-4 w-1/3 ml-auto mt-1"></div>
-                                </div>
-                            </div>
-                        </div>`).join('')}
+                        <!-- O conteúdo será preenchido por JavaScript -->
                     </div>
                 </div>
              </div>
@@ -285,15 +215,7 @@
                        </div>
                     </div>
                     <div id="informal-market-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 min-h-[150px]">
-                        <!-- Skeleton para Mercado Informal -->
-                        ${Array(4).fill(0).map(() => `
-                        <div class="bg-gray-50 border border-gray-200 p-4 rounded-xl">
-                            <div class="skeleton h-5 w-3/4 mb-2"></div>
-                            <div class="skeleton h-8 w-1/2 mb-4"></div>
-                            <div class="mt-3 pt-3 border-t border-gray-200">
-                                <div class="skeleton h-4 w-full"></div>
-                            </div>
-                        </div>`).join('')}
+                        <!-- O conteúdo será preenchido por JavaScript -->
                     </div>
                 </div>
             </div>
@@ -315,7 +237,7 @@
       </section>
     </main>
     <!-- Secção de Apoiadores -->
-    <section id="supporters-section" class="w-full bg-slate-50 py-16 mt-12 hidden">
+    <section id="supporters-section" class="w-full bg-slate-50 pt-8 md:pt-12 pb-12 md:pb-16 mt-4 md:mt-8 hidden">
         <div class="w-full max-w-7xl mx-auto">
             <h2 class="text-4xl font-bold text-slate-800 text-center mb-12">Apoiadores</h2>
         </div>
@@ -352,7 +274,7 @@
 
     <div class="bg-slate-800 text-slate-300">
         <!-- Secção de Afiliados movida para dentro de um div -->
-        <div class="w-full max-w-7xl mx-auto px-6 py-16">
+        <div class="w-full max-w-7xl mx-auto px-6 pt-8 md:pt-12 pb-16">
             <h2 class="text-3xl font-bold text-white text-center mb-12">Parceiros</h2> 
             <div id="affiliate-links-wrapper" class="relative group">
                 <!-- Botão de Recuar -->
@@ -364,18 +286,7 @@
                 <div id="affiliate-links-container" class="flex overflow-x-auto no-scrollbar -mx-4 px-4">
                     <!-- Conteúdo dinâmico -->
                     <div id="affiliate-track" class="flex flex-shrink-0 gap-x-8 py-4">
-                        <!-- Skeleton Loader -->
-                        <div class="flex gap-x-4 px-4">
-                            ${Array(4).fill(0).map(() => `
-                                <div class="block bg-slate-700 rounded-lg overflow-hidden shadow-lg w-48 md:w-56 flex-shrink-0">
-                                    <div class="skeleton-dark h-32 w-full"></div>
-                                    <div class="p-3">
-                                        <div class="skeleton-dark h-5 w-full mb-2"></div>
-                                        <div class="skeleton-dark h-6 w-3/4"></div>
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
+                        <!-- O conteúdo será preenchido por JavaScript -->
                     </div>
                 </div>
 
@@ -384,26 +295,37 @@
                     &#x2192;
                 </button>
             </div>
-
-            <p class="text-xs text-slate-500 text-center mt-12">Ao clicar nestes links e fazer uma compra, poderemos receber uma comissão sem custo adicional para si.</p>
         </div>
     </div>
 
     <footer class="bg-slate-900 text-slate-400 py-8">
         <div class="max-w-7xl mx-auto px-6 text-center text-sm">
-            <div id="footer-contact-info" class="mb-4 space-y-2">
-                <!-- As informações de contato serão carregadas aqui -->
-            </div>
-            <div class="mt-6">
-                <h4 class="text-slate-300 font-semibold mb-3">Siga-nos</h4>
-                <div id="social-media-links" class="flex justify-center space-x-4">
+            <div class="flex justify-center mb-6">
+                <div id="social-media-links" class="flex items-center space-x-4">
                     <!-- Social media links will be loaded here -->
                 </div>
             </div>
-            <p class="mt-6">&copy; 2025 cambioAO. Todos os direitos reservados.</p>
+            <div class="mt-6 border-t border-slate-800 pt-6 flex flex-col md:flex-row justify-center items-center gap-x-4 gap-y-2">
+                <a href="/termos" class="hover:text-white transition-colors">Termos e Condições</a>
+                <span class="hidden md:inline text-slate-600">•</span>
+                <a href="/privacidade" class="hover:text-white transition-colors">Política de Privacidade</a>
+            </div>
+            <p class="mt-4 text-slate-600">&copy; 2025 cambioAO. Todos os direitos reservados.</p>
         </div>
     </footer>
     
+    <!-- Banner de Termos e Cookies -->
+    <div id="terms-banner" class="hidden fixed bottom-0 left-0 right-0 bg-slate-900 text-white p-4 shadow-lg z-50 transform translate-y-full transition-transform duration-500 ease-in-out">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+            <p class="text-sm text-slate-300 text-center md:text-left">
+                Usamos cookies para melhorar a sua experiência. Ao continuar a navegar, você concorda com os nossos 
+                <a href="/termos" target="_blank" class="font-semibold underline hover:text-emerald-400">Termos e Condições</a> e 
+                <a href="/privacidade" target="_blank" class="font-semibold underline hover:text-emerald-400">Política de Privacidade</a>.
+            </p>
+            <button id="accept-terms-btn" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-6 rounded-lg transition-colors flex-shrink-0">Aceitar</button>
+        </div>
+    </div>
+
     <script type="module">
         // --- CONFIGURAÇÃO ---
         const WEBSOCKET_URL = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}`;
@@ -487,6 +409,28 @@
                     if(gridContainer) gridContainer.innerHTML = '<p class="col-span-full text-center text-slate-500 py-8">Nenhum banco disponível de momento.</p>';
                     return;
                 };
+
+                gridContainer.innerHTML = Array(3).fill(0).map(() => `
+                    <div class="p-4 rounded-xl border-l-4 border-gray-200 bg-gray-50 shadow-sm h-full">
+                        <div class="skeleton h-6 w-1/4 mb-2"></div>
+                        <div class="skeleton h-4 w-1/2 mb-6"></div>
+                        <div class="space-y-4 mt-4">
+                            <div>
+                                <div class="flex justify-between items-baseline">
+                                    <div class="skeleton h-5 w-1/3"></div>
+                                    <div class="skeleton h-6 w-1/4"></div>
+                                </div>
+                                <div class="skeleton h-4 w-1/3 ml-auto mt-1"></div>
+                            </div>
+                            <div class="pt-3 border-t border-gray-200">
+                                <div class="flex justify-between items-baseline">
+                                    <div class="skeleton h-5 w-1/3"></div>
+                                    <div class="skeleton h-6 w-1/4"></div>
+                                </div>
+                                <div class="skeleton h-4 w-1/3 ml-auto mt-1"></div>
+                            </div>
+                        </div>
+                    </div>`).join('');
                 
                 const bna = banks.find(b => b.code === 'BNA') || banks[0];
                 if (bna) {
@@ -524,6 +468,16 @@
                     document.getElementById('informal-market-grid').innerHTML = '<p class="col-span-full text-center text-slate-500 py-8">Nenhuma taxa informal disponível de momento.</p>';
                     return;
                 }
+
+                document.getElementById('informal-market-grid').innerHTML = Array(4).fill(0).map(() => `
+                    <div class="bg-gray-50 border border-gray-200 p-4 rounded-xl">
+                        <div class="skeleton h-5 w-3/4 mb-2"></div>
+                        <div class="skeleton h-8 w-1/2 mb-4"></div>
+                        <div class="mt-3 pt-3 border-t border-gray-200">
+                            <div class="skeleton h-4 w-full"></div>
+                        </div>
+                    </div>`).join('');
+
                 
                 const provinces = Object.keys(data);
                 tabsContainer.innerHTML = provinces.map(provinceCode => `<button data-provider-id="${data[provinceCode][0]?.provider_id}" data-province="${provinceCode}" class="province-tab font-semibold pb-2 px-1">${provinceCode}</button>`).join('');
@@ -869,6 +823,19 @@
             const track = document.getElementById('affiliate-track');
             const container = document.getElementById('affiliate-links-container'); // Container com scroll
                 const { data, error } = await dbClient // A query é feita aqui
+
+            track.innerHTML = Array(4).fill(0).map(() => `
+                <div class="block bg-slate-700 rounded-lg overflow-hidden shadow-lg w-48 md:w-56 flex-shrink-0">
+                    <div class="skeleton-dark h-32 w-full"></div>
+                    <div class="p-3">
+                        <div class="skeleton-dark h-5 w-full mb-2"></div>
+                        <div class="skeleton-dark h-6 w-3/4"></div>
+                    </div>
+                </div>
+            `).join('');
+
+
+            const { data: affiliateData, error: affiliateError } = await dbClient
                     .from('affiliate_links')
                     .select('*')
                     .eq('is_active', true)
@@ -877,15 +844,15 @@
 
             const wrapper = document.getElementById('affiliate-links-wrapper');
 
-            if (error || !data || data.length === 0) {
-                if (error) console.error('Erro ao carregar links de afiliados:', error);
+            if (affiliateError || !affiliateData || affiliateData.length === 0) {
+                if (affiliateError) console.error('Erro ao carregar links de afiliados:', affiliateError);
                 wrapper.closest('.bg-slate-800').classList.add('hidden');
                 return;
             }
 
             const bnaRate = marketData?.formal_rates?.find(r => r.code === 'BNA')?.usd_rate;
 
-            const linksHTML = data.map(link => `
+            const linksHTML = affiliateData.map(link => `
                 <a href="details.html?id=${link.id}" class="affiliate-link-item group block bg-slate-700 rounded-lg overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-300 w-48 md:w-56 flex-shrink-0">
                         <img src="${link.image_url || '/assets/error-state.svg'}" alt="Imagem de ${link.title}" class="w-full h-32 object-cover group-hover:opacity-80 transition-opacity bg-slate-600" loading="lazy" decoding="async" onerror="this.onerror=null; this.src='/assets/error-state.svg'; this.classList.add('p-4');">
                         <div class="p-3">
@@ -1181,6 +1148,22 @@
                 document.body.innerHTML = `<div class="p-8 m-8 text-center bg-red-100 text-red-800 rounded-lg"><strong>Erro Crítico:</strong> Não foi possível carregar a configuração da aplicação.</div>`;
                 return;
             }
+        }
+
+        function handleTermsBanner() {
+            const banner = document.getElementById('terms-banner');
+            const acceptBtn = document.getElementById('accept-terms-btn');
+
+            if (localStorage.getItem('termsAccepted') !== 'true') {
+                banner.classList.remove('hidden');
+                setTimeout(() => banner.classList.remove('translate-y-full'), 100);
+            }
+
+            acceptBtn.addEventListener('click', () => {
+                localStorage.setItem('termsAccepted', 'true');
+                banner.classList.add('translate-y-full');
+                setTimeout(() => banner.classList.add('hidden'), 500);
+            });
         }
         
         document.addEventListener('DOMContentLoaded', initializeApp);
