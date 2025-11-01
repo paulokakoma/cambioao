@@ -327,7 +327,7 @@
                         <button id="add-bank-btn" class="btn-primary flex-shrink-0">Adicionar Banco</button>
                     </div>
                 </div>
-                <div class="admin-table"><div class="overflow-x-auto max-w-full"><table class="w-full"><thead><tr><th scope="col">BANCO</th><th scope="col">cambio USD/AOA</th><th scope="col">cambio EUR/AOA</th><th scope="col">COMISSÃO (%)</th><th scope="col">STATUS</th><th scope="col" class="text-center">AÇÕES</th></tr></thead><tbody id="banks-table-body"><tr class="h-48"><td colspan="6" class="text-center"><div class="loader mx-auto"></div></td></tr></tbody></table></div></div>
+                <div class="admin-table"><div class="overflow-x-auto max-w-full"><table class="w-full"><thead><tr><th scope="col">BANCO</th><th scope="col">cambio USD/AOA</th><th scope="col">cambio EUR/AOA</th><th scope="col">COMISSÃO (%)</th><th scope="col">COMISSÃO BASE (%)</th><th scope="col">STATUS</th><th scope="col" class="text-center">AÇÕES</th></tr></thead><tbody id="banks-table-body"><tr class="h-48"><td colspan="7" class="text-center"><div class="loader mx-auto"></div></td></tr></tbody></table></div></div>
             </section>
             
             <!-- Mercado Informal Section -->
@@ -371,6 +371,7 @@
                         <div><h3 class="text-lg font-semibold text-slate-700 border-b pb-2 mb-4">Informações de Contato</h3></div>
                         <div><label for="setting_contact_email" class="block text-sm font-medium text-slate-700">Email de Contato</label><input type="email" name="contact_email" id="setting_contact_email" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md"></div>
                         <div><label for="setting_contact_phone" class="block text-sm font-medium text-slate-700">Telefone de Contato</label><input type="tel" name="contact_phone" id="setting_contact_phone" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md"></div>
+                        <div class="pt-4"><h3 class="text-lg font-semibold text-slate-700 border-b pb-2 mb-4">Calculadora</h3></div>
                         <div class="pt-4"><h3 class="text-lg font-semibold text-slate-700 border-b pb-2 mb-4">Vídeos Padrão</h3></div>
                         <div><label for="setting_tutorial_video_url" class="block text-sm font-medium text-slate-700">URL do Vídeo Tutorial Padrão (Compra)</label><input type="url" name="tutorial_video_url" id="setting_tutorial_video_url" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md"></div>
                         <div class="pt-4"><h3 class="text-lg font-semibold text-slate-700 border-b pb-2 mb-4">Redes Sociais Padrão</h3></div>
@@ -421,6 +422,11 @@
                         <label for="bank_commission" class="block text-sm font-medium text-slate-700">Comissão (%)</label>
                         <input type="number" id="bank_commission" name="bank_commission" step="0.01" value="3" required class="mt-1 block w-full border border-slate-300 rounded-md shadow-sm p-2">
                         <p class="mt-1 text-xs text-slate-500">Comissão aplicada sobre o valor em AOA (padrão: 3%)</p>
+                    </div>
+                    <div>
+                        <label for="bank_base_fee" class="block text-sm font-medium text-slate-700">Comissão Base da Calculadora (%)</label>
+                        <input type="number" id="bank_base_fee" name="bank_base_fee" step="0.01" value="12" required class="mt-1 block w-full border border-slate-300 rounded-md shadow-sm p-2">
+                        <p class="mt-1 text-xs text-slate-500">Esta comissão é adicionada ao valor em AOA antes de aplicar as taxas do banco (padrão: 12%)</p>
                     </div>
                 </div>
                 <div class="flex justify-end space-x-4 mt-8">
@@ -706,7 +712,7 @@
 
     async function loadBanks() {
         const banksTableBody = document.getElementById('banks-table-body');
-        banksTableBody.innerHTML = `<tr><td colspan="6" class="text-center h-48"><div class="loader mx-auto"></div></td></tr>`;
+        banksTableBody.innerHTML = `<tr><td colspan="7" class="text-center h-48"><div class="loader mx-auto"></div></td></tr>`;
         const { data, error } = await dbClient.from('rate_providers').select(`*, exchange_rates(currency_pair, sell_rate)`).eq('type', 'FORMAL').order('code');
         if(error) { console.error(error); banksTableBody.innerHTML = `<tr><td colspan="6" class="text-center p-4 text-red-500">Erro ao carregar bancos.</td></tr>`; return; }
         allFormalProviders = data;
@@ -716,14 +722,15 @@
     function renderBanks(providers) {
         const banksTableBody = document.getElementById('banks-table-body');
         banksTableBody.innerHTML = '';
-        if (!providers || providers.length === 0) {
-            banksTableBody.innerHTML = `<tr><td colspan="6" class="text-center p-8 text-slate-500">Nenhum banco encontrado.</td></tr>`;
+        if (!providers || providers.length === 0) { // eslint-disable-line no-unused-vars
+            banksTableBody.innerHTML = `<tr><td colspan="7" class="text-center p-8 text-slate-500">Nenhum banco encontrado.</td></tr>`;
             return;
         }
         banksTableBody.innerHTML = providers.map(bank => {
             const usdRate = bank.exchange_rates?.find(r => r.currency_pair === 'USD/AOA')?.sell_rate || 0;
             const eurRate = bank.exchange_rates?.find(r => r.currency_pair === 'EUR/AOA')?.sell_rate || 0;
             const commission = bank.fee_margin || 0;
+            const baseFee = bank.base_fee_percent || 12;
 
             return `
                 <tr class="bg-white border-b hover:bg-indigo-50/50">
@@ -749,14 +756,25 @@
                         </span>
                     </td>
                     <td class="px-6 py-4">
+                        <span class="editable-cell inline-block min-w-[80px] px-2" data-field="base_fee_percent" data-provider-id="${bank.id}">
+                            ${baseFee.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%
+                        </span>
+                    </td>
+                    <td class="px-6 py-4">
                         <label class="toggle-switch">
                             <input type="checkbox" class="toggle-status" data-type="bank" ${bank.is_active ? 'checked' : ''} data-id="${bank.id}">
                             <span class="toggle-slider"></span>
                         </label>
                     </td>
                     <td class="px-6 py-4 text-center space-x-2">
-                        <button class="edit-btn text-slate-500 hover:text-indigo-600" data-type="bank" data-id="${bank.id}">Editar</button>
-                        <button class="delete-btn text-slate-500 hover:text-red-600" data-type="bank" data-id="${bank.id}">Apagar</button>
+                        <button class="edit-btn p-2 rounded-md text-amber-500 hover:text-amber-600 hover:bg-amber-100 transition-colors" data-type="bank" data-id="${bank.id}" title="Editar">
+                            <svg class="w-5 h-5 pointer-events-none" fill="currentColor" viewBox="0 0 20 20"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z"></path><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd"></path></svg>
+                        </button>
+                        <button class="delete-btn p-2 rounded-md text-red-500 hover:text-red-600 hover:bg-red-100 transition-colors" data-type="bank" data-id="${bank.id}" title="Apagar">
+                            <svg class="w-5 h-5 pointer-events-none" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                            </svg>
+                        </button>
                     </td>
                 </tr>`;
         }).join('');
@@ -776,7 +794,14 @@
                     <td class="px-6 py-4">${currency.name}</td>
                     <td class="px-6 py-4 text-center">${currency.symbol || ''}</td>
                     <td class="px-6 py-4"><label class="toggle-switch"><input type="checkbox" class="toggle-status" data-type="currency" ${currency.is_active ? 'checked' : ''} data-id="${currency.id}"><span class="toggle-slider"></span></label></td>
-                    <td class="px-6 py-4 text-center space-x-2"><button class="edit-btn text-slate-500 hover:text-indigo-600" data-type="currency" data-id="${currency.id}">Editar</button><button class="delete-btn text-slate-500 hover:text-red-600" data-type="currency" data-id="${currency.id}">Apagar</button></td>
+                    <td class="px-6 py-4 text-center space-x-2">
+                        <button class="edit-btn p-2 rounded-md text-amber-500 hover:text-amber-600 hover:bg-amber-100 transition-colors" data-type="currency" data-id="${currency.id}" title="Editar">
+                            <svg class="w-5 h-5 pointer-events-none" fill="currentColor" viewBox="0 0 20 20"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z"></path><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd"></path></svg>
+                        </button>
+                        <button class="delete-btn p-2 rounded-md text-red-500 hover:text-red-600 hover:bg-red-100 transition-colors" data-type="currency" data-id="${currency.id}" title="Apagar">
+                            <svg class="w-5 h-5 pointer-events-none" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
+                        </button>
+                    </td>
                 </tr>`).join('');
     }
 
@@ -832,7 +857,14 @@
                     <td class="px-6 py-4 text-center">${new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'USD' }).format(link.price || 0)}</td>
                     <td class="px-6 py-4 text-center font-medium">${link.click_count || 0}</td>
                     <td class="px-6 py-4"><label class="toggle-switch"><input type="checkbox" class="toggle-status" data-type="affiliate" ${link.is_active ? 'checked' : ''} data-id="${link.id}"><span class="toggle-slider"></span></label></td>
-                    <td class="px-6 py-4 text-center space-x-2"><button class="edit-btn text-slate-500 hover:text-indigo-600" data-type="affiliate" data-id="${link.id}">Editar</button><button class="delete-btn text-slate-500 hover:text-red-600" data-type="affiliate" data-id="${link.id}">Apagar</button></td>
+                    <td class="px-6 py-4 text-center space-x-2">
+                        <button class="edit-btn p-2 rounded-md text-amber-500 hover:text-amber-600 hover:bg-amber-100 transition-colors" data-type="affiliate" data-id="${link.id}" title="Editar">
+                            <svg class="w-5 h-5 pointer-events-none" fill="currentColor" viewBox="0 0 20 20"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z"></path><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd"></path></svg>
+                        </button>
+                        <button class="delete-btn p-2 rounded-md text-red-500 hover:text-red-600 hover:bg-red-100 transition-colors" data-type="affiliate" data-id="${link.id}" title="Apagar">
+                            <svg class="w-5 h-5 pointer-events-none" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
+                        </button>
+                    </td>
                 </tr>`).join('');
     }
 
@@ -883,7 +915,14 @@
                         </div>
                     </td>
                     <td class="px-6 py-4"><label class="toggle-switch"><input type="checkbox" class="toggle-status" data-type="supporter" ${supporter.is_active ? 'checked' : ''} data-id="${supporter.id}"><span class="toggle-slider"></span></label></td>
-                    <td class="px-6 py-4 text-center space-x-2"><button class="edit-btn text-slate-500 hover:text-indigo-600" data-type="supporter" data-id="${supporter.id}">Editar</button><button class="delete-btn text-slate-500 hover:text-red-600" data-type="supporter" data-id="${supporter.id}">Apagar</button></td>
+                    <td class="px-6 py-4 text-center space-x-2">
+                        <button class="edit-btn p-2 rounded-md text-amber-500 hover:text-amber-600 hover:bg-amber-100 transition-colors" data-type="supporter" data-id="${supporter.id}" title="Editar">
+                            <svg class="w-5 h-5 pointer-events-none" fill="currentColor" viewBox="0 0 20 20"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7586a2 2 0 000-2.828z"></path><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd"></path></svg>
+                        </button>
+                        <button class="delete-btn p-2 rounded-md text-red-500 hover:text-red-600 hover:bg-red-100 transition-colors" data-type="supporter" data-id="${supporter.id}" title="Apagar">
+                            <svg class="w-5 h-5 pointer-events-none" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
+                        </button>
+                    </td>
                 </tr>`).join('');
     }
 
@@ -899,7 +938,6 @@
         document.getElementById('setting_contact_email').value = settings.contact_email || '';
         document.getElementById('setting_contact_phone').value = settings.contact_phone || '';
         document.getElementById('setting_tutorial_video_url').value = settings.tutorial_video_url || '';
-        // O campo proof_video_url foi removido das configurações
 
         // Preenche os campos de redes sociais
         document.getElementById('setting_social_whatsapp').value = settings.social_media_links?.whatsapp || '';
@@ -1129,10 +1167,12 @@
             const usdRate = bankData.exchange_rates?.find(r => r.currency_pair === 'USD/AOA')?.sell_rate || 0;
             const eurRate = bankData.exchange_rates?.find(r => r.currency_pair === 'EUR/AOA')?.sell_rate || 0;
             const commission = bankData.fee_margin || 0;
+            const baseFee = bankData.base_fee_percent || 12.0;
             
             form.querySelector('#bank_usd_rate').value = usdRate || '';
             form.querySelector('#bank_eur_rate').value = eurRate || '';
             form.querySelector('#bank_commission').value = commission || '';
+            form.querySelector('#bank_base_fee').value = baseFee || '';
         }
         openModal(modal);
     }
@@ -1145,6 +1185,7 @@
             code: form.querySelector('#bank_code').value,
             name: form.querySelector('#bank_name').value,
             fee_margin: parseFloat(form.querySelector('#bank_commission').value) || 0,
+            base_fee_percent: parseFloat(form.querySelector('#bank_base_fee').value) || 12.0,
             // Envia também as taxas iniciais para persistirem na criação
             usd_rate: parseFloat(form.querySelector('#bank_usd_rate').value) || 0,
             eur_rate: parseFloat(form.querySelector('#bank_eur_rate').value) || 0,
@@ -1622,19 +1663,19 @@
 
     async function handleCellEdit(cell) {
         const originalValue = cell.textContent.trim();
-        const isCommission = cell.dataset.field === 'fee_margin';
+        const isCommission = cell.dataset.field === 'fee_margin' || cell.dataset.field === 'base_fee_percent';
         
         // Extrair o valor numérico original (remover % se for comissão)
-        let originalNumber;
-        if (isCommission) {
-            originalNumber = parseFloat(originalValue.replace(/[%,\s]/g, '').replace(',', '.'));
-        } else {
-            originalNumber = parseFloat(originalValue.replace(/[%,\s]/g, '').replace(',', '.'));
-        }
+        const originalNumber = parseFloat(originalValue.replace(/[^0-9,]/g, '').replace(',', '.'));
         
         const input = document.createElement('input');
         input.type = 'text';
-        input.value = isCommission ? (originalNumber || '').toString() : originalNumber.toFixed(4);
+        // Formata o valor para o input usando vírgula, para consistência
+        if (isCommission) {
+            input.value = (originalNumber || 0).toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        } else {
+            input.value = (originalNumber || 0).toLocaleString('pt-PT', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
+        }
         input.className = 'w-full bg-yellow-100 border-indigo-500 border-2 rounded px-2 py-1 text-sm';
         cell.innerHTML = '';
         cell.appendChild(input);
@@ -1642,7 +1683,7 @@
         input.select();
 
         const saveChanges = async () => {
-            let newValue = parseFloat(input.value.replace(/[%,\s]/g, '').replace(',', '.'));
+            let newValue = parseFloat(input.value.replace(/[^0-9,]/g, '').replace(',', '.'));
             
             // Validar se o valor mudou
             if (isNaN(newValue) || newValue === originalNumber) {

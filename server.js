@@ -445,32 +445,30 @@ app.post("/api/update-status", isAdmin, async (req, res) => {
 
 app.post("/api/update-cell", isAdmin, async (req, res) => {
     const { field, value, providerId, pair } = req.body;
-    let error;
-    
     if (field === 'sell_rate') {
         // Usar upsert para criar ou atualizar o registro de taxa
         const { error: upsertError } = await supabase
             .from('exchange_rates')
             .upsert(
                 { 
-                    provider_id: providerId, 
-                    currency_pair: pair, 
-                    sell_rate: value 
+                    provider_id: providerId,
+                    currency_pair: pair,
+                    sell_rate: value
                 },
                 { onConflict: 'provider_id,currency_pair' }
             );
-        error = upsertError;
-    } else if (field === 'fee_margin') {
+        if (upsertError) return handleSupabaseError(upsertError, res);
+    } else if (['fee_margin', 'base_fee_percent'].includes(field)) {
         const { error: updateError } = await supabase
             .from('rate_providers')
             .update({ [field]: value })
             .eq('id', providerId);
-        error = updateError;
+        if (updateError) return handleSupabaseError(updateError, res);
     } else {
         return res.status(400).json({ message: "Campo inválido." });
     }
     
-    if (error) return handleSupabaseError(error, res);
+    // If we got here, it was successful.
     res.status(200).json({ success: true });
 });
 
@@ -695,6 +693,10 @@ app.post("/api/:resource", isAdmin, async (req, res) => {
 
         // Guardar valores extras que não devem ir para a tabela principal (apenas para bancos)
         let extraData = {};
+        // O campo base_fee_percent só existe na tabela rate_providers
+        if (resource !== 'bank') {
+            delete data.base_fee_percent;
+        }
         if (resource === 'bank') {
             extraData = { usd_rate: data.usd_rate, eur_rate: data.eur_rate };
             delete data.usd_rate;
@@ -719,7 +721,7 @@ app.post("/api/:resource", isAdmin, async (req, res) => {
             query = supabase.from(tableName).insert(data);
         }
 
-        const { data: result, error } = await query;
+        const { data: result, error } = await query.select();
         
         if (error) {
             console.error(`Erro ao ${id ? 'atualizar' : 'criar'} ${resource}:`, error);

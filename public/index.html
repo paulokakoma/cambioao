@@ -584,7 +584,7 @@
         // --- MÓDULO DA CALCULADORA ---
         const CalculatorModule = (function() {
             const container = document.getElementById('calculator-card-container');
-            let purchasePriceInput, bankSelectorBtn, bankOptionsPanel, selectedBankCode, bankExchangeRateInput, bankFeeMarginInput, bankFeeFinalInput, calculateBtn, calculatorCard, dropdownArrow;
+            let purchasePriceInput, bankSelectorBtn, bankOptionsPanel, selectedBankCode, bankExchangeRateInput, bankFeeMarginInput, bankFeeFinalInput, calculateBtn, calculatorCard, dropdownArrow, baseFeePercent;
             const themes = { 
                 bai: { card: 'theme-bai', color: '#0194b3' }, 
                 bfa: { card: 'theme-bfa', color: '#f7931e' }, 
@@ -608,7 +608,7 @@
                         <div class="mb-6">
                             <label for="purchasePrice" class="block text-base font-semibold text-gray-200 mb-3">Valor em Dólar</label>
                             <div class="flex items-center rounded-2xl bg-white/90 ring-4 ring-transparent focus-within:ring-green-400 transition">
-                                <input type="text" inputmode="decimal" id="purchasePrice" class="flex-1 w-full bg-transparent text-lg p-4 text-gray-900 placeholder-gray-500 focus:outline-none calc-input" placeholder="0,00" />
+                                <input type="text" inputmode="decimal" id="purchasePrice" class="flex-1 w-full bg-transparent text-lg p-4 text-gray-900 placeholder-gray-500 focus:outline-none calc-input" placeholder="100,00" />
                                 <div class="relative" id="bank-selector-wrapper">
                                     <input type="hidden" id="bankExchangeRate" /><input type="hidden" id="bankFeeMargin" /><input type="hidden" id="bankFeeFinal" />
                                     <button type="button" id="bankSelectorBtn" class="flex items-center justify-between w-32 text-left text-gray-800 text-base p-4 border-l border-gray-400/50">
@@ -621,7 +621,7 @@
                         </div>
                         <button id="calculateBtn" class="w-full text-white font-bold py-4 px-6 rounded-2xl transition-all duration-300 text-lg transform hover:scale-105 focus:outline-none focus:ring-4">Calcular Custo</button>
                         <div id="result" class="mt-8 border-t border-white/20 pt-6 space-y-4 opacity-0 transition-opacity duration-500">
-                            <div><p class="text-base font-semibold text-gray-200">Conversão Direta (AOA):</p><p id="directConversionValue" class="text-2xl font-bold text-white mt-1">0,00</p></div>
+                            <div><p class="text-base font-semibold text-gray-200">Custo base com taxas (AOA):</p><p id="directConversionValue" class="text-2xl font-bold text-white mt-1">0,00</p></div>
                             <div class="bg-white/15 backdrop-blur-sm p-5 rounded-2xl border border-white/10"><p class="text-base font-semibold text-white">Valor total a ser descontado (AOA)</p><p id="totalCost" class="text-4xl font-bold text-white mt-1">0,00</p></div>
                         </div>
                     </div>`;
@@ -636,6 +636,7 @@
                 bankFeeMarginInput = document.getElementById('bankFeeMargin');
                 bankFeeFinalInput = document.getElementById('bankFeeFinal');
                 calculateBtn = document.getElementById('calculateBtn');
+                baseFeePercent = marketData?.calculator_base_fee_percent || 12;
             }
 
             function toggleDropdown() { bankOptionsPanel.classList.toggle('hidden'); dropdownArrow.classList.toggle('rotate-180'); }
@@ -649,9 +650,9 @@
 
             function selectBank(bankData) {
                 selectedBankCode.textContent = bankData.code;
-                bankExchangeRateInput.value = bankData.rate;
-                bankFeeMarginInput.value = bankData.feeMargin;
-                bankFeeFinalInput.value = bankData.feeFinal;
+                bankExchangeRateInput.value = bankData.rate || 0;
+                bankFeeMarginInput.value = bankData.feeMargin || 0;
+                bankFeeFinalInput.value = bankData.feeFinal || 0;
                 
                 const themeCode = getThemeCode(bankData.code);
                 const theme = themes[themeCode];
@@ -664,12 +665,23 @@
                 const [price, rate, margin, finalFee] = [priceStr, bankExchangeRateInput.value, bankFeeMarginInput.value, bankFeeFinalInput.value].map(parseFloat);
                 const resultPanel = document.getElementById('result');
 
-                if (![price, rate].every(v => !isNaN(v) && v > 0)) { resultPanel.classList.add('opacity-0'); return; }
+                if (![price, rate].every(v => !isNaN(v) && v > 0)) {
+                    resultPanel.classList.add('opacity-0');
+                    return;
+                }
                 
                 const directConversion = price * rate;
-                const totalCost = directConversion * (1 + (margin/100 || 0)) * (1 + (finalFee/100 || 0));
                 
-                document.getElementById('directConversionValue').textContent = `${directConversion.toLocaleString('pt-AO', { style: 'currency', currency: 'AOA' })}`;
+                // 1. Adiciona a comissão base (ex: 12%) ao valor convertido
+                const feeMultiplier = 1 + (baseFeePercent / 100);
+                const valueWithBaseFee = directConversion * feeMultiplier;
+                
+                // 2. Calcula as comissões sobre o novo valor base
+                const marginValue = valueWithBaseFee * (margin / 100 || 0);
+                const finalFeeValue = valueWithBaseFee * (finalFee / 100 || 0);
+                const totalCost = valueWithBaseFee + marginValue + finalFeeValue;
+                
+                document.getElementById('directConversionValue').textContent = `${valueWithBaseFee.toLocaleString('pt-AO', { style: 'currency', currency: 'AOA' })}`;
                 document.getElementById('totalCost').textContent = `${totalCost.toLocaleString('pt-AO', { style: 'currency', currency: 'AOA' })}`;
                 resultPanel.classList.remove('opacity-0');
             }
