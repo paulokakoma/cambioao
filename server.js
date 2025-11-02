@@ -131,6 +131,10 @@ wss.on("connection", (ws, req) => {
 });
 
 // --- MIDDLEWARES ---
+// Confiar em proxies (necessário para Render e outros serviços de hosting)
+// Isso permite que req.protocol detecte corretamente HTTPS mesmo atrás de um proxy
+app.set('trust proxy', 1);
+
 // Servir ficheiros estáticos da pasta 'public' (CSS, JS, imagens).
 // IMPORTANTE: Não serve index.html automaticamente - isso é controlado pelas rotas
 app.use(express.static("public", { index: false }));
@@ -151,6 +155,9 @@ app.use(session({
         secure: process.env.NODE_ENV === 'production', // Usar cookies seguros em produção
         httpOnly: true, // Previne acesso via JS no cliente
         maxAge: 30 * 24 * 60 * 60 * 1000, // Expira em 30 dias
+        // sameSite: 'lax' funciona para subdomínios do mesmo domínio (admin.dominio.com e dominio.com)
+        // 'none' só é necessário para domínios completamente diferentes
+        sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'lax',
         domain: isDevelopment ? undefined : (process.env.COOKIE_DOMAIN || undefined)
     }
 }));
@@ -203,9 +210,20 @@ app.post('/api/login', async (req, res) => {
 
     if (match) {
         req.session.isAdmin = true;
-        return res.status(200).json({ success: true, message: 'Login bem-sucedido.' });
+        // Garante que a sessão seja salva antes de enviar a resposta
+        req.session.save((err) => {
+            if (err) {
+                console.error('Erro ao salvar sessão:', err);
+                return res.status(500).json({ success: false, message: 'Erro ao criar sessão.' });
+            }
+            if (isDevelopment) {
+                console.log('Login bem-sucedido. Sessão criada:', req.sessionID);
+            }
+            return res.status(200).json({ success: true, message: 'Login bem-sucedido.' });
+        });
+    } else {
+        res.status(401).json({ success: false, message: 'Senha incorreta.' });
     }
-    res.status(401).json({ success: false, message: 'Senha incorreta.' });
 });
 
 app.post('/api/logout', (req, res) => {

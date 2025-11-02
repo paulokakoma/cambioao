@@ -77,7 +77,7 @@ async function loadProductDetails() {
 
 function renderProductDetails(product) {
     // Atualiza o título da página
-    document.title = `${product.title} - Mercado Cambial`;
+    document.title = `${product.title} - EcoKambio`; // Mantém a consistência da marca
     
     // Atualiza a imagem e título
     document.getElementById('product-image').src = product.image_url || '/assets/error-state.svg';

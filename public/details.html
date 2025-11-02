@@ -3,9 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">    
-    <title>Detalhes do Produto - cambioao</title>
+    <title>Detalhes do Produto - EcoKambio</title>
     <meta name="description" content="Veja os detalhes do produto, o custo estimado em Kwanzas (AOA) com base no câmbio atual do dólar, e como comprar.">
     <link rel="stylesheet" href="/css/output.css">
+    <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" sizes="any">
+    <link rel="apple-touch-icon" href="/assets/favicon.svg">
+    <link rel="shortcut icon" href="/assets/favicon.svg" type="image/svg+xml">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -26,7 +29,10 @@
 
     <header class="bg-white shadow-sm">
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-            <a href="/" class="text-2xl font-bold text-emerald-600">cambioao</a>
+            <a href="/" class="flex items-center space-x-3 hover:opacity-80 transition-opacity">
+                <img src="/assets/main-logo.svg" alt="EcoKambio" class="h-12 w-auto">
+                <span class="text-2xl font-bold text-emerald-600">EcoKambio</span>
+            </a>
             <nav class="flex items-center space-x-4 md:space-x-8">
                 <a href="/" class="text-sm md:text-base font-semibold text-slate-600 hover:text-emerald-600 transition-colors">Mercado</a>
                 <a href="/sobre" class="text-sm md:text-base font-semibold text-slate-600 hover:text-emerald-600 transition-colors">Sobre Nós</a>
@@ -50,7 +56,7 @@
                 <span class="hidden md:inline text-slate-600">•</span>
                 <a href="/privacidade" class="hover:text-white transition-colors">Política de Privacidade</a>
             </div>
-            <p class="mt-6 text-slate-500 text-sm">&copy; 2024 cambioao. Todos os direitos reservados.</p>
+            <p class="mt-6 text-slate-500 text-sm">&copy; 2024 EcoKambio. Todos os direitos reservados.</p>
         </div>
     </footer>
 
@@ -84,7 +90,7 @@
             const { product, total_cost_aoa } = data;
             const totalCostUSD = (product.price || 0) + (product.shipping_cost_usd || 0);
 
-            document.title = `${product.title} - Detalhes`;
+            document.title = `${product.title} - EcoKambio`;
 
             container.innerHTML = `
                  <div class="mb-8">

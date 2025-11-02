@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Admin</title>
+    <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" sizes="any">
+    <link rel="apple-touch-icon" href="/assets/favicon.svg">
+    <link rel="shortcut icon" href="/assets/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="/css/output.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
@@ -48,15 +51,21 @@
                 const response = await fetch('/api/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include', // IMPORTANTE: Inclui cookies na requisição
                     body: JSON.stringify({ password })
                 });
 
                 if (response.ok) {
-                    window.location.href = '/admin'; // Redireciona para o painel
+                    // Aguarda um momento para garantir que o cookie foi salvo
+                    setTimeout(() => {
+                        window.location.href = '/admin'; // Redireciona para o painel
+                    }, 100);
                 } else {
-                    errorDiv.textContent = 'Senha incorreta. Tente novamente.';
+                    const data = await response.json().catch(() => ({ message: 'Erro desconhecido' }));
+                    errorDiv.textContent = data.message || 'Senha incorreta. Tente novamente.';
                 }
             } catch (error) {
+                console.error('Erro no login:', error);
                 errorDiv.textContent = 'Erro de conexão. Verifique o servidor.';
             }
         });

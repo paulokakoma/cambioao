@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel de Administração - cambioao</title>
+    <title>Painel de Administração - EcoKambio</title>
+    <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" sizes="any">
+    <link rel="apple-touch-icon" href="/assets/favicon.svg">
+    <link rel="shortcut icon" href="/assets/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="/css/output.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -603,7 +606,21 @@
 <script type="module">
     // --- CONFIG & INIT ---
     const API_BASE_URL = ''; // As chamadas serão relativas ao domínio atual
-    const WEBSOCKET_URL = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}`;;
+    // Construir URL do WebSocket removendo subdomínio admin se presente
+    function getWebSocketURL() {
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        let hostname = window.location.hostname;
+        // Se estiver em admin.localhost ou admin.algum-dominio, remove o subdomínio admin
+        if (hostname.startsWith('admin.')) {
+            hostname = hostname.replace('admin.', '');
+        } else if (hostname === 'localhost' && window.location.host.includes('admin.')) {
+            // Fallback: se o host completo contém admin.localhost
+            hostname = 'localhost';
+        }
+        const port = window.location.port ? `:${window.location.port}` : '';
+        return `${protocol}//${hostname}${port}`;
+    }
+    const WEBSOCKET_URL = getWebSocketURL();
     
     let dbClient;
     let allFormalProviders = [], allInformalProviders = [], allAffiliates = [], allCurrencies = [], allSupporters = [], _weeklyChartInstance, _affiliateChartInstance, _tabVisitsChartInstance;
@@ -633,7 +650,9 @@
 
     async function initializeApp() {
         try {
-            const response = await fetch('/api/config');
+            const response = await fetch('/api/config', {
+                credentials: 'include' // Inclui cookies na requisição
+            });
             if (!response.ok) throw new Error('Falha ao carregar a configuração do servidor.');
             const config = await response.json();
             dbClient = supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
@@ -684,29 +703,53 @@
             const { count: activeProviders } = await dbClient.from('rate_providers').select('id', { count: 'exact', head: true }).eq('type', 'FORMAL').eq('is_active', true);
             document.getElementById('active-banks-stat').textContent = `${activeProviders || 0} / ${totalProviders || 0}`;
 
+            // Criar objetos Date independentes para evitar modificações
             const now = new Date();
-            const todayStart = new Date(now.setHours(0, 0, 0, 0)).toISOString();
-            const weekStart = new Date(new Date().setDate(new Date().getDate() - new Date().getDay())).toISOString();
-            const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
+            // Início de hoje (00:00:00)
+            const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+            // Últimos 7 dias incluindo hoje (6 dias atrás + hoje = 7 dias)
+            const weekStartDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6, 0, 0, 0, 0);
+            // Início do mês atual (que inclui hoje)
+            const monthStart = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
 
-            const [todayViews, weeklyViews, monthlyViews, bouncedSessionsResult] = await Promise.all([
-                dbClient.from('user_activity').select('id', { count: 'exact', head: true }).eq('event_type', 'page_view').gte('created_at', todayStart),
-                dbClient.from('user_activity').select('id', { count: 'exact', head: true }).eq('event_type', 'page_view').gte('created_at', weekStart),
-                dbClient.from('user_activity').select('id', { count: 'exact', head: true }).eq('event_type', 'page_view').gte('created_at', monthStart),
-                dbClient.rpc('get_bounced_sessions_count', { start_date: todayStart })
+            // Converter para ISO para uso nas queries
+            const todayStartISO = todayStart.toISOString();
+            const weekStartISO = weekStartDate.toISOString();
+            const monthStartISO = monthStart.toISOString();
+
+            const [todayViews, weeklyViews, monthlyViews] = await Promise.all([
+                dbClient.from('user_activity').select('id', { count: 'exact', head: true }).eq('event_type', 'page_view').gte('created_at', todayStartISO),
+                dbClient.from('user_activity').select('id', { count: 'exact', head: true }).eq('event_type', 'page_view').gte('created_at', weekStartISO),
+                dbClient.from('user_activity').select('id', { count: 'exact', head: true }).eq('event_type', 'page_view').gte('created_at', monthStartISO)
             ]);
+
+            // Calcular taxa de rejeição (sessões com apenas 1 page_view hoje)
+            const { data: allTodayActivities, error: activityError } = await dbClient
+                .from('user_activity')
+                .select('session_id, event_type')
+                .gte('created_at', todayStartISO)
+                .eq('event_type', 'page_view');
+
+            let bouncedSessionsCount = 0;
+            if (!activityError && allTodayActivities) {
+                // Agrupar por session_id e contar quantos page_views cada sessão tem
+                const sessionViewCounts = {};
+                allTodayActivities.forEach(activity => {
+                    if (!sessionViewCounts[activity.session_id]) {
+                        sessionViewCounts[activity.session_id] = 0;
+                    }
+                    sessionViewCounts[activity.session_id]++;
+                });
+                
+                // Sessões com apenas 1 page_view são consideradas "bounced" (rejeitadas)
+                bouncedSessionsCount = Object.values(sessionViewCounts).filter(count => count === 1).length;
+            }
 
             const formatCount = (result) => result.error ? 'Erro' : (result.count || 0).toLocaleString('pt-PT');
             document.getElementById('today-access-stat').textContent = formatCount(todayViews);
             document.getElementById('weekly-access-stat').textContent = formatCount(weeklyViews);
             document.getElementById('monthly-access-stat').textContent = formatCount(monthlyViews);
-
-            if (bouncedSessionsResult.error) {
-                console.error('Erro ao contar rejeições:', bouncedSessionsResult.error);
-                document.getElementById('bounced-sessions-stat').textContent = 'Erro';
-            } else {
-                document.getElementById('bounced-sessions-stat').textContent = (bouncedSessionsResult.data || 0).toLocaleString('pt-PT');
-            }
+            document.getElementById('bounced-sessions-stat').textContent = bouncedSessionsCount.toLocaleString('pt-PT');
         } catch(e) { console.error("Falha ao carregar dados do dashboard", e)}
     }
 
@@ -1127,7 +1170,11 @@
     // --- API HELPER ---
     async function apiCall(endpoint, method = 'POST', body = null) {
         try {
-            const options = { method, headers: method !== 'GET' ? { 'Content-Type': 'application/json' } : {} };
+            const options = { 
+                method, 
+                credentials: 'include', // IMPORTANTE: Inclui cookies em todas as requisições
+                headers: method !== 'GET' ? { 'Content-Type': 'application/json' } : {} 
+            };
             if (body) options.body = JSON.stringify(body);
             const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
             const contentType = response.headers.get('content-type') || '';
