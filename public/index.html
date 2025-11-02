@@ -6,6 +6,42 @@
     <title>Câmbio Angola Hoje - Taxas Dólar Kwanza, Euro Kwanza | EcoKambio</title>
     <meta name="description" content="Consulte as taxas de câmbio do dólar, euro e outras divisas em Angola. Compare o mercado formal (bancos) e informal (kinguilas) em tempo real. Calculadora de custos de importação.">
     <meta name="keywords" content="cambio angola, dolar kwanza, euro kwanza, ecokambio, divisas angola, taxas de cambio, mercado informal, kinguilas, preço do dolar hoje angola">
+    
+    <!-- Search Engine Verification Tags -->
+    <meta name="msvalidate.01" content="2D497889D99F893228C134DCD65BAF51" />
+    <!-- <meta name="yandex-verification" content="SEU_CODIGO_YANDEX_AQUI" /> -->
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://ecokambio.com/">
+    <meta property="og:title" content="Câmbio Angola Hoje - Taxas Dólar Kwanza, Euro Kwanza | EcoKambio">
+    <meta property="og:description" content="Consulte as taxas de câmbio do dólar, euro e outras divisas em Angola. Compare o mercado formal (bancos) e informal (kinguilas) em tempo real.">
+    <meta property="og:image" content="https://ecokambio.com/assets/social-share-banner.png">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://ecokambio.com/">
+    <meta property="twitter:title" content="Câmbio Angola Hoje - Taxas Dólar Kwanza, Euro Kwanza | EcoKambio">
+    <meta property="twitter:description" content="Consulte as taxas de câmbio do dólar, euro e outras divisas em Angola. Compare o mercado formal (bancos) e informal (kinguilas) em tempo real.">
+    <meta property="twitter:image" content="https://ecokambio.com/assets/social-share-banner.png">
+    
+    <!-- Schema.org Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FinancialService",
+      "name": "EcoKambio",
+      "description": "Plataforma de referência para taxas de câmbio em Angola",
+      "url": "https://ecokambio.com",
+      "logo": "https://ecokambio.com/assets/main-logo.svg",
+      "areaServed": {
+        "@type": "Country",
+        "name": "Angola"
+      },
+      "serviceType": "Currency Exchange Rates"
+    }
+    </script>
+    
     <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" sizes="any">
     <link rel="apple-touch-icon" href="/assets/favicon.svg">
     <link rel="shortcut icon" href="/assets/favicon.svg" type="image/svg+xml">
@@ -156,6 +192,7 @@
     </header>
     <main class="w-full max-w-7xl mx-auto mt-12 px-6 pb-4 md:pb-8">
       <div class="mb-12">
+        <h1 class="sr-only">Taxas de Câmbio em Angola: Mercado Formal e Informal</h1>
         <div class="grid grid-cols-2 gap-4 rounded-3xl bg-white shadow-md p-3" role="tablist">
           <button class="tab-button tab-active rounded-2xl py-4 px-4 md:px-8 text-sm md:text-base lg:text-lg font-bold focus:outline-none" id="market-tab" type="button" role="tab">🏦 Mercado</button>
           <button class="tab-button tab-inactive rounded-2xl py-4 px-4 md:px-8 text-sm md:text-base lg:text-lg font-bold focus:outline-none" id="calculator-tab" type="button" role="tab">🧮 Calculadora</button>
@@ -241,7 +278,7 @@
         </div>
       </section>
     </main>
-    <!-- Secção de Apoiadores -->
+    <!-- Secção de Apoiadores com altura mínima para evitar CLS -->
     <section id="supporters-section" class="w-full bg-slate-50 pt-8 md:pt-12 pb-12 md:pb-16 mt-4 md:mt-8 hidden">
         <div class="w-full max-w-7xl mx-auto">
             <h2 class="text-4xl font-bold text-slate-800 text-center mb-12">Apoiadores</h2>
@@ -261,7 +298,7 @@
             
             <!-- Container para Apoiadores -->
             <div id="supporters-carousel-container" class="relative overflow-hidden">
-                <div class="flex items-center justify-center w-full">
+                <div class="flex items-center justify-center w-full min-h-[150px] md:min-h-[250px]">
                     <div class="relative w-full banner-container rounded-2xl">
                         <div id="supporter-slides-wrapper" class="flex h-full transition-transform duration-700 ease-in-out">
                             <!-- Skeleton Loader -->
@@ -892,7 +929,14 @@
             // Adiciona event listeners para os links de afiliados
             track.querySelectorAll('.affiliate-link-item').forEach(link => {
                 link.addEventListener('click', (e) => {
-                    logActivity('affiliate_click', { link_id: link.href.split('id=')[1], product_title: link.querySelector('h3').textContent });
+                    e.preventDefault(); // Previne a navegação imediata
+                    const linkId = link.href.split('id=')[1];
+                    const productTitle = link.querySelector('h3').textContent;
+                    const destinationUrl = link.href;
+
+                    console.log(`[WebSocket] Clique de afiliado. Enviando dados...`, { link_id: linkId, product_title: productTitle });
+                    logActivity('affiliate_click', { link_id: linkId, product_title: productTitle });
+                    setTimeout(() => { window.location.href = destinationUrl; }, 300); // Redireciona após um pequeno atraso
                 });
             });
 

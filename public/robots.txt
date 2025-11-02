@@ -1,0 +1,20 @@
+# Regras para todos os robôs
+User-agent: *
+
+# Bloquear áreas administrativas e de serviço
+Disallow: /admin/
+Disallow: /api/
+Disallow: /login
+Disallow: /login.html
+Disallow: /sessions/
+Disallow: /node_modules/
+
+# Bloquear URLs com parâmetros de consulta que não alteram o conteúdo principal
+Disallow: /*?source=
+Disallow: /*&source=
+
+# Permitir o acesso ao resto do site (esta linha é opcional, pois é o padrão)
+Allow: /
+
+# Localização do Sitemap
+Sitemap: https://ecokambio.com/sitemap.xml

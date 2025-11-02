@@ -375,8 +375,6 @@
                         <div><label for="setting_contact_email" class="block text-sm font-medium text-slate-700">Email de Contato</label><input type="email" name="contact_email" id="setting_contact_email" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md"></div>
                         <div><label for="setting_contact_phone" class="block text-sm font-medium text-slate-700">Telefone de Contato</label><input type="tel" name="contact_phone" id="setting_contact_phone" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md"></div>
                         <div class="pt-4"><h3 class="text-lg font-semibold text-slate-700 border-b pb-2 mb-4">Calculadora</h3></div>
-                        <div class="pt-4"><h3 class="text-lg font-semibold text-slate-700 border-b pb-2 mb-4">Vídeos Padrão</h3></div>
-                        <div><label for="setting_tutorial_video_url" class="block text-sm font-medium text-slate-700">URL do Vídeo Tutorial Padrão (Compra)</label><input type="url" name="tutorial_video_url" id="setting_tutorial_video_url" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md"></div>
                         <div class="pt-4"><h3 class="text-lg font-semibold text-slate-700 border-b pb-2 mb-4">Redes Sociais Padrão</h3></div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2">
                             <div><label for="setting_social_whatsapp" class="block text-sm font-medium text-slate-700">WhatsApp</label><input type="url" name="whatsapp" id="setting_social_whatsapp" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md"></div>
@@ -440,8 +438,24 @@
         </div>
     </div>
     <div id="currency-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-40"><div class="modal-content bg-white rounded-lg shadow-xl p-8 w-full max-w-md transform scale-95"><h3 id="currency-modal-title" class="text-2xl font-bold text-slate-800 mb-6">Adicionar Nova Moeda</h3><form id="currency-form" class="space-y-4"><input type="hidden" id="currency_id" name="currency_id"><div><label for="currency_code" class="block text-sm font-medium text-slate-700">Código (ex: USD)</label><input type="text" name="currency_code" id="currency_code" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md" required maxlength="10"></div><div><label for="currency_name" class="block text-sm font-medium text-slate-700">Nome (ex: Dólar Americano)</label><input type="text" name="currency_name" id="currency_name" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md" required></div><div><label for="currency_symbol" class="block text-sm font-medium text-slate-700">Símbolo (ex: $)</label><input type="text" name="currency_symbol" id="currency_symbol" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md" maxlength="5"></div><div class="flex justify-end space-x-4 pt-4"><button type="button" class="btn-secondary" id="cancel-currency-modal">Cancelar</button><button type="submit" id="save-currency-btn" class="btn-primary">Adicionar</button></div></form></div></div>
-    <div id="affiliate-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-40"><div class="modal-content bg-white rounded-lg shadow-xl p-8 w-full max-w-lg transform scale-95 max-h-[90vh] overflow-y-auto"><h3 id="affiliate-modal-title" class="text-2xl font-bold text-slate-800 mb-6">Adicionar Novo Link</h3><form id="affiliate-form" class="space-y-4"><input type="hidden" id="affiliate_id" name="affiliate_id"><div><label for="affiliate_title" class="block text-sm font-medium text-slate-700">Título do Produto</label><input type="text" name="affiliate_title" id="affiliate_title" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md" required></div><div><label for="affiliate_url" class="block text-sm font-medium text-slate-700">URL de Afiliado (Link de Compra)</label><input type="url" name="affiliate_url" id="affiliate_url" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md" required></div><div><label for="affiliate_image_url" class="block text-sm font-medium text-slate-700">URL da Imagem do Produto</label><input type="url" name="affiliate_image_url" id="affiliate_image_url" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md"></div><div class="grid grid-cols-2 gap-4"><div><label for="affiliate_price" class="block text-sm font-medium text-slate-700">Preço do Produto (USD)</label><input type="number" step="0.01" name="affiliate_price" id="affiliate_price" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md"></div><div><label for="affiliate_shipping" class="block text-sm font-medium text-slate-700">Custo de Frete (USD)</label><input type="number" step="0.01" name="affiliate_shipping" id="affiliate_shipping" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md"></div></div><div><label for="affiliate_proof_video_url" class="block text-sm font-medium text-slate-700">URL do Vídeo de Prova (Opcional)</label><input type="url" name="affiliate_proof_video_url" id="affiliate_proof_video_url" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md"></div><div class="flex justify-end space-x-4 pt-4"><button type="button" class="btn-secondary" id="cancel-affiliate-modal">Cancelar</button><button type="submit" id="save-affiliate-btn" class="btn-primary">Adicionar</button></div></form></div></div>
-    <div id="supporter-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-40">
+    <div id="affiliate-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-40">
+        <div class="modal-content bg-white rounded-lg shadow-xl p-8 w-full max-w-lg transform scale-95 max-h-[90vh] overflow-y-auto">
+            <h3 id="affiliate-modal-title" class="text-2xl font-bold text-slate-800 mb-6">Adicionar Novo Link</h3>
+            <form id="affiliate-form" class="space-y-4">
+                <input type="hidden" id="affiliate_id" name="affiliate_id">
+                <div><label for="affiliate_title" class="block text-sm font-medium text-slate-700">Título do Produto</label><input type="text" name="affiliate_title" id="affiliate_title" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md" required></div>
+                <div><label for="affiliate_url" class="block text-sm font-medium text-slate-700">URL de Afiliado (Link de Compra)</label><input type="url" name="affiliate_url" id="affiliate_url" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md" required></div>
+                <div><label for="affiliate_image_url" class="block text-sm font-medium text-slate-700">URL da Imagem do Produto</label><input type="url" name="affiliate_image_url" id="affiliate_image_url" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md"></div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label for="affiliate_price" class="block text-sm font-medium text-slate-700">Preço do Produto (USD)</label><input type="number" step="0.01" name="affiliate_price" id="affiliate_price" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md"></div>
+                    <div><label for="affiliate_shipping" class="block text-sm font-medium text-slate-700">Custo de Frete (USD)</label><input type="number" step="0.01" name="affiliate_shipping" id="affiliate_shipping" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md"></div>
+                </div>
+                <div><label for="affiliate_proof_video_url" class="block text-sm font-medium text-slate-700">URL do Vídeo de Prova (Opcional)</label><input type="url" name="affiliate_proof_video_url" id="affiliate_proof_video_url" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md"></div>
+                <div><label for="affiliate_tutorial_video_url" class="block text-sm font-medium text-slate-700">URL do Vídeo Tutorial (Compra)</label><input type="url" name="affiliate_tutorial_video_url" id="affiliate_tutorial_video_url" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md"></div>
+                <div class="flex justify-end space-x-4 pt-4"><button type="button" class="btn-secondary" id="cancel-affiliate-modal">Cancelar</button><button type="submit" id="save-affiliate-btn" class="btn-primary">Adicionar</button></div>
+            </form>
+        </div>
+    </div><div id="supporter-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-40">
         <div class="modal-content bg-white rounded-lg shadow-xl p-8 w-full max-w-lg transform scale-95">
             <h3 id="supporter-modal-title" class="text-2xl font-bold text-slate-800 mb-6">Adicionar Novo Apoiador</h3>
             <form id="supporter-form" class="space-y-4" enctype="multipart/form-data">
@@ -459,18 +473,19 @@
 
                 <div>
                     <label class="block text-sm font-medium text-slate-700 mb-2">Imagem do Banner</label>
-                    <div class="flex items-center space-x-4">
-                        <div class="flex-1">
-                            <label for="supporter_banner" class="cursor-pointer flex items-center justify-center w-full px-4 py-2 border-2 border-gray-300 border-dashed rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors">
-                                <input type="file" id="supporter_banner" name="supporter_banner" accept="image/*" required>
-                                <span id="supporter_banner_name">Escolher imagem...</span>
+                    <div class="grid grid-cols-2 gap-4 items-center">
+                        <div class="w-40 h-40">
+                            <label for="supporter_banner" class="cursor-pointer flex flex-col items-center justify-center w-full h-full border-2 border-gray-300 border-dashed rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors">
+                                <svg class="w-8 h-8 text-gray-400 mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-4-4V6a4 4 0 014-4h1.586a1 1 0 01.707.293l1.414 1.414a1 1 0 00.707.293H12a4 4 0 014 4v1.586a1 1 0 00.293.707l1.414 1.414a1 1 0 01.293.707V16a4 4 0 01-4 4H7z" /></svg>
+                                <span id="supporter_banner_name" class="text-center px-2">Escolher imagem...</span>
+                                <input type="file" id="supporter_banner" name="supporter_banner" class="hidden" accept="image/*" required>
                             </label>
                         </div>
-                        <div id="supporter_banner_preview" class="w-32 h-16 border rounded-lg flex items-center justify-center bg-gray-50">
-                            <span class="text-gray-400">Prévia</span>
+                        <div id="supporter_banner_preview" class="w-40 h-40 border rounded-lg flex items-center justify-center bg-gray-50 overflow-hidden">
+                            <span class="text-gray-400 text-sm">Prévia</span>
                         </div>
                     </div>
-                    <p class="mt-1 text-xs text-gray-500">Tamanho recomendado: 1500x530 pixels (proporção ~2.83:1)</p>
+                    <p class="mt-2 text-xs text-gray-500">Tamanho recomendado: 1500x530 pixels. A imagem será otimizada automaticamente para a proporção ideal.</p>
                 </div>
 
                 <!-- Container da Barra de Progresso -->
@@ -498,7 +513,7 @@
 
             if (file) {
                 // Validar tamanho do arquivo
-                if (file.size > maxSize) {
+                if (file.size > maxSize) { // eslint-disable-line
                     if (typeof showError === 'function') {
                         showError('O arquivo é muito grande. O tamanho máximo é 5MB.');
                     } else {
@@ -511,7 +526,7 @@
                 }
                 
                 // Validar tipo do arquivo
-                if (!file.type.startsWith('image/')) {
+                if (!file.type.startsWith('image/')) { // eslint-disable-line
                     if (typeof showError === 'function') {
                         showError('Por favor, selecione apenas arquivos de imagem.');
                     } else {
@@ -527,41 +542,32 @@
                 
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    preview.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-contain">`;
+                    preview.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover">`;
                     
-                    // Validar dimensões da imagem
+                    // Validar dimensões da imagem de forma flexível
                     const img = new Image();
                     img.onload = function() {
-                        const minWidth = 800; // Largura mínima reduzida para ser mais flexível
-                        const targetRatio = 1500 / 530; // Proporção ideal de ~2.83:1
-                        const tolerance = 0.2; // Tolerância aumentada para 20%
+                        const minWidth = 500; // Largura mínima muito reduzida para máxima flexibilidade
+                        const minHeight = 200; // Altura mínima para garantir que não seja muito pequena
                         const imageRatio = this.width / this.height;
 
-                        if (this.width < minWidth) {
+                        // Validação muito flexível: apenas verifica se não é muito pequena
+                        // Aceita qualquer proporção desde que seja razoavelmente horizontal e tenha tamanho mínimo
+                        if (this.width < minWidth || this.height < minHeight) {
+                            // Apenas para imagens muito pequenas, mostra aviso discreto
                             if (typeof showError === 'function') {
-                                showError(`A imagem é muito pequena. A largura mínima é de ${minWidth} pixels. Para melhor qualidade, recomenda-se 1500x530 pixels.`);
+                                showError(`A imagem é muito pequena. Recomenda-se pelo menos ${minWidth}x${minHeight} pixels.`);
                             } else {
-                                alert(`A imagem é muito pequena. A largura mínima é de ${minWidth} pixels. Para melhor qualidade, recomenda-se 1500x530 pixels.`);
+                                alert(`A imagem é muito pequena. Recomenda-se pelo menos ${minWidth}x${minHeight} pixels.`);
                             }
                             clearFileInput();
-                        } else if (imageRatio < targetRatio * (1 - tolerance) || imageRatio > targetRatio * (1 + tolerance)) {
-                            if (typeof showError === 'function') {
-                                showError(`A proporção da imagem está incorreta. A imagem deve ser horizontal, com proporção próxima a 2.83:1 (ex: 1500x530 pixels). Proporção atual: ${imageRatio.toFixed(2)}:1`);
-                            } else {
-                                alert(`A proporção da imagem está incorreta. A imagem deve ser horizontal, com proporção próxima a 2.83:1 (ex: 1500x530 pixels). Proporção atual: ${imageRatio.toFixed(2)}:1`);
-                            }
-                            clearFileInput();
-                        } else {
-                            // Mostrar informações da imagem aceita
-                            if (typeof showSuccess === 'function') {
-                                showSuccess(`Imagem aceita! Dimensões: ${this.width}x${this.height}px (proporção: ${imageRatio.toFixed(2)}:1)`);
-                            }
                         }
+                        // Aceita qualquer proporção sem mostrar alertas - a imagem será otimizada no servidor
                     };
                     img.src = e.target.result;
                 }
                 reader.onerror = function() {
-                    if (typeof showError === 'function') {
+                    if (typeof showError === 'function') { // eslint-disable-line
                         showError('Erro ao ler o arquivo. Tente novamente.');
                     } else {
                         console.error('Erro ao ler o arquivo. Tente novamente.');
@@ -572,7 +578,7 @@
                 reader.readAsDataURL(file);
             } else {
                 nameSpan.textContent = 'Escolher imagem...';
-                preview.innerHTML = '<span class="text-gray-400">Prévia</span>';
+                preview.innerHTML = '<span class="text-gray-400 text-sm">Prévia</span>';
             }
         });
 
@@ -691,7 +697,9 @@
             loadAffiliateLinks(),
             loadSupporters(),
             loadSettings(),
-            renderAffiliateChart()
+            renderAffiliateChart(),
+            renderTabVisitsChart(),
+            loadAffiliateStats(),
 
         ]);
         renderDashboardCharts();
@@ -699,58 +707,54 @@
 
     async function loadDashboardData() {
         try {
-            const { count: totalProviders } = await dbClient.from('rate_providers').select('*', { count: 'exact', head: true }).eq('type', 'FORMAL');
-            const { count: activeProviders } = await dbClient.from('rate_providers').select('id', { count: 'exact', head: true }).eq('type', 'FORMAL').eq('is_active', true);
-            document.getElementById('active-banks-stat').textContent = `${activeProviders || 0} / ${totalProviders || 0}`;
+            // Chama o novo endpoint centralizado no servidor
+            const stats = await apiCall('/api/dashboard-stats', 'GET');
+            
+            // Garante que os elementos existem antes de atualizar
+            const todayStatEl = document.getElementById('today-access-stat');
+            const weeklyStatEl = document.getElementById('weekly-access-stat');
+            const monthlyStatEl = document.getElementById('monthly-access-stat');
+            const bouncedStatEl = document.getElementById('bounced-sessions-stat');
+            const activeBanksEl = document.getElementById('active-banks-stat');
+            
+            if (todayStatEl) todayStatEl.textContent = (stats.todayViews || 0).toLocaleString('pt-PT');
+            if (weeklyStatEl) weeklyStatEl.textContent = (stats.weeklyViews || 0).toLocaleString('pt-PT');
+            if (monthlyStatEl) monthlyStatEl.textContent = (stats.monthlyViews || 0).toLocaleString('pt-PT');
+            if (bouncedStatEl) bouncedStatEl.textContent = (stats.bouncedSessions || 0).toLocaleString('pt-PT');
+            if (activeBanksEl) activeBanksEl.textContent = (stats.activeBanks || 0).toLocaleString('pt-PT');
 
-            // Criar objetos Date independentes para evitar modificações
-            const now = new Date();
-            // Início de hoje (00:00:00)
-            const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
-            // Últimos 7 dias incluindo hoje (6 dias atrás + hoje = 7 dias)
-            const weekStartDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6, 0, 0, 0, 0);
-            // Início do mês atual (que inclui hoje)
-            const monthStart = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+        } catch(e) { 
+            console.error("❌ Falha ao carregar dados do dashboard", e);
+            // Em caso de erro geral, mostra 0 nos contadores
+            const todayStatEl = document.getElementById('today-access-stat');
+            const weeklyStatEl = document.getElementById('weekly-access-stat');
+            const monthlyStatEl = document.getElementById('monthly-access-stat');
+            const bouncedStatEl = document.getElementById('bounced-sessions-stat');
+            const activeBanksEl = document.getElementById('active-banks-stat');
 
-            // Converter para ISO para uso nas queries
-            const todayStartISO = todayStart.toISOString();
-            const weekStartISO = weekStartDate.toISOString();
-            const monthStartISO = monthStart.toISOString();
+            if (todayStatEl) todayStatEl.textContent = '0';
+            if (weeklyStatEl) weeklyStatEl.textContent = '0';
+            if (monthlyStatEl) monthlyStatEl.textContent = '0';
+            if (bouncedStatEl) bouncedStatEl.textContent = '0';
+            if (activeBanksEl) activeBanksEl.textContent = '0';
+        }
+    }
 
-            const [todayViews, weeklyViews, monthlyViews] = await Promise.all([
-                dbClient.from('user_activity').select('id', { count: 'exact', head: true }).eq('event_type', 'page_view').gte('created_at', todayStartISO),
-                dbClient.from('user_activity').select('id', { count: 'exact', head: true }).eq('event_type', 'page_view').gte('created_at', weekStartISO),
-                dbClient.from('user_activity').select('id', { count: 'exact', head: true }).eq('event_type', 'page_view').gte('created_at', monthStartISO)
-            ]);
+    async function loadAffiliateStats() {
+        try {
+            const stats = await apiCall('/api/affiliate-clicks-stats', 'GET');
+            
+            const todayStatEl = document.getElementById('affiliate-clicks-today-stat');
+            const weeklyStatEl = document.getElementById('affiliate-clicks-weekly-stat');
+            const monthlyStatEl = document.getElementById('affiliate-clicks-monthly-stat');
 
-            // Calcular taxa de rejeição (sessões com apenas 1 page_view hoje)
-            const { data: allTodayActivities, error: activityError } = await dbClient
-                .from('user_activity')
-                .select('session_id, event_type')
-                .gte('created_at', todayStartISO)
-                .eq('event_type', 'page_view');
+            if (todayStatEl) todayStatEl.textContent = (stats.today?.totalClicks || 0).toLocaleString('pt-PT');
+            if (weeklyStatEl) weeklyStatEl.textContent = (stats.weekly?.totalClicks || 0).toLocaleString('pt-PT');
+            if (monthlyStatEl) monthlyStatEl.textContent = (stats.monthly?.totalClicks || 0).toLocaleString('pt-PT');
 
-            let bouncedSessionsCount = 0;
-            if (!activityError && allTodayActivities) {
-                // Agrupar por session_id e contar quantos page_views cada sessão tem
-                const sessionViewCounts = {};
-                allTodayActivities.forEach(activity => {
-                    if (!sessionViewCounts[activity.session_id]) {
-                        sessionViewCounts[activity.session_id] = 0;
-                    }
-                    sessionViewCounts[activity.session_id]++;
-                });
-                
-                // Sessões com apenas 1 page_view são consideradas "bounced" (rejeitadas)
-                bouncedSessionsCount = Object.values(sessionViewCounts).filter(count => count === 1).length;
-            }
-
-            const formatCount = (result) => result.error ? 'Erro' : (result.count || 0).toLocaleString('pt-PT');
-            document.getElementById('today-access-stat').textContent = formatCount(todayViews);
-            document.getElementById('weekly-access-stat').textContent = formatCount(weeklyViews);
-            document.getElementById('monthly-access-stat').textContent = formatCount(monthlyViews);
-            document.getElementById('bounced-sessions-stat').textContent = bouncedSessionsCount.toLocaleString('pt-PT');
-        } catch(e) { console.error("Falha ao carregar dados do dashboard", e)}
+        } catch (e) {
+            console.error("❌ Falha ao carregar estatísticas de afiliados", e);
+        }
     }
 
     async function loadBanks() {
@@ -926,7 +930,11 @@
             return; 
         }
         
-        const bannerUrls = settingsResult.data?.reduce((acc, setting) => {
+        if (settingsResult.error) {
+            console.error('Erro ao carregar settings:', settingsResult.error);
+        }
+        
+        const bannerUrls = (settingsResult.data || []).reduce((acc, setting) => {
             const supporterId = setting.key.match(/supporter_(\d+)_banner_url/)?.[1];
             if (supporterId) {
                 acc[supporterId] = setting.value;
@@ -934,22 +942,23 @@
             return acc;
         }, {});
         
-        allSupporters = supportersResult.data.map(supporter => ({
-            ...supporter,
-            banner_url: bannerUrls[supporter.id]
-        }));
+        allSupporters = supportersResult.data.map(supporter => {
+            const bannerUrl = bannerUrls[supporter.id] || bannerUrls[String(supporter.id)] || null;
+            return {
+                ...supporter,
+                banner_url: bannerUrl
+            };
+        });
         
         tableBody.innerHTML = allSupporters.length === 0
             ? `<tr><td colspan="3" class="text-center p-4 text-gray-500">Nenhum apoiador encontrado.</td></tr>`
             : allSupporters.map(supporter => `
                 <tr class="bg-white border-b hover:bg-indigo-50/50" data-supporter-id="${supporter.id}">
                     <td class="px-6 py-4">
-                        <div class="flex items-center space-x-3">
+                        <div class="flex items-center space-x-4">
                             ${supporter.banner_url 
-                                ? `<img src="${supporter.banner_url}" alt="Banner de ${supporter.name}" class="h-10 w-24 object-contain bg-slate-100 rounded">`
-                                : `<div class="h-10 w-24 bg-slate-200 rounded flex items-center justify-center text-slate-400" title="Sem imagem de banner">
-                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                                   </div>`
+                                ? `<img src="${supporter.banner_url}" alt="Banner de ${supporter.name}" class="h-16 w-28 object-cover bg-slate-100 rounded-lg border border-slate-200 shadow-sm" style="min-width: 112px;">`
+                                : ''
                             }
                             <div class="flex flex-col">
                                 <span class="font-medium text-gray-900">${supporter.name}</span>
@@ -980,7 +989,6 @@
 
         document.getElementById('setting_contact_email').value = settings.contact_email || '';
         document.getElementById('setting_contact_phone').value = settings.contact_phone || '';
-        document.getElementById('setting_tutorial_video_url').value = settings.tutorial_video_url || '';
 
         // Preenche os campos de redes sociais
         document.getElementById('setting_social_whatsapp').value = settings.social_media_links?.whatsapp || '';
@@ -1011,14 +1019,16 @@
     async function loadRecentActivity() {
         const feedContainer = document.getElementById('realtime-feed');
         try {
-            const response = await apiCall('/api/recent-activity', 'GET');
+            // Aumentado o limite para 50 para um histórico inicial mais completo
+            const response = await apiCall('/api/recent-activity?limit=50', 'GET');
             feedContainer.innerHTML = ''; // Limpa a mensagem "A aguardar..."
 
             if (response.length === 0) {
                 feedContainer.innerHTML = '<p class="text-sm text-slate-400 text-center py-8">Nenhuma atividade recente.</p>';
                 return;
             }
-            response.reverse().forEach(activity => renderFeedEntry(activity)); // Adiciona do mais antigo para o mais novo
+            // Adiciona do mais antigo para o mais novo para manter a ordem cronológica
+            response.reverse().forEach(activity => renderFeedEntry(activity)); 
         } catch (error) {
             feedContainer.innerHTML = '<p class="text-sm text-red-500 text-center py-8">Erro ao carregar atividade.</p>';
         }
@@ -1101,9 +1111,10 @@
 
     // --- WEBSOCKET & REALTIME ---
     function connectAdminWebSocket() {
+        let ws; // Variável para a instância do WebSocket
         try {
-            const ws = new WebSocket(`${WEBSOCKET_URL}/?client=admin`);
-            ws.onopen = () => console.log('Admin WebSocket conectado.');
+            ws = new WebSocket(`${WEBSOCKET_URL}/?client=admin`);
+            ws.onopen = () => console.log('✅ Admin WebSocket conectado.');
             ws.onmessage = (event) => {
                 const message = JSON.parse(event.data);
                 if (message.type === 'user_count_update') document.getElementById('online-users-stat').textContent = message.count;
@@ -1119,15 +1130,16 @@
     function updateRealtimeFeed(activity) {
         const feedContainer = document.getElementById('realtime-feed');
         if (activity.event_type === 'page_view') {
-            const todayStatEl = document.getElementById('today-access-stat');
-            const currentCount = parseInt(todayStatEl.textContent.replace(/\./g, '')) || 0;
-            todayStatEl.textContent = (currentCount + 1).toLocaleString('pt-PT');
+            // Recarrega todos os dados do dashboard para manter os contadores consistentes
+            // Isso garante que os contadores de hoje, semana e mês sempre reflitam os dados da base de dados
+            loadDashboardData();
         } else if (activity.event_type === 'affiliate_click') {
-            loadAffiliateLinks().then(() => renderAffiliateChart());
-        } else if (activity.event_type === 'tab_switch') {
-            renderTabVisitsChart();
-        } else if (activity.event_type === 'affiliate_click' && activity.details?.link_id) {
-            loadAffiliateLinks().then(() => renderAffiliateChart());
+            const logMessage = `[WebSocket] Recebido clique de afiliado: ID=${activity.details?.link_id}, Título="${activity.details?.product_title}"`;
+            console.log(logMessage, activity);
+            // Recarrega tanto os links, quanto o gráfico e as novas estatísticas
+            loadAffiliateLinks();
+            renderAffiliateChart();
+            loadAffiliateStats();
         } else if (activity.event_type === 'tab_switch') {
             renderTabVisitsChart();
         }
@@ -1143,7 +1155,10 @@
         else if (activity.event_type === 'affiliate_click') eventText = `clicou no link de afiliado: <strong>${activity.details?.product_title || '...'}</strong>.`;
         else if (activity.event_type === 'tab_switch') eventText = `navegou para a aba <strong>${activity.details.tab}</strong>.`;
         else if (activity.event_type === 'supporter_click') eventText = `clicou no apoiador: <strong>${activity.details.supporter_name}</strong>.`;
-        else return; // Não mostra eventos desconhecidos
+        else {
+            // Fallback para mostrar qualquer outro tipo de evento
+            eventText = `realizou a ação: <strong>${activity.event_type}</strong>.`;
+        }
         
         const newEntry = document.createElement('div');
         newEntry.className = 'text-sm text-slate-600 border-b border-slate-100 pb-2';
@@ -1256,18 +1271,43 @@
     function openAffiliateModal(linkData = null) {
         const modal = document.getElementById('affiliate-modal');
         const form = document.getElementById('affiliate-form');
+        
+        // Sempre reseta primeiro para limpar campos anteriores
         form.reset();
+        
+        // Atualiza título e botão
         document.getElementById('affiliate-modal-title').textContent = linkData ? 'Editar Link de Afiliado' : 'Adicionar Novo Link';
-        form.querySelector('#save-affiliate-btn').textContent = linkData ? 'Guardar Alterações' : 'Adicionar';
-        form.querySelector('#affiliate_id').value = linkData?.id || '';
+        const saveBtn = form.querySelector('#save-affiliate-btn');
+        saveBtn.textContent = linkData ? 'Guardar Alterações' : 'Adicionar';
+        
         if (linkData) {
-            form.querySelector('#affiliate_title').value = linkData.title;
-            form.querySelector('#affiliate_url').value = linkData.url;
-            form.querySelector('#affiliate_image_url').value = linkData.image_url;
-            form.querySelector('#affiliate_price').value = linkData.price;
-            form.querySelector('#affiliate_shipping').value = linkData.shipping_cost_usd;
-            form.querySelector('#affiliate_proof_video_url').value = linkData.proof_video_url || '';
+            // Preenche os campos com os dados do afiliado
+            // Usa setTimeout para garantir que o reset foi processado antes de preencher
+            setTimeout(() => {
+                const idField = form.querySelector('#affiliate_id');
+                const titleField = form.querySelector('#affiliate_title');
+                const urlField = form.querySelector('#affiliate_url');
+                const imageUrlField = form.querySelector('#affiliate_image_url');
+                const priceField = form.querySelector('#affiliate_price');
+                const shippingField = form.querySelector('#affiliate_shipping');
+                const proofVideoField = form.querySelector('#affiliate_proof_video_url');
+                const tutorialVideoField = form.querySelector('#affiliate_tutorial_video_url');
+                
+                if (idField) idField.value = linkData.id || '';
+                if (titleField) titleField.value = linkData.title || '';
+                if (urlField) urlField.value = linkData.url || '';
+                if (imageUrlField) imageUrlField.value = linkData.image_url || '';
+                if (priceField) priceField.value = linkData.price || '';
+                if (shippingField) shippingField.value = linkData.shipping_cost_usd || '';
+                if (proofVideoField) proofVideoField.value = linkData.proof_video_url || '';
+                if (tutorialVideoField) tutorialVideoField.value = linkData.tutorial_video_url || '';
+            }, 50);
+        } else {
+            // Se não houver dados, apenas limpa o campo ID
+            const idField = form.querySelector('#affiliate_id');
+            if (idField) idField.value = '';
         }
+        
         openModal(modal);
     }
     
@@ -1297,6 +1337,7 @@
             price: parseFloat(form.querySelector('#affiliate_price').value) || 0,
             shipping_cost_usd: parseFloat(form.querySelector('#affiliate_shipping').value) || 0,
             proof_video_url: form.querySelector('#affiliate_proof_video_url').value || null,
+            tutorial_video_url: form.querySelector('#affiliate_tutorial_video_url').value || null,
             is_active: true // Define como ativo por padrão
         };
         
@@ -1327,28 +1368,51 @@
         const bannerPreview = document.getElementById('supporter_banner_preview');
         const bannerNameSpan = document.getElementById('supporter_banner_name');
         
-        form.reset();
-        bannerPreview.innerHTML = '<span class="text-gray-400">Prévia</span>';
-        bannerNameSpan.textContent = 'Escolher imagem...';
-        
+        // Define o título e o texto do botão com base na ação (adicionar ou editar)
         document.getElementById('supporter-modal-title').textContent = supporterData ? 'Editar Apoiador' : 'Adicionar Novo Apoiador';
-        form.querySelector('#save-supporter-btn').textContent = supporterData ? 'Guardar Alterações' : 'Adicionar';
-        form.querySelector('#supporter_id').value = supporterData?.id || '';
+        const saveBtn = form.querySelector('#save-supporter-btn');
+        saveBtn.textContent = supporterData ? 'Guardar Alterações' : 'Adicionar';
+
+        // Sempre reseta primeiro para limpar campos anteriores
+        form.reset();
+        
+        // Limpa a preview apenas se não houver dados de edição
+        if (!supporterData) {
+            bannerPreview.innerHTML = '<span class="text-gray-400">Prévia</span>';
+            bannerNameSpan.textContent = 'Escolher imagem...';
+        }
 
         if (supporterData) {
-            form.querySelector('#supporter_name').value = supporterData.name;
-            form.querySelector('#supporter_website_url').value = supporterData.website_url;
-            
-            // Se já existe um banner, mostrar a prévia
-            if (supporterData.banner_url) {
-                bannerPreview.innerHTML = `<img src="${supporterData.banner_url}" class="w-full h-full object-contain">`;
-                bannerNameSpan.textContent = 'Banner atual';
-                form.querySelector('#supporter_banner').required = false;
-            } else {
-                // Garante que o campo é obrigatório se for um novo apoiador ou um existente sem imagem
-                form.querySelector('#supporter_banner').required = true;
-            }
+            // Preenche os campos com os dados do apoiador
+            // Usa setTimeout para garantir que o reset foi processado antes de preencher
+            setTimeout(() => {
+                const idField = form.querySelector('#supporter_id');
+                const nameField = form.querySelector('#supporter_name');
+                const websiteUrlField = form.querySelector('#supporter_website_url');
+                const bannerField = form.querySelector('#supporter_banner');
+                
+                if (idField) idField.value = supporterData.id || '';
+                if (nameField) nameField.value = supporterData.name || '';
+                if (websiteUrlField) websiteUrlField.value = supporterData.website_url || '';
+                
+                // Se já existe um banner, mostra a prévia e torna o campo de upload opcional
+                if (supporterData.banner_url) {
+                    bannerPreview.innerHTML = `<img src="${supporterData.banner_url}" class="w-full h-full object-cover" alt="Banner atual">`;
+                    bannerNameSpan.textContent = 'Banner atual';
+                    if (bannerField) bannerField.required = false;
+                } else {
+                    // Se não houver banner, mostra preview padrão e o campo de upload é obrigatório
+                    bannerPreview.innerHTML = '<span class="text-gray-400">Prévia</span>';
+                    bannerNameSpan.textContent = 'Escolher imagem...';
+                    if (bannerField) bannerField.required = true;
+                }
+            }, 50);
+        } else {
+            // Se não houver dados, apenas limpa o campo ID
+            const idField = form.querySelector('#supporter_id');
+            if (idField) idField.value = '';
         }
+        
         openModal(modal);
     }
 
@@ -1404,13 +1468,6 @@
             if (bannerFile) {
                 formData.append('banner_image', bannerFile);
             }
-
-            console.log('Enviando dados do apoiador:', {
-                name,
-                websiteUrl,
-                supporterId,
-                hasBannerFile: !!bannerFile
-            });
 
             // Usar XMLHttpRequest para ter acesso ao progresso do upload
             await new Promise((resolve, reject) => {
@@ -1528,7 +1585,6 @@
         const settingsData = [
             { key: 'contact_email', value: form.querySelector('#setting_contact_email').value },
             { key: 'contact_phone', value: form.querySelector('#setting_contact_phone').value },
-            { key: 'tutorial_video_url', value: form.querySelector('#setting_tutorial_video_url').value },
             { key: 'social_media_links', value: socialLinks },
         ];
 
@@ -1578,21 +1634,46 @@
 
     function handleGlobalClick(e) {
         const target = e.target;
-        const { id, type, name } = target.dataset;
+        // Se clicou no SVG ou no path, busca o botão pai
+        const btn = target.closest('.edit-btn') || target.closest('.delete-btn') || target.closest('.delete-province-btn') || target.closest('.edit-province-btn') || target;
+        const { id, type, name } = btn.dataset || {};
 
-        if (target.matches('.edit-btn')) {
+        if (btn.matches('.edit-btn') || target.closest('.edit-btn')) {
             if (type === 'bank') openBankModal(allFormalProviders.find(b => Number(b.id) === Number(id)));
-            if (type === 'affiliate') openAffiliateModal(allAffiliates.find(a => Number(a.id) === Number(id)));
-            if (type === 'currency') openCurrencyModal(allCurrencies.find(c => Number(c.id) === Number(id)));
-            if (type === 'supporter') openSupporterModal(allSupporters.find(s => Number(s.id) === Number(id)));
-        } else if (target.matches('.delete-btn')) {
+            if (type === 'affiliate') { const affiliate = allAffiliates.find(a => {
+                    const matchString = String(a.id) === String(id);
+                    const matchNumber = Number(a.id) === Number(id);
+                    return matchString || matchNumber;
+                });
+                if (!affiliate) {
+                    console.error('Afiliado não encontrado com ID:', id, 'Tipo do ID:', typeof id);
+                    console.error('Afiliados disponíveis:', allAffiliates);
+                    showError('Afiliado não encontrado. Por favor, recarregue a página.');
+                    return;
+                }
+                openAffiliateModal(affiliate);
+            }
+            if (type === 'currency') openCurrencyModal(allCurrencies.find(c => Number(c.id) === Number(id))); if (type === 'supporter') { const supporter = allSupporters.find(s => {
+                    const matchString = String(s.id) === String(id);
+                    const matchNumber = Number(s.id) === Number(id);
+                    return matchString || matchNumber;
+                });
+                if (!supporter) {
+                    console.error('Apoiador não encontrado com ID:', id, 'Tipo do ID:', typeof id);
+                    console.error('Apoiadores disponíveis:', allSupporters);
+                    showError('Apoiador não encontrado. Por favor, recarregue a página.');
+                    return;
+                }
+                openSupporterModal(supporter);
+            }
+        } else if (btn.matches('.delete-btn') || target.closest('.delete-btn')) {
             if (type === 'bank') handleDeleteBank(id);
             if (type === 'affiliate') handleDeleteAffiliate(id);
             if (type === 'currency') handleDeleteCurrency(id);
             if (type === 'supporter') handleDeleteSupporter(id);
-        } else if (target.matches('.delete-province-btn')) {
+        } else if (btn.matches('.delete-province-btn') || target.closest('.delete-province-btn')) {
             handleDeleteProvince(id, name);
-        } else if (target.matches('.edit-province-btn')) {
+        } else if (btn.matches('.edit-province-btn') || target.closest('.edit-province-btn')) {
             handleEditProvince(id, name);
         } else if (target.matches('.editable-cell') && !target.querySelector('input')) {
             handleCellEdit(target);
@@ -1814,6 +1895,27 @@
         document.getElementById('cancel-delete-btn').addEventListener('click', () => closeModal(modal), { once: true });
         openModal(modal);
     }
+    // --- LOGICA DA PÁGINA PÚBLICA ---
+    // Adiciona um listener de cliques para os links de afiliados na página pública
+    // Esta lógica deve estar no script que corre na página principal (index.html)
+    // Assumindo que os links de afiliados têm um atributo `data-affiliate-id`
+    document.addEventListener('click', function(e) {
+        const affiliateLink = e.target.closest('a[data-affiliate-id]');
+        
+        if (affiliateLink && typeof logActivity === 'function') {
+            e.preventDefault(); // Impede a navegação imediata
+            
+            const linkId = affiliateLink.dataset.affiliateId;
+            const productTitle = affiliateLink.dataset.productTitle || 'Desconhecido';
+            const destinationUrl = affiliateLink.href;
+
+            // Envia o evento de clique para o servidor
+            logActivity('affiliate_click', { link_id: linkId, product_title: productTitle });
+            
+            // Redireciona o usuário para o URL de destino após um pequeno atraso
+            setTimeout(() => { window.location.href = destinationUrl; }, 300); // 300ms para dar tempo do evento ser enviado
+        }
+    });
 
 </script>
 </html>

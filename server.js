@@ -101,8 +101,15 @@ wss.on("connection", (ws, req) => {
     try {
       const data = JSON.parse(message);
       if (data.type === 'log_activity' && data.payload) {
+        // --- CORREÇÃO DE FUSO HORÁRIO NA INSERÇÃO ---
+        // Garante que o timestamp seja sempre em UTC, independentemente do fuso horário do servidor.
+        // O Supabase espera UTC, então forçamos isso aqui para evitar discrepâncias.
+        const activityPayload = {
+            ...data.payload,
+            created_at: new Date().toISOString() // Adiciona/sobrescreve com o timestamp UTC atual
+        };
         // 1. Guarda a atividade na tabela de logs
-        supabase.from('user_activity').insert(data.payload).then(({ error }) => {
+        supabase.from('user_activity').insert(activityPayload).then(({ error }) => {
           if (error) {
             console.error('Erro ao inserir atividade do WebSocket na BD:', error);
           }
@@ -110,15 +117,20 @@ wss.on("connection", (ws, req) => {
 
         // 2. Se for um clique de afiliado, incrementa o contador na tabela principal
         if ((data.payload.event_type === 'affiliate_click' || data.payload.event_type === 'buy_now_click') && data.payload.details?.link_id) {
-            supabase.rpc('increment_affiliate_click', { link_id_to_inc: data.payload.details.link_id })
-              .then(({ error }) => {
+            const linkId = data.payload.details.link_id;
+            console.log(`[SERVER] Recebido clique de afiliado para o link ID: ${linkId}. A chamar RPC 'increment_affiliate_click'...`);
+            
+            supabase.rpc('increment_affiliate_click', { link_id_to_inc: linkId }, { cast: 'bigint' })
+              .then(({ data: rpcData, error }) => { // eslint-disable-line
                 if (error) {
-                  console.error('Erro ao incrementar contador de cliques:', error);
+                  console.error(`[SERVER] ❌ ERRO ao incrementar contador de cliques para o link ID ${linkId}:`, error);
+                } else {
+                  console.log(`[SERVER] ✅ SUCESSO ao incrementar contador de cliques para o link ID ${linkId}.`);
                 }
               });
         }
         // 2. Notifica os administradores em tempo real
-        broadcast({ type: 'new_user_activity', payload: data.payload }, 'admin');
+        broadcast({ type: 'new_user_activity', payload: activityPayload }, 'admin');
       }
     } catch (error) { console.error('Erro ao processar mensagem WebSocket:', error); }
   });
@@ -415,15 +427,258 @@ app.post("/api/supporter", isAdmin, upload.single('banner_image'), async (req, r
 
 // Endpoint para buscar atividade recente (para preencher o feed no carregamento da página)
 app.get("/api/recent-activity", isAdmin, async (req, res) => {
+    const limit = parseInt(req.query.limit, 10) || 25; // Padrão 25, mas permite override
+
     try {
         const { data, error } = await supabase
             .from('user_activity')
             .select('*')
             .order('created_at', { ascending: false })
-            .limit(25); // Busca as últimas 25 atividades
+            .limit(limit); // Usa o limite definido
 
         if (error) throw error;
         res.status(200).json(data);
+    } catch (error) {
+        handleSupabaseError(error, res);
+    }
+});
+
+// Endpoint para buscar estatísticas do dashboard
+app.get("/api/dashboard-stats", isAdmin, async (req, res) => {
+    try {
+        // --- CORREÇÃO DE FUSO HORÁRIO ---
+        // Obter a data atual em UTC para garantir consistência com o banco de dados
+        const nowUTC = new Date();
+        const yearUTC = nowUTC.getUTCFullYear();
+        const monthUTC = nowUTC.getUTCMonth();
+        const dayUTC = nowUTC.getUTCDate();
+
+        // Definir o início e o fim do dia diretamente em UTC
+        const todayStart = new Date(Date.UTC(yearUTC, monthUTC, dayUTC, 0, 0, 0, 0));
+        const todayEnd = new Date(Date.UTC(yearUTC, monthUTC, dayUTC, 23, 59, 59, 999));
+        const monthStart = new Date(Date.UTC(yearUTC, monthUTC, 1, 0, 0, 0, 0));
+
+        const todayStartISO = todayStart.toISOString();
+        const todayEndISO = todayEnd.toISOString();
+        const monthStartISO = monthStart.toISOString();
+
+        // Calcular o início da semana (últimos 7 dias, incluindo hoje)
+        const weekStartDate = new Date(nowUTC);
+        weekStartDate.setUTCDate(weekStartDate.getUTCDate() - 6);
+        weekStartDate.setUTCHours(0, 0, 0, 0);
+        const weekStartISO = weekStartDate.toISOString();
+
+        // --- Executar todas as consultas em paralelo para máxima eficiência ---
+        const [
+            activeBanksRes,
+            todayActivitiesRes,
+            weeklyActivitiesRes,
+            monthlyActivitiesRes
+        ] = await Promise.all([
+            // Contagem de bancos ativos
+            supabase.from('rate_providers').select('id', { count: 'exact', head: true }).eq('type', 'FORMAL').eq('is_active', true),
+            
+            // Atividades de hoje - buscar todas para contar sessões únicas com page_view
+            supabase.from('user_activity')
+                .select('session_id, event_type, created_at')
+                .eq('event_type', 'page_view')
+                .gte('created_at', todayStartISO)
+                .lte('created_at', todayEndISO),
+
+            // Atividades semanais - buscar todas para contar sessões únicas com page_view
+            supabase.from('user_activity')
+                .select('session_id, event_type, created_at')
+                .eq('event_type', 'page_view')
+                .gte('created_at', weekStartISO),
+
+            // Atividades mensais - buscar todas para contar sessões únicas com page_view
+            supabase.from('user_activity')
+                .select('session_id, event_type, created_at')
+                .eq('event_type', 'page_view')
+                .gte('created_at', monthStartISO)
+        ]);
+
+        // Buscar todas as atividades de hoje para calcular rejeições
+        const { data: allTodayActivities, error: allTodayError } = await supabase
+            .from('user_activity')
+            .select('session_id, event_type')
+            .gte('created_at', todayStartISO)
+            .lte('created_at', todayEndISO);
+
+        // --- Processar resultados ---
+
+        // Bancos ativos
+        const activeBanksCount = activeBanksRes.count || 0;
+
+        // Contar sessões únicas (não todos os page_views)
+        // Isso garante que recarregamentos da mesma sessão não aumentem o contador
+        const getUniqueSessions = (activities) => {
+            if (!activities || activities.error) {
+                if (activities?.error) {
+                    console.warn('⚠️ Erro ao buscar atividades:', activities.error);
+                }
+                return new Set();
+            }
+            if (!activities.data) return new Set();
+            const uniqueSessions = new Set();
+            activities.data.forEach(activity => {
+                if (activity.session_id) {
+                    uniqueSessions.add(activity.session_id);
+                }
+            });
+            return uniqueSessions;
+        };
+
+        const todayViewsCount = getUniqueSessions(todayActivitiesRes).size;
+        const weeklyViewsCount = getUniqueSessions(weeklyActivitiesRes).size;
+        const monthlyViewsCount = getUniqueSessions(monthlyActivitiesRes).size;
+
+        // Calcular taxa de rejeição com a nova lógica
+        let bouncedSessionsCount = 0;
+        if (allTodayError) {
+            console.warn('⚠️ Erro ao buscar atividades de hoje para cálculo de rejeições:', allTodayError);
+        } else if (allTodayActivities && allTodayActivities.length > 0) {
+            // Agrupa todas as atividades por session_id
+            const sessions = allTodayActivities.reduce((acc, activity) => {
+                if (!acc[activity.session_id]) {
+                    acc[activity.session_id] = [];
+                }
+                acc[activity.session_id].push(activity.event_type);
+                return acc;
+            }, {});
+            // Conta como rejeição apenas as sessões que têm exatamente 1 evento, e esse evento é 'page_view'
+            bouncedSessionsCount = Object.values(sessions).filter(events => events.length === 1 && events[0] === 'page_view').length;
+        }
+
+        // Enviar todos os dados de uma vez
+        res.status(200).json({
+            activeBanks: activeBanksCount,
+            todayViews: todayViewsCount,
+            weeklyViews: weeklyViewsCount,
+            monthlyViews: monthlyViewsCount,
+            bouncedSessions: bouncedSessionsCount
+        });
+
+    } catch (error) {
+        handleSupabaseError(error, res);
+    }
+});
+
+// Endpoint para buscar estatísticas de cliques de afiliados
+app.get("/api/affiliate-clicks-stats", isAdmin, async (req, res) => {
+    try {
+        // --- CORREÇÃO DE FUSO HORÁRIO ---
+        // Obter a data atual em UTC para garantir consistência com o banco de dados
+        const nowUTC = new Date();
+        const yearUTC = nowUTC.getUTCFullYear();
+        const monthUTC = nowUTC.getUTCMonth();
+        const dayUTC = nowUTC.getUTCDate();
+
+        // Definir o início e o fim do dia diretamente em UTC
+        const todayStart = new Date(Date.UTC(yearUTC, monthUTC, dayUTC, 0, 0, 0, 0));
+        const todayEnd = new Date(Date.UTC(yearUTC, monthUTC, dayUTC, 23, 59, 59, 999));
+        const monthStart = new Date(Date.UTC(yearUTC, monthUTC, 1, 0, 0, 0, 0));
+
+        const todayStartISO = todayStart.toISOString();
+        const todayEndISO = todayEnd.toISOString();
+        const monthStartISO = monthStart.toISOString();
+
+        // Calcular o início da semana (últimos 7 dias, incluindo hoje)
+        const weekStartDate = new Date(nowUTC);
+        weekStartDate.setUTCDate(weekStartDate.getUTCDate() - 6);
+        weekStartDate.setUTCHours(0, 0, 0, 0);
+        const weekStartISO = weekStartDate.toISOString();
+
+        // Buscar todos os cliques de afiliados para análise
+        const [
+            todayClicksRes,
+            weeklyClicksRes,
+            monthlyClicksRes,
+            allClicksRes
+        ] = await Promise.all([
+            // Cliques de hoje
+            supabase.from('user_activity')
+                .select('session_id, details, created_at, event_type')
+                .in('event_type', ['affiliate_click', 'buy_now_click'])
+                .gte('created_at', todayStartISO)
+                .lte('created_at', todayEndISO),
+
+            // Cliques da semana
+            supabase.from('user_activity')
+                .select('session_id, details, created_at, event_type')
+                .in('event_type', ['affiliate_click', 'buy_now_click'])
+                .gte('created_at', weekStartISO),
+
+            // Cliques do mês
+            supabase.from('user_activity')
+                .select('session_id, details, created_at, event_type')
+                .in('event_type', ['affiliate_click', 'buy_now_click'])
+                .gte('created_at', monthStartISO),
+
+            // Todos os cliques para estatísticas gerais
+            supabase.from('user_activity')
+                .select('session_id, details, created_at, event_type')
+                .in('event_type', ['affiliate_click', 'buy_now_click'])
+        ]);
+
+        // Função para processar cliques e contar por link_id
+        const processClicks = (clicksRes) => {
+            if (!clicksRes || clicksRes.error || !clicksRes.data) {
+                return {
+                    totalClicks: 0,
+                    uniqueSessions: 0,
+                    byLink: {}
+                };
+            }
+
+            const byLink = {};
+            const uniqueSessions = new Set();
+
+            clicksRes.data.forEach(click => {
+                const linkId = click.details?.link_id;
+                if (!linkId) return;
+
+                // Contar cliques totais por link
+                if (!byLink[linkId]) {
+                    byLink[linkId] = {
+                        totalClicks: 0,
+                        uniqueSessions: new Set()
+                    };
+                }
+                byLink[linkId].totalClicks++;
+                byLink[linkId].uniqueSessions.add(click.session_id);
+
+                // Contar sessões únicas totais
+                if (click.session_id) {
+                    uniqueSessions.add(click.session_id);
+                }
+            });
+
+            // Converter Sets para números
+            Object.keys(byLink).forEach(linkId => {
+                byLink[linkId].uniqueSessions = byLink[linkId].uniqueSessions.size;
+            });
+
+            return {
+                totalClicks: clicksRes.data.length,
+                uniqueSessions: uniqueSessions.size,
+                byLink: byLink
+            };
+        };
+
+        const todayStats = processClicks(todayClicksRes);
+        const weeklyStats = processClicks(weeklyClicksRes);
+        const monthlyStats = processClicks(monthlyClicksRes);
+        const allStats = processClicks(allClicksRes);
+
+        // Enviar todos os dados
+        res.status(200).json({
+            today: todayStats,
+            weekly: weeklyStats,
+            monthly: monthlyStats,
+            allTime: allStats
+        });
+
     } catch (error) {
         handleSupabaseError(error, res);
     }
@@ -662,6 +917,29 @@ app.get("/privacidade", (req, res) => {
         return res.status(404).send('Página não encontrada');
     }
     res.sendFile(path.join(__dirname, "public", "privacidade.html"));
+});
+
+// Rotas para SEO
+app.get("/robots.txt", (req, res) => {
+    res.type('text/plain');
+    res.sendFile(path.join(__dirname, "public", "robots.txt"));
+});
+
+app.get("/sitemap.xml", (req, res) => {
+    res.type('application/xml');
+    res.sendFile(path.join(__dirname, "public", "sitemap.xml"));
+});
+
+// Rota para verificação do Bing
+app.get("/BingSiteAuth.xml", (req, res) => {
+    res.type('application/xml');
+    res.sendFile(path.join(__dirname, "public", "BingSiteAuth.xml"));
+});
+
+// Rota para verificação do Yandex (assumindo que o arquivo seja yandex_verification.html)
+// Ajuste o nome do arquivo se for diferente.
+app.get("/yandex_*.html", (req, res) => {
+    res.sendFile(path.join(__dirname, "public", req.path));
 });
 
 // --- ROTAS GENÉRICAS (DEVEM VIR NO FIM) ---
