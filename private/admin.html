@@ -1237,19 +1237,20 @@
                     const activity = data.payload;
                     const sessionId = activity.session_id;
 
+                    let sessionActivities = activitySessions.get(sessionId);
+
                     if (!activitySessions.has(sessionId)) {
                         // Nova sessão, cria um novo grupo no topo
-                        activitySessions.set(sessionId, []);
-                        renderSessionGroup(sessionId, [activity], true);
+                        sessionActivities = [];
+                        activitySessions.set(sessionId, sessionActivities);
                     } else {
-                        // Sessão existente, adiciona a atividade ao grupo
-                        const sessionActivities = activitySessions.get(sessionId);
-                        sessionActivities.push(activity);
-                        const sessionGroupEl = document.getElementById(`session-${sessionId}`);
-                        if (sessionGroupEl) {
-                            sessionGroupEl.querySelector('.session-body').appendChild(renderFeedEntry(activity, true));
-                        }
+                        // Remove o grupo antigo para redesenhá-lo
+                        document.getElementById(`session-${sessionId}`)?.remove();
                     }
+
+                    sessionActivities.push(activity);
+                    // Renderiza (ou redesenha) o grupo da sessão no topo do feed
+                    renderSessionGroup(sessionId, sessionActivities, true);
                 }
             } catch (error) {
                 console.error('Erro ao processar mensagem WebSocket:', error);
@@ -1332,7 +1333,7 @@
         sessionGroup.className = 'bg-white p-4 rounded-lg shadow-sm border border-slate-200/80 mb-4';
         
         let entriesHTML = '';
-        // Ordena as atividades dentro da sessão por data
+        // Garante que as atividades dentro da sessão estão ordenadas por data
         activities.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
 
         activities.forEach(activity => {
@@ -1363,44 +1364,6 @@
         `;
 
         if (isRealtime) feedContainer.prepend(sessionGroup); else feedContainer.appendChild(sessionGroup);
-    }
-
-    function renderFeedEntry(activity, isRealtime = false) {
-        let eventText, eventIcon;
-        const eventType = activity.event_type;
-        const details = activity.details || {};
-
-        switch (eventType) {
-            case 'page_view':
-                eventText = 'visitou a página.';
-                break;
-            case 'affiliate_click':
-                eventText = `clicou no parceiro: <strong>${details.product_title || '...'}</strong>.`;
-                break;
-            case 'buy_now_click':
-                eventText = `clicou em "Comprar Agora" para <strong>${details.product_title || '...'}</strong>.`;
-                break;
-            case 'tab_switch':
-                eventText = `navegou para a aba <strong>${details.tab}</strong>.`;
-                break;
-            case 'supporter_click':
-                eventText = `clicou no apoiador: <strong>${details.supporter_name}</strong>.`;
-                break;
-            case 'first_visit':
-                eventText = 'fez a sua <strong>primeira visita</strong> ao site.';
-                break;
-            default:
-                eventText = `realizou a ação: <strong>${eventType}</strong>.`;
-        }
-
-        eventIcon = eventIcons[eventType] || eventIcons.default;
-        const visitorName = details.visitor_name || 'Utilizador';
-
-        const newEntry = document.createElement('div');
-        newEntry.className = 'flex items-start space-x-3 text-sm text-slate-600 py-2 border-b border-slate-100 last:border-b-0';
-        const activityDate = isRealtime ? new Date() : new Date(activity.created_at);
-        newEntry.innerHTML = `<div class="text-lg pt-0.5">${eventIcon}</div><div><p>${eventText}</p><span class="block text-xs text-slate-400 mt-1">${activityDate.toLocaleTimeString('pt-PT')}</span></div>`;
-        return newEntry;
     }
 
     async function notifyServerOfUpdate() {

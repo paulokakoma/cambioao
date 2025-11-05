@@ -122,10 +122,11 @@ wss.on("connection", (ws, req) => {
 
         // 2. Se for um clique de afiliado, incrementa o contador na tabela principal
         if ((data.payload.event_type === 'affiliate_click' || data.payload.event_type === 'buy_now_click') && data.payload.details?.link_id) {
-            const linkId = data.payload.details.link_id;
+            // Converte o ID para inteiro para resolver a ambiguidade da função RPC (integer vs bigint)
+            const linkId = parseInt(data.payload.details.link_id, 10);
             console.log(`[SERVER] Recebido clique de afiliado para o link ID: ${linkId}. A chamar RPC 'increment_affiliate_click'...`);
             
-            supabase.rpc('increment_affiliate_click', { link_id_to_inc: linkId }, { cast: 'bigint' })
+            supabase.rpc('increment_affiliate_click', { link_id_to_inc: linkId })
               .then(({ data: rpcData, error }) => { // eslint-disable-line
                 if (error) {
                   console.error(`[SERVER] ❌ ERRO ao incrementar contador de cliques para o link ID ${linkId}:`, error);
