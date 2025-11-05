@@ -77,7 +77,7 @@ ADMIN_PASSWORD_HASH=hash_da_senha_admin
 SESSION_SECRET=segredo_para_sessões
 
 # Caminho secreto para admin (opcional, padrão: /admin)
-ADMIN_SECRET_PATH=/admin-secreto
+ADMIN_SECRET_PATH=/admin
 
 # Domínio para cookies em produção (opcional)
 COOKIE_DOMAIN=.dominio.com

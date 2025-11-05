@@ -1,8 +1,13 @@
 // Carrega as variáveis de ambiente do ficheiro .env
-require("dotenv").config();
+const path = require("path");
+
+// Carrega o .env APENAS em ambiente de desenvolvimento.
+// Em produção (Docker), as variáveis são injetadas pelo Docker Compose.
+if (process.env.NODE_ENV !== 'production') {
+  require("dotenv").config({ path: path.resolve(__dirname, '.env') });
+}
 const express = require("express");
 const { createClient } = require("@supabase/supabase-js");
-const path = require("path");
 const http = require("http");
 const { WebSocketServer } = require("ws");
 const session = require("express-session");
@@ -164,13 +169,17 @@ app.use(session({
     saveUninitialized: false,
     rolling: true, // Faz roll da expiração em cada request
     cookie: { 
-        secure: process.env.NODE_ENV === 'production', // Usar cookies seguros em produção
+        // Em produção, o cookie só deve ser enviado por HTTPS.
+        // Em desenvolvimento (mesmo com NODE_ENV=production localmente),
+        // permitimos HTTP para que o localhost funcione.
+        secure: !isDevelopment,
         httpOnly: true, // Previne acesso via JS no cliente
         maxAge: 30 * 24 * 60 * 60 * 1000, // Expira em 30 dias
         // sameSite: 'lax' funciona para subdomínios do mesmo domínio (admin.dominio.com e dominio.com)
         // 'none' só é necessário para domínios completamente diferentes
         sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'lax',
-        domain: isDevelopment ? undefined : (process.env.COOKIE_DOMAIN || undefined)
+        // Em produção, defina COOKIE_DOMAIN=.seudominio.com para partilhar cookies entre subdomínios
+        domain: isDevelopment ? undefined : process.env.COOKIE_DOMAIN
     }
 }));
 
@@ -188,7 +197,7 @@ const isAdmin = (req, res, next) => {
         return res.status(401).json({ success: false, message: 'Sessão expirada ou não autenticada.' });
     }
     // Para páginas, redireciona para login
-    return res.redirect('/login.html');
+    return res.redirect('/login');
 };
 
 // Middleware para servir ficheiros estáticos da pasta 'private' APENAS para administradores.
@@ -443,247 +452,6 @@ app.get("/api/recent-activity", isAdmin, async (req, res) => {
     }
 });
 
-// Endpoint para buscar estatísticas do dashboard
-app.get("/api/dashboard-stats", isAdmin, async (req, res) => {
-    try {
-        // --- CORREÇÃO DE FUSO HORÁRIO ---
-        // Obter a data atual em UTC para garantir consistência com o banco de dados
-        const nowUTC = new Date();
-        const yearUTC = nowUTC.getUTCFullYear();
-        const monthUTC = nowUTC.getUTCMonth();
-        const dayUTC = nowUTC.getUTCDate();
-
-        // Definir o início e o fim do dia diretamente em UTC
-        const todayStart = new Date(Date.UTC(yearUTC, monthUTC, dayUTC, 0, 0, 0, 0));
-        const todayEnd = new Date(Date.UTC(yearUTC, monthUTC, dayUTC, 23, 59, 59, 999));
-        const monthStart = new Date(Date.UTC(yearUTC, monthUTC, 1, 0, 0, 0, 0));
-
-        const todayStartISO = todayStart.toISOString();
-        const todayEndISO = todayEnd.toISOString();
-        const monthStartISO = monthStart.toISOString();
-
-        // Calcular o início da semana (últimos 7 dias, incluindo hoje)
-        const weekStartDate = new Date(nowUTC);
-        weekStartDate.setUTCDate(weekStartDate.getUTCDate() - 6);
-        weekStartDate.setUTCHours(0, 0, 0, 0);
-        const weekStartISO = weekStartDate.toISOString();
-
-        // --- Executar todas as consultas em paralelo para máxima eficiência ---
-        const [
-            activeBanksRes,
-            todayActivitiesRes,
-            weeklyActivitiesRes,
-            monthlyActivitiesRes
-        ] = await Promise.all([
-            // Contagem de bancos ativos
-            supabase.from('rate_providers').select('id', { count: 'exact', head: true }).eq('type', 'FORMAL').eq('is_active', true),
-            
-            // Atividades de hoje - buscar todas para contar sessões únicas com page_view
-            supabase.from('user_activity')
-                .select('session_id, event_type, created_at')
-                .eq('event_type', 'page_view')
-                .gte('created_at', todayStartISO)
-                .lte('created_at', todayEndISO),
-
-            // Atividades semanais - buscar todas para contar sessões únicas com page_view
-            supabase.from('user_activity')
-                .select('session_id, event_type, created_at')
-                .eq('event_type', 'page_view')
-                .gte('created_at', weekStartISO),
-
-            // Atividades mensais - buscar todas para contar sessões únicas com page_view
-            supabase.from('user_activity')
-                .select('session_id, event_type, created_at')
-                .eq('event_type', 'page_view')
-                .gte('created_at', monthStartISO)
-        ]);
-
-        // Buscar todas as atividades de hoje para calcular rejeições
-        const { data: allTodayActivities, error: allTodayError } = await supabase
-            .from('user_activity')
-            .select('session_id, event_type')
-            .gte('created_at', todayStartISO)
-            .lte('created_at', todayEndISO);
-
-        // --- Processar resultados ---
-
-        // Bancos ativos
-        const activeBanksCount = activeBanksRes.count || 0;
-
-        // Contar sessões únicas (não todos os page_views)
-        // Isso garante que recarregamentos da mesma sessão não aumentem o contador
-        const getUniqueSessions = (activities) => {
-            if (!activities || activities.error) {
-                if (activities?.error) {
-                    console.warn('⚠️ Erro ao buscar atividades:', activities.error);
-                }
-                return new Set();
-            }
-            if (!activities.data) return new Set();
-            const uniqueSessions = new Set();
-            activities.data.forEach(activity => {
-                if (activity.session_id) {
-                    uniqueSessions.add(activity.session_id);
-                }
-            });
-            return uniqueSessions;
-        };
-
-        const todayViewsCount = getUniqueSessions(todayActivitiesRes).size;
-        const weeklyViewsCount = getUniqueSessions(weeklyActivitiesRes).size;
-        const monthlyViewsCount = getUniqueSessions(monthlyActivitiesRes).size;
-
-        // Calcular taxa de rejeição com a nova lógica
-        let bouncedSessionsCount = 0;
-        if (allTodayError) {
-            console.warn('⚠️ Erro ao buscar atividades de hoje para cálculo de rejeições:', allTodayError);
-        } else if (allTodayActivities && allTodayActivities.length > 0) {
-            // Agrupa todas as atividades por session_id
-            const sessions = allTodayActivities.reduce((acc, activity) => {
-                if (!acc[activity.session_id]) {
-                    acc[activity.session_id] = [];
-                }
-                acc[activity.session_id].push(activity.event_type);
-                return acc;
-            }, {});
-            // Conta como rejeição apenas as sessões que têm exatamente 1 evento, e esse evento é 'page_view'
-            bouncedSessionsCount = Object.values(sessions).filter(events => events.length === 1 && events[0] === 'page_view').length;
-        }
-
-        // Enviar todos os dados de uma vez
-        res.status(200).json({
-            activeBanks: activeBanksCount,
-            todayViews: todayViewsCount,
-            weeklyViews: weeklyViewsCount,
-            monthlyViews: monthlyViewsCount,
-            bouncedSessions: bouncedSessionsCount
-        });
-
-    } catch (error) {
-        handleSupabaseError(error, res);
-    }
-});
-
-// Endpoint para buscar estatísticas de cliques de afiliados
-app.get("/api/affiliate-clicks-stats", isAdmin, async (req, res) => {
-    try {
-        // --- CORREÇÃO DE FUSO HORÁRIO ---
-        // Obter a data atual em UTC para garantir consistência com o banco de dados
-        const nowUTC = new Date();
-        const yearUTC = nowUTC.getUTCFullYear();
-        const monthUTC = nowUTC.getUTCMonth();
-        const dayUTC = nowUTC.getUTCDate();
-
-        // Definir o início e o fim do dia diretamente em UTC
-        const todayStart = new Date(Date.UTC(yearUTC, monthUTC, dayUTC, 0, 0, 0, 0));
-        const todayEnd = new Date(Date.UTC(yearUTC, monthUTC, dayUTC, 23, 59, 59, 999));
-        const monthStart = new Date(Date.UTC(yearUTC, monthUTC, 1, 0, 0, 0, 0));
-
-        const todayStartISO = todayStart.toISOString();
-        const todayEndISO = todayEnd.toISOString();
-        const monthStartISO = monthStart.toISOString();
-
-        // Calcular o início da semana (últimos 7 dias, incluindo hoje)
-        const weekStartDate = new Date(nowUTC);
-        weekStartDate.setUTCDate(weekStartDate.getUTCDate() - 6);
-        weekStartDate.setUTCHours(0, 0, 0, 0);
-        const weekStartISO = weekStartDate.toISOString();
-
-        // Buscar todos os cliques de afiliados para análise
-        const [
-            todayClicksRes,
-            weeklyClicksRes,
-            monthlyClicksRes,
-            allClicksRes
-        ] = await Promise.all([
-            // Cliques de hoje
-            supabase.from('user_activity')
-                .select('session_id, details, created_at, event_type')
-                .in('event_type', ['affiliate_click', 'buy_now_click'])
-                .gte('created_at', todayStartISO)
-                .lte('created_at', todayEndISO),
-
-            // Cliques da semana
-            supabase.from('user_activity')
-                .select('session_id, details, created_at, event_type')
-                .in('event_type', ['affiliate_click', 'buy_now_click'])
-                .gte('created_at', weekStartISO),
-
-            // Cliques do mês
-            supabase.from('user_activity')
-                .select('session_id, details, created_at, event_type')
-                .in('event_type', ['affiliate_click', 'buy_now_click'])
-                .gte('created_at', monthStartISO),
-
-            // Todos os cliques para estatísticas gerais
-            supabase.from('user_activity')
-                .select('session_id, details, created_at, event_type')
-                .in('event_type', ['affiliate_click', 'buy_now_click'])
-        ]);
-
-        // Função para processar cliques e contar por link_id
-        const processClicks = (clicksRes) => {
-            if (!clicksRes || clicksRes.error || !clicksRes.data) {
-                return {
-                    totalClicks: 0,
-                    uniqueSessions: 0,
-                    byLink: {}
-                };
-            }
-
-            const byLink = {};
-            const uniqueSessions = new Set();
-
-            clicksRes.data.forEach(click => {
-                const linkId = click.details?.link_id;
-                if (!linkId) return;
-
-                // Contar cliques totais por link
-                if (!byLink[linkId]) {
-                    byLink[linkId] = {
-                        totalClicks: 0,
-                        uniqueSessions: new Set()
-                    };
-                }
-                byLink[linkId].totalClicks++;
-                byLink[linkId].uniqueSessions.add(click.session_id);
-
-                // Contar sessões únicas totais
-                if (click.session_id) {
-                    uniqueSessions.add(click.session_id);
-                }
-            });
-
-            // Converter Sets para números
-            Object.keys(byLink).forEach(linkId => {
-                byLink[linkId].uniqueSessions = byLink[linkId].uniqueSessions.size;
-            });
-
-            return {
-                totalClicks: clicksRes.data.length,
-                uniqueSessions: uniqueSessions.size,
-                byLink: byLink
-            };
-        };
-
-        const todayStats = processClicks(todayClicksRes);
-        const weeklyStats = processClicks(weeklyClicksRes);
-        const monthlyStats = processClicks(monthlyClicksRes);
-        const allStats = processClicks(allClicksRes);
-
-        // Enviar todos os dados
-        res.status(200).json({
-            today: todayStats,
-            weekly: weeklyStats,
-            monthly: monthlyStats,
-            allTime: allStats
-        });
-
-    } catch (error) {
-        handleSupabaseError(error, res);
-    }
-});
-
 app.post("/api/notify-update", isAdmin, (req, res) => {
   broadcast({ type: "rates_updated" }, 'all');
   res.status(200).json({ success: true, message: "Notificação enviada." });
@@ -827,6 +595,91 @@ app.get("/api/affiliate-details/:id", async (req, res) => {
         const totalCostAOA = ((product.price || 0) + (product.shipping_cost_usd || 0)) * exchangeRate;
 
         res.json({ product, total_cost_aoa: totalCostAOA });
+    } catch (error) {
+        handleSupabaseError(error, res);
+    }
+});
+
+// Endpoint para buscar estatísticas do dashboard
+app.get("/api/dashboard-stats", isAdmin, async (req, res) => {
+    // Calcula o número de utilizadores online em tempo real a partir dos clientes WebSocket
+    const onlineUsers = Array.from(wss.clients).filter(c => !c.isAdmin).length;
+
+    // Tenta usar a função RPC otimizada primeiro
+    const { data: rpcData, error: rpcError } = await supabase.rpc('get_dashboard_stats_fallback').single();
+
+    if (!rpcError && rpcData) {
+        // Sucesso! A função RPC existe e retornou dados.
+        return res.status(200).json({
+            activeBanks: rpcData.active_banks || 0,
+            todayViews: rpcData.today_views || 0,
+            weeklyViews: rpcData.weekly_views || 0,
+            monthlyViews: rpcData.monthly_views || 0,
+            onlineUsers: onlineUsers // Adiciona a contagem de utilizadores online
+        });
+    }
+
+    // Se a função RPC falhou (provavelmente porque não existe), usa o método de fallback com queries individuais.
+    console.warn("A função RPC 'get_dashboard_stats_fallback' não foi encontrada. Usando queries de fallback. Considere adicionar a função SQL para melhor performance.");
+
+    try {
+        const nowUTC = new Date();
+        const todayStart = new Date(Date.UTC(nowUTC.getUTCFullYear(), nowUTC.getUTCMonth(), nowUTC.getUTCDate(), 0, 0, 0, 0)).toISOString();
+        const todayEnd = new Date(Date.UTC(nowUTC.getUTCFullYear(), nowUTC.getUTCMonth(), nowUTC.getUTCDate(), 23, 59, 59, 999)).toISOString();
+        const monthStart = new Date(Date.UTC(nowUTC.getUTCFullYear(), nowUTC.getUTCMonth(), 1, 0, 0, 0, 0)).toISOString();
+        const weekStartDate = new Date(nowUTC);
+        weekStartDate.setUTCDate(weekStartDate.getUTCDate() - 6);
+        weekStartDate.setUTCHours(0, 0, 0, 0);
+        const weekStart = weekStartDate.toISOString();
+
+        const [activeBanksRes, todayViewsRes, weeklyViewsRes, monthlyViewsRes] = await Promise.all([
+            supabase.from('rate_providers').select('id', { count: 'exact', head: true }).eq('type', 'FORMAL').eq('is_active', true),
+            supabase.rpc('count_distinct_sessions', { event: 'page_view', start_time: todayStart, end_time: todayEnd }),
+            supabase.rpc('count_distinct_sessions', { event: 'page_view', start_time: weekStart, end_time: todayEnd }),
+            supabase.rpc('count_distinct_sessions', { event: 'page_view', start_time: monthStart, end_time: todayEnd })
+        ]);
+
+        res.status(200).json({ 
+            activeBanks: activeBanksRes.count || 0, 
+            todayViews: todayViewsRes.data || 0, 
+            weeklyViews: weeklyViewsRes.data || 0, 
+            monthlyViews: monthlyViewsRes.data || 0,
+            onlineUsers: onlineUsers // Adiciona a contagem de utilizadores online
+        });
+    } catch (error) {
+        handleSupabaseError(error, res);
+    }
+
+});
+
+// Endpoint para buscar estatísticas de tipos de eventos
+app.get("/api/event-types-stats", isAdmin, async (req, res) => {
+    try {
+        // Tenta chamar a função RPC otimizada primeiro
+        const { data: rpcData, error: rpcError } = await supabase.rpc('get_event_type_counts');
+
+        if (!rpcError && rpcData) {
+            // Sucesso! A função RPC existe e retornou dados.
+            return res.status(200).json(rpcData);
+        }
+
+        // Se a função RPC falhou, usa o método de fallback.
+        console.warn("A função RPC 'get_event_type_counts' não foi encontrada. Usando query de fallback. Considere adicionar a função SQL para melhor performance.");
+
+        const { data, error } = await supabase
+            .from('user_activity')
+            .select('event_type')
+            .throwOnError();
+
+        // Agrupa e conta os eventos no lado do servidor
+        const counts = data.reduce((acc, { event_type }) => {
+            acc[event_type] = (acc[event_type] || 0) + 1;
+            return acc;
+        }, {});
+
+        const result = Object.entries(counts).map(([event_type, count]) => ({ event_type, count }));
+
+        res.status(200).json(result);
     } catch (error) {
         handleSupabaseError(error, res);
     }

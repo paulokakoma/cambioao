@@ -20,6 +20,7 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.43.5",
     "bcrypt": "^5.1.1",
+    "caniuse-lite": "^1.0.30001753",
     "connect-pg-simple": "^10.0.0",
     "dotenv": "^16.6.1",
     "express": "^4.21.2",

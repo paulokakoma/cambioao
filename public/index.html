@@ -2,11 +2,17 @@
 <html lang="pt">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="google-adsense-account" content="ca-pub-7407113762962919">
     <title>Câmbio Angola Hoje - Taxas Dólar Kwanza, Euro Kwanza | EcoKambio</title>
     <meta name="description" content="Consulte as taxas de câmbio do dólar, euro e outras divisas em Angola. Compare o mercado formal (bancos) e informal (kinguilas) em tempo real. Calculadora de custos de importação.">
     <meta name="keywords" content="cambio angola, dolar kwanza, euro kwanza, ecokambio, divisas angola, taxas de cambio, mercado informal, kinguilas, preço do dolar hoje angola">
     
+    <!-- anununcio adsense   -->
+     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7407113762962919"
+     crossorigin="anonymous"></script>
+     
+
     <!-- Search Engine Verification Tags -->
     <meta name="msvalidate.01" content="2D497889D99F893228C134DCD65BAF51" />
     <!-- <meta name="yandex-verification" content="SEU_CODIGO_YANDEX_AQUI" /> -->
@@ -175,6 +181,26 @@
             .carousel-arrow:hover { background: rgba(15,23,42,0.8); }
             .no-scrollbar::-webkit-scrollbar { display: none; }
             .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+    <style>
+        /* Animações para a troca de moeda */
+        @keyframes slide-out-left {
+            to { transform: translateX(-20px); opacity: 0; }
+        }
+        @keyframes slide-out-right {
+            to { transform: translateX(20px); opacity: 0; }
+        }
+        @keyframes slide-in {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .slide-out-left {
+            animation: slide-out-left 0.2s ease-out forwards;
+        }
+        .slide-out-right {
+            animation: slide-out-right 0.2s ease-out forwards;
+        }
     </style>
   </head>
   <body class="min-h-screen">
@@ -387,13 +413,31 @@
         const currencyFlags = { USD: '🇺🇸', EUR: '🇪🇺', AOA: '🇦🇴', USDT: '🪙' };
 
         // --- FUNÇÕES DE UTILIDADE ---
-        function getOrCreateSessionId() {
+        function getOrCreateVisitorIdentity() {
+            // Session ID: dura apenas enquanto a aba está aberta.
             let sessionId = sessionStorage.getItem('app_session_id');
             if (!sessionId) {
                 sessionId = crypto.randomUUID();
                 sessionStorage.setItem('app_session_id', sessionId);
             }
-            return sessionId;
+
+            // Visitor ID e Name: persistem entre visitas.
+            let visitorId = localStorage.getItem('visitor_id');
+            let visitorName = localStorage.getItem('visitor_name');
+            let isNewVisitor = false;
+
+            if (!visitorId) {
+                isNewVisitor = true;
+                visitorId = crypto.randomUUID();
+                const adjectives = ['Curioso', 'Rápido', 'Atento', 'Explorador', 'Decidido', 'Inteligente', 'Perspicaz', 'Moderno'];
+                const nouns = ['Visitante', 'Navegador', 'Utilizador', 'Investidor', 'Comprador', 'Analista', 'Viajante'];
+                visitorName = `${nouns[Math.floor(Math.random() * nouns.length)]} ${adjectives[Math.floor(Math.random() * adjectives.length)]}`;
+                
+                localStorage.setItem('visitor_id', visitorId);
+                localStorage.setItem('visitor_name', visitorName);
+            }
+
+            return { sessionId, visitorId, visitorName, isNewVisitor };
         }
 
         function formatNumber(num) {
@@ -442,7 +486,6 @@
             document.getElementById('formal-market-tab-btn').addEventListener('click', () => switchMarketTab('formal'));
             document.getElementById('informal-market-tab-btn').addEventListener('click', () => switchMarketTab('informal'));
         }
-
         // --- MÓDULO DO MERCADO ---
         const MarketModule = (function() {
             function renderBankCards(containerId, banks) {
@@ -529,7 +572,7 @@
                         document.querySelectorAll('.province-tab').forEach(t => t.classList.remove('province-tab-active'));
                         tab.classList.add('province-tab-active');
                         renderInformalGrid(tab.dataset.province, data);
-                        loadSupporters(tab.dataset.providerId); // Carrega os apoiadores da província selecionada
+                        loadSupporters(); // Carrega os apoiadores globais
                     });
                 });
 
@@ -537,7 +580,7 @@
                     const defaultProvince = provinces[0];
                     tabsContainer.querySelector(`[data-province="${defaultProvince}"]`).classList.add('province-tab-active');
                     renderInformalGrid(defaultProvince, data);
-                    loadSupporters(tabsContainer.querySelector(`[data-province="${defaultProvince}"]`).dataset.providerId); // Carrega os apoiadores da província padrão
+                    loadSupporters(); // Carrega os apoiadores da província padrão
                 }
             }
 
@@ -581,6 +624,17 @@
                 const toSelect = document.getElementById('quick-converter-to');
                 const resultDisplay = document.getElementById('quick-converter-result');
 
+                function updateToOptions() {
+                    const fromValue = fromSelect.value;
+                    const toValue = toSelect.value;
+                    
+                    Array.from(toSelect.options).forEach(option => {
+                        option.disabled = (option.value === fromValue);
+                    });
+
+                    if (fromValue === toValue) toSelect.value = Array.from(toSelect.options).find(opt => !opt.disabled).value;
+                }
+
                 appState.addListener((bankData) => {
                     document.getElementById('quick-converter-bank-name').textContent = bankData.code;
                     calculate();
@@ -610,8 +664,29 @@
                         : 'Taxa indisponível';
                 };
 
-                [amountInput, fromSelect, toSelect].forEach(el => el.addEventListener('input', calculate));
-                switchBtn.addEventListener('click', () => { [fromSelect.value, toSelect.value] = [toSelect.value, fromSelect.value]; calculate(); });
+                [amountInput, toSelect].forEach(el => el.addEventListener('input', calculate));
+                fromSelect.addEventListener('input', () => {
+                    updateToOptions();
+                    calculate();
+                });
+                switchBtn.addEventListener('click', () => {
+                    // Adiciona classes para a animação de saída
+                    fromSelect.classList.add('slide-out-left');
+                    toSelect.classList.add('slide-out-right');
+
+                    // Espera a animação terminar para trocar os valores e remover as classes
+                    setTimeout(() => {
+                        [fromSelect.value, toSelect.value] = [toSelect.value, fromSelect.value]; 
+                        
+                        // Remove as classes para que os elementos voltem ao estado normal (visível)
+                        fromSelect.classList.remove('slide-out-left');
+                        toSelect.classList.remove('slide-out-right');
+                        
+                        updateToOptions(); 
+                        calculate(); 
+                    }, 200); // Duração da animação em ms
+                });
+                updateToOptions(); // Chamada inicial para garantir o estado correto
             }
 
             function init(data) {
@@ -810,11 +885,15 @@
         // --- FUNÇÃO PRINCIPAL ---
         async function main() {
             setupEventListeners();
-            SESSION_ID = getOrCreateSessionId();
+            const identity = getOrCreateVisitorIdentity();
+            SESSION_ID = identity.sessionId; // Mantém o SESSION_ID para compatibilidade, se necessário
+
             switchTab('market');
             switchMarketTab('formal');
             
             WebSocketModule.connect();
+
+            if (identity.isNewVisitor) logActivity('first_visit');
 
             await reloadMarketData(); // Garante que marketData está disponível
             loadAffiliateLinks();
@@ -996,7 +1075,7 @@
             }, 5000); // Reinicia após 5 segundos
         }
         
-        async function loadSupporters(providerId = null) {
+        async function loadSupporters() {
             const carouselContainer = document.getElementById('supporters-carousel-container'); // Renamed for clarity
             const section = document.getElementById('supporters-section');
             const indicators = document.getElementById('supporter-indicators');
@@ -1040,12 +1119,12 @@
                        class="supporter-link block w-full h-full"
                        data-supporter-id="${supporter.id}" data-supporter-name="${supporter.name}">
                         <div class="relative w-full h-full bg-white flex items-center justify-center overflow-hidden rounded-2xl shadow-xl">
-                            <img src="${supporter.banner_url || supporter.logo_url || '/assets/error-state.svg'}"
+                            <img src="${supporter.banner_url || supporter.logo_url}"
                                  alt="${supporter.name}"
-                                 class="w-full h-full object-cover transform transition-transform duration-700 hover:scale-105"
+                                 class="w-full h-full object-contain transform transition-transform duration-700 hover:scale-105"
                                  loading="lazy" decoding="async"
                                  style="image-rendering: -webkit-optimize-contrast;"
-                                 onerror="this.onerror=null; this.src='/assets/error-state.svg'; this.classList.add('p-8');">
+                                 onerror="this.onerror=null; this.src='/assets/error-state.svg'; this.classList.add('p-8', 'object-contain');">
                         </div>
                     </a>
                 </div>
@@ -1182,15 +1261,20 @@
 
         async function logActivity(type, details = {}) {
             try {
-                if (!type) return;
-                // Monta o objeto com a estrutura correta que a tabela 'user_activity' espera
-                const activityData = { event_type: type, details, session_id: SESSION_ID };
+                if (!type) return; // Não faz nada se o tipo de evento não for fornecido
+                
+                const identity = getOrCreateVisitorIdentity();
+
+                // Adiciona o nome e o ID do visitante aos detalhes do evento
+                const enrichedDetails = { ...details, visitor_name: identity.visitorName, visitor_id: identity.visitorId };
+
+                const activityData = { event_type: type, details: enrichedDetails, session_id: identity.sessionId };
                 
                 // Envia os dados para o servidor via WebSocket, que por sua vez os insere na BD
                 // e notifica o painel de administração.
                 WebSocketModule.send({ type: 'log_activity', payload: activityData });
             } catch (error) {
-                console.error('Erro crítico ao registrar atividade:', error);
+                console.error('Erro ao registrar atividade:', error);
             }
         }
 
