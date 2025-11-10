@@ -1,0 +1,22 @@
+# Ficheiros de dependências do Node.js
+# Esta pasta pode ser recriada a qualquer momento executando `npm install`
+/node_modules
+
+# Ficheiros de ambiente
+# Contêm segredos e chaves de API. NUNCA devem ser versionados.
+.env
+.env.*
+!.env.example
+
+# Ficheiros de sessão do servidor
+# Gerados dinamicamente e contêm dados de sessão dos utilizadores.
+/sessions
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Ficheiros gerados pelo sistema operativo
+.DS_Store
+Thumbs.db

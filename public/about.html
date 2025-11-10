@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="google-adsense-account" content="ca-pub-7407113762962919">
+    <title>Sobre Nós - A Missão do EcoKambio</title>
+    <meta name="description" content="Saiba mais sobre o EcoKambio, a sua plataforma de referência para taxas de câmbio e divisas em Angola. A nossa missão é fornecer informação transparente sobre o kwanza.">
+    <meta name="keywords" content="sobre ecokambio, missão, câmbio angola, informação financeira, divisas, kwanza">
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-GL04FWDNFV"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-GL04FWDNFV');
+    </script>
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://ecokambio.com/sobre">
+    <meta property="og:title" content="Sobre Nós - A Missão do EcoKambio">
+    <meta property="og:description" content="Saiba mais sobre o EcoKambio, a sua plataforma de referência para taxas de câmbio e divisas em Angola.">
+    <meta property="og:image" content="https://ecokambio.com/assets/social-share-banner.png">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://ecokambio.com/sobre">
+    <meta property="twitter:title" content="Sobre Nós - A Missão do EcoKambio">
+    <meta property="twitter:description" content="Saiba mais sobre o EcoKambio, a sua plataforma de referência para taxas de câmbio e divisas em Angola.">
+    <meta property="twitter:image" content="https://ecokambio.com/assets/social-share-banner.png">
+
+    <link rel="icon" href="/assets/favicon.ico" sizes="any">
+    <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="stylesheet" href="/css/output.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
+        .loader { border: 4px solid rgba(0, 0, 0, 0.1); border-left-color: #10b981; border-radius: 50%; width: 48px; height: 48px; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        /* Animação do logo Visa no header */
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            14% { transform: scale(1.1); }
+            28% { transform: scale(1); }
+            42% { transform: scale(1.1); }
+            70% { transform: scale(1); }
+        }
+        .visa-heartbeat img { animation: heartbeat 2.5s infinite; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <header class="bg-white shadow-sm">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center">
+            <a href="/" class="flex items-center space-x-2 md:space-x-3 hover:opacity-80 transition-opacity">
+                <img src="/assets/main-logo.svg" alt="EcoKambio" class="h-12 md:h-14 w-auto">
+                <span class="text-lg md:text-xl font-bold text-emerald-600">EcoKambio</span>
+            </a>
+            <nav class="flex-1 flex justify-end items-center space-x-4 md:space-x-8 ml-auto">
+                <a href="/visa" id="header-visa-btn" class="visa-heartbeat flex flex-col items-center text-center transition-transform duration-300 hover:scale-105" title="Adquira já o seu cartão Visa">
+                    <img src="/assets/visa.png" alt="Visa" class="h-16 rounded-md shadow-md">
+                    <span class="text-sm font-bold text-emerald-600 mt-1">Adquira já o teu Visa</span>
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="max-w-3xl mx-auto mt-8 p-4 md:p-8 flex-grow w-full">
+        <div class="bg-white rounded-2xl shadow-lg p-8 md:p-12">
+            <h1 class="text-4xl font-extrabold text-slate-800 mb-6">Sobre Nós</h1>
+            <div class="prose prose-lg max-w-none text-slate-600">
+                <p>Bem-vindo ao <strong>EcoKambio</strong>, a sua plataforma de referência para as taxas de câmbio em Angola. A nossa missão é fornecer informações claras, atualizadas e transparentes sobre o valor do Kwanza face ao Dólar, Euro e outras divisas, tanto no mercado formal (bancário) como no informal (kinguilas).</p>
+                <p>Acreditamos que o acesso à informação é um direito. Por isso, compilamos e apresentamos as taxas de diferentes bancos e províncias, juntamente com uma calculadora de custos de importação e links para produtos úteis, para simplificar a sua vida financeira em Angola.</p>
+                
+                <h2 class="text-3xl font-bold text-slate-700 mt-10 mb-4">Fale Connosco</h2>
+                <p>Tem alguma dúvida, sugestão ou quer ser nosso parceiro? Estamos aqui para ajudar.</p>
+                
+                <div id="contact-info" class="mt-6 space-y-4">
+                    <!-- As informações de contato serão carregadas aqui -->
+                    <div class="min-h-[60px] flex items-center justify-center">
+                        <div class="loader"></div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-slate-800 text-slate-400 mt-16 py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div id="social-links-footer" class="flex justify-center items-center space-x-6 mb-6">
+                <!-- Os links sociais serão carregados aqui -->
+            </div>
+            <div class="border-t border-slate-700 pt-6 flex flex-col md:flex-row justify-center items-center gap-x-6 gap-y-2 text-sm">
+                <a href="/sobre" class="hover:text-white transition-colors">Sobre Nós</a>
+                <span class="hidden md:inline text-slate-600">•</span>
+                <a href="/termos" class="hover:text-white transition-colors">Termos e Condições</a>
+                <span class="hidden md:inline text-slate-600">•</span>
+                <a href="/privacidade" class="hover:text-white transition-colors">Política de Privacidade</a>
+            </div>
+            <p class="mt-6 text-slate-500 text-sm">&copy; 2025 EcoKambio. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+
+    <!-- Banner de Termos e Cookies -->
+    <div id="terms-banner" class="hidden fixed bottom-0 left-0 right-0 bg-slate-900 text-white p-4 shadow-lg z-50 transform translate-y-full transition-transform duration-500 ease-in-out">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+            <p class="text-sm text-slate-300 text-center md:text-left">
+                Usamos cookies para melhorar a sua experiência. Ao continuar a navegar, você concorda com os nossos 
+                <a href="/termos" target="_blank" class="font-semibold underline hover:text-emerald-400">Termos e Condições</a> e 
+                <a href="/privacidade" target="_blank" class="font-semibold underline hover:text-emerald-400">Política de Privacidade</a>.
+            </p>
+            <button id="accept-terms-btn" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-6 rounded-lg transition-colors flex-shrink-0">Aceitar</button>
+        </div>
+    </div>
+
+    <script type="module">
+        let dbClient;
+
+        async function loadContactInfo() {
+            const container = document.getElementById('contact-info');
+            try {
+                // Busca todas as configurações de contato e redes sociais
+                const { data, error } = await dbClient.from('site_settings').select('key, value').in('key', ['contact_email', 'contact_phone', 'social_media_links']);
+                if (error) throw error;
+
+                const settings = data.reduce((acc, { key, value }) => {
+                    acc[key] = value;
+                    return acc;
+                }, {});
+                
+                let html = '';
+                if (settings.contact_email) {
+                    html += `<p><strong>Email:</strong> <a href="mailto:${settings.contact_email}" class="text-emerald-600 hover:underline">${settings.contact_email}</a></p>`;
+                }
+                if (settings.contact_phone) {
+                    html += `<p><strong>Telefone:</strong> <a href="tel:${settings.contact_phone}" class="text-emerald-600 hover:underline">${settings.contact_phone}</a></p>`;
+                }
+
+                // Monta o objeto de links sociais a partir das chaves individuais
+                const socialLinks = settings.social_media_links || {}; // Mantém compatibilidade
+                if (socialLinks && Object.keys(socialLinks).length > 0) {
+                    html += `
+                        <div class="flex space-x-6 pt-4 items-center">
+                            ${socialLinks.whatsapp ? `<a href="${socialLinks.whatsapp}" target="_blank" class="social-link transition-opacity hover:opacity-80" title="WhatsApp" data-social="whatsapp"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/1024px-WhatsApp.svg.png?20220228223904" class="w-8 h-8 pointer-events-none"></a>` : ''}
+                            ${socialLinks.instagram ? `<a href="${socialLinks.instagram}" target="_blank" class="social-link text-pink-500 transition-opacity hover:opacity-80" title="Instagram" data-social="instagram"><svg class="w-8 h-8 pointer-events-none" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.85s-.011 3.584-.069 4.85c-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07s-3.584-.012-4.85-.07c-3.252-.148-4.771-1.691-4.919-4.919-.058-1.265-.069-1.645-.069-4.85s.011-3.584.069-4.85c.149-3.225 1.664-4.771 4.919-4.919C8.416 2.175 8.796 2.163 12 2.163zm0 1.802C8.843 3.965 8.548 3.977 7.245 4.032c-2.711.124-3.974 1.4-4.1 4.1-.055 1.303-.066 1.598-.066 4.867s.011 3.564.066 4.867c.127 2.699 1.387 3.974 4.1 4.1 1.304.055 1.598.066 4.867.066s3.564-.011 4.867-.066c2.699-.127 3.974-1.387 4.1-4.1.055-1.303.066-1.598.066-4.867s-.011-3.564-.066-4.867c-.127-2.699-1.387-3.974-4.1-4.1-1.303-.055-1.598-.066-4.867-.066zm0 2.981c-2.459 0-4.444 1.985-4.444 4.444s1.985 4.444 4.444 4.444 4.444-1.985 4.444-4.444-1.985-4.444-4.444-4.444zm0 7.089c-1.463 0-2.646-1.183-2.646-2.646s1.183-2.646 2.646-2.646 2.646 1.183 2.646 2.646-1.183 2.646-2.646 2.646zm4.965-6.936c-.771 0-1.397-.626-1.397-1.397s.626-1.397 1.397-1.397 1.397.626 1.397 1.397-.626 1.397-1.397 1.397z"/></svg></a>` : ''}
+                            ${socialLinks.facebook ? `<a href="${socialLinks.facebook}" target="_blank" class="social-link text-blue-600 transition-opacity hover:opacity-80" title="Facebook" data-social="facebook"><svg class="w-8 h-8 pointer-events-none" fill="currentColor" viewBox="0 0 24 24"><path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v2.385z"/></svg></a>` : ''}
+                            ${socialLinks.tiktok ? `<a href="${socialLinks.tiktok}" target="_blank" class="social-link transition-opacity hover:opacity-80" title="TikTok" data-social="tiktok"><img src="https://cdn4.iconfinder.com/data/icons/social-media-flat-7/64/Social-media_Tiktok-1024.png" class="w-8 h-8 pointer-events-none"></a>` : ''}
+                            ${socialLinks.youtube ? `<a href="${socialLinks.youtube}" target="_blank" class="social-link text-red-600 transition-opacity hover:opacity-80" title="YouTube" data-social="youtube"><svg class="w-8 h-8 pointer-events-none" fill="currentColor" viewBox="0 0 24 24"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg></a>` : ''}
+                        </div>
+                    `;
+                }
+
+                container.innerHTML = html || '<p>Informações de contato não disponíveis.</p>';
+
+                // Adicionar event listeners para os links de redes sociais
+                document.querySelectorAll('.social-link').forEach(link => {
+                    link.addEventListener('click', () => {
+                        gtag('event', 'select_content', {
+                            content_type: 'social_media',
+                            item_id: link.dataset.social
+                        });
+                    });
+                });
+
+            } catch (error) {
+                console.error("Erro ao carregar informações de contato:", error);
+                container.innerHTML = '<p class="text-red-600">Não foi possível carregar as informações de contato.</p>';
+            }
+        }
+
+        async function loadFooterInfo() {
+            const container = document.getElementById('footer-contact-info');
+            const socialContainer = document.getElementById('social-media-links');
+            if (!socialContainer) return;
+
+            try {
+                const { data: contactData, error: contactError } = await dbClient
+                    .from('site_settings')
+                    .select('key, value')
+                    .in('key', ['contact_email', 'contact_phone']);
+                if (contactError) throw contactError;
+
+                const { data: socialData, error: socialError } = await dbClient
+                    .from('site_settings')
+                    .select('key, value')
+                    .in('key', ['facebook_url', 'instagram_url', 'linkedin_url', 'whatsapp_url']);
+                if (socialError) throw socialError;
+
+                const settings = contactData.reduce((acc, { key, value }) => { acc[key] = value; return acc; }, {});
+
+                // Process social media links
+                const socialLinks = socialData.reduce((acc, { key, value }) => {
+                    if (value) {
+                        acc[key.replace('_url', '')] = value;
+                    }
+                    return acc;
+                }, {});
+
+                let socialHtml = '';
+                if (socialLinks.facebook) {
+                    socialHtml += `<a href="${socialLinks.facebook}" target="_blank" rel="noopener noreferrer" class="text-slate-400 hover:text-slate-300 transition-colors">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M18.77 7.46H14.5v-1.9c0-.9.6-1.1 1-1.1h3V.5h-4.33C10.24.5 9.5 3.44 9.5 5.32v2.15h-3v4h3v12h5v-12h3.85l.42-4z"/>
+                        </svg>
+                    </a>`;
+                }
+                if (socialLinks.instagram) {
+                    socialHtml += `<a href="${socialLinks.instagram}" target="_blank" rel="noopener noreferrer" class="text-slate-400 hover:text-slate-300 transition-colors">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                        </svg>
+                    </a>`;
+                }
+                if (socialLinks.linkedin) {
+                    socialHtml += `<a href="${socialLinks.linkedin}" target="_blank" rel="noopener noreferrer" class="text-slate-400 hover:text-slate-300 transition-colors">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M4.98 3.5c0 1.381-1.11 2.5-2.48 2.5s-2.48-1.119-2.48-2.5c0-1.38 1.11-2.5 2.48-2.5s2.48 1.12 2.48 2.5zm.02 4.5h-5v16h5v-16zm7.982 0h-4.968v16h4.969v-8.399c0-4.67 6.029-5.052 6.029 0v8.399h4.988v-10.131c0-7.88-8.922-7.593-11.018-3.714v-2.155z"/>
+                        </svg>
+                    </a>`;
+                }
+                if (socialLinks.whatsapp) {
+                    socialHtml += `<a href="${socialLinks.whatsapp}" target="_blank" rel="noopener noreferrer" class="text-slate-400 hover:text-slate-300 transition-colors">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                        </svg>
+                    </a>`;
+                }
+                socialContainer.innerHTML = socialHtml;
+            } catch (error) {
+                console.error("Erro ao carregar informações do rodapé:", error);
+                socialContainer.innerHTML = '<div class="text-red-500">Erro ao carregar redes sociais.</div>';
+            }
+        }
+
+        function handleTermsBanner() {
+            const banner = document.getElementById('terms-banner');
+            const acceptBtn = document.getElementById('accept-terms-btn');
+
+            if (localStorage.getItem('termsAccepted') !== 'true') {
+                banner.classList.remove('hidden');
+                setTimeout(() => banner.classList.remove('translate-y-full'), 100);
+            }
+
+            acceptBtn.addEventListener('click', () => {
+                localStorage.setItem('termsAccepted', 'true');
+                banner.classList.add('translate-y-full');
+                setTimeout(() => banner.classList.add('hidden'), 500);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const configResponse = await fetch('/api/config');
+            const config = await configResponse.json();
+            dbClient = supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
+            loadContactInfo();
+            loadFooterInfo();
+            handleTermsBanner();
+        });
+    </script>
+    <script src="/js/main.js"></script>
+</body>
+</html>

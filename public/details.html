@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="google-adsense-account" content="ca-pub-7407113762962919">
+    <title>Detalhes do Produto - EcoKambio</title>
+    <meta name="description" content="Veja os detalhes do produto, o custo estimado em Kwanzas (AOA) com base no câmbio atual do dólar, e como comprar.">
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-GL04FWDNFV"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-GL04FWDNFV');
+    </script>
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://ecokambio.com/">
+    <meta property="og:title" content="Detalhes de Produto - EcoKambio">
+    <meta property="og:description" content="Veja detalhes de produtos, custos de importação e taxas de câmbio atualizadas em Angola.">
+    <meta property="og:image" content="https://ecokambio.com/assets/social-share-banner.png">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://ecokambio.com/">
+    <meta property="twitter:title" content="Detalhes de Produto - EcoKambio">
+    <meta property="twitter:description" content="Veja detalhes de produtos, custos de importação e taxas de câmbio atualizadas em Angola.">
+    <meta property="twitter:image" content="https://ecokambio.com/assets/social-share-banner.png">
+
+    <link rel="icon" href="/assets/favicon.ico" sizes="any">
+    <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="stylesheet" href="/css/output.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
+        .btn-primary { background-color: #10b981; color: white; font-weight: bold; padding: 0.75rem 1.5rem; border-radius: 0.75rem; transition: background-color 0.3s ease; display: inline-block; text-align: center; }
+        .btn-primary:hover { background-color: #059669; }
+        .loader { border: 4px solid rgba(0, 0, 0, 0.1); border-left-color: #10b981; border-radius: 50%; width: 48px; height: 48px; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        /* Animação do logo Visa no header */
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            14% { transform: scale(1.1); }
+            28% { transform: scale(1); }
+            42% { transform: scale(1.1); }
+            70% { transform: scale(1); }
+        }
+        .visa-heartbeat img { animation: heartbeat 2.5s infinite; }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <header class="bg-white shadow-sm">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center">
+            <a href="/" class="flex items-center space-x-2 md:space-x-3 hover:opacity-80 transition-opacity">
+                <img src="/assets/main-logo.svg" alt="EcoKambio" class="h-12 md:h-14 w-auto">
+                <span class="text-lg md:text-xl font-bold text-emerald-600">EcoKambio</span>
+            </a>
+            <nav class="flex-1 flex justify-end items-center space-x-4 md:space-x-8 ml-auto">
+                <a href="/visa" id="header-visa-btn" class="visa-heartbeat flex flex-col items-center text-center transition-transform duration-300 hover:scale-105" title="Adquira já o seu cartão Visa">
+                    <img src="/assets/visa.png" alt="Visa" class="h-16 rounded-md shadow-md">
+                    <span class="text-sm font-bold text-emerald-600 mt-1">Adquira já o teu Visa</span>
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <main id="details-container" class="max-w-5xl mx-auto mt-8 p-4 md:p-8">
+        <div class="min-h-[60vh] flex items-center justify-center">
+            <div class="loader"></div>
+        </div>
+    </main>
+
+    <footer class="bg-slate-800 text-slate-400 mt-16 py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div id="social-links-footer" class="flex justify-center items-center space-x-6 mb-6">
+                <!-- Os links sociais serão carregados aqui -->
+            </div>
+            <div class="border-t border-slate-700 pt-6 flex flex-col md:flex-row justify-center items-center gap-x-6 gap-y-2 text-sm">
+                <a href="/sobre" class="hover:text-white transition-colors">Sobre Nós</a>
+                <span class="hidden md:inline text-slate-600">•</span>
+                <a href="/termos" class="hover:text-white transition-colors">Termos e Condições</a>
+                <span class="hidden md:inline text-slate-600">•</span>
+                <a href="/privacidade" class="hover:text-white transition-colors">Política de Privacidade</a>
+            </div>
+            <p class="mt-6 text-slate-500 text-sm">&copy; 2025 EcoKambio. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+
+    <!-- Banner de Termos e Cookies -->
+    <div id="terms-banner" class="hidden fixed bottom-0 left-0 right-0 bg-slate-900 text-white p-4 shadow-lg z-50 transform translate-y-full transition-transform duration-500 ease-in-out">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+            <p class="text-sm text-slate-300 text-center md:text-left">
+                Usamos cookies para melhorar a sua experiência. Ao continuar a navegar, você concorda com os nossos 
+                <a href="/termos" target="_blank" class="font-semibold underline hover:text-emerald-400">Termos e Condições</a> e 
+                <a href="/privacidade" target="_blank" class="font-semibold underline hover:text-emerald-400">Política de Privacidade</a>.
+            </p>
+            <button id="accept-terms-btn" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-6 rounded-lg transition-colors flex-shrink-0">Aceitar</button>
+        </div>
+    </div>
+
+    <script type="module">
+        let dbClient;
+        function formatCurrency(value, currency = 'AOA') {
+            if (typeof value !== 'number') return 'N/A';
+            return new Intl.NumberFormat('pt-AO', { style: 'currency', currency, minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value);
+        }
+
+        function renderProductDetails(data) {
+            const container = document.getElementById('details-container');
+            if (!data || !data.product) {
+                container.innerHTML = `<div class="text-center p-8 bg-red-50 text-red-700 rounded-2xl"><h3 class="font-bold text-lg">Erro ao Carregar Produto</h3><p>O produto que procura não foi encontrado ou não está mais disponível.</p><a href="/" class="btn-primary mt-6">Voltar à Página Inicial</a></div>`;
+                return;
+            }
+
+            const { product, total_cost_aoa } = data;
+            const totalCostUSD = (product.price || 0) + (product.shipping_cost_usd || 0);
+
+            document.title = `${product.title} - EcoKambio`;
+
+            container.innerHTML = `
+                 <div class="mb-8">
+                    <a href="/" class="text-sm text-slate-600 hover:text-emerald-600 font-semibold">‹ Voltar para o Mercado</a>
+                </div>
+                <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+                    <!-- Grid responsivo: 1 coluna em mobile, 2 em telas médias e maiores. O espaçamento aumenta em telas largas. -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 md:gap-x-8 lg:gap-x-12">
+                        <!-- Imagem do Produto: padding responsivo -->
+                        <div class="p-4 sm:p-6 flex items-center justify-center">
+                            <img src="${product.image_url || '/assets/error-state.svg'}" alt="${product.title}" class="w-full h-auto object-contain rounded-xl" onerror="this.onerror=null; this.src='/assets/error-state.svg'; this.classList.add('p-8', 'bg-slate-100');">
+                        </div>
+
+                        <!-- Detalhes, Custos e Ação: padding responsivo -->
+                        <div class="p-4 sm:p-6 lg:p-8 bg-slate-50 flex flex-col">
+                            <h1 class="text-3xl md:text-4xl font-extrabold text-slate-800 mb-4">${product.title}</h1>
+                            
+                            <div class="space-y-6 my-8">
+                                <div class="flex justify-between items-baseline">
+                                    <span class="text-slate-500">Custo do Produto:</span>
+                                    <span class="font-bold text-lg text-slate-700">${formatCurrency(product.price, 'USD')}</span>
+                                </div>
+                                <div class="flex justify-between items-baseline">
+                                    <span class="text-slate-500">Frete e Importação:</span>
+                                    <span class="font-bold text-lg text-slate-700">${formatCurrency(product.shipping_cost_usd, 'USD')}</span>
+                                </div>
+                                <div class="flex justify-between items-baseline border-t pt-4">
+                                    <span class="font-bold text-slate-600">Custo Total (USD):</span>
+                                    <span class="font-bold text-2xl text-slate-800">${formatCurrency(totalCostUSD, 'USD')}</span>
+                                </div>
+                            </div>
+
+                            <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-6 text-center mt-auto">
+                                <p class="font-semibold text-emerald-800">Custo Total Estimado em Kwanzas</p>
+                                <p class="text-4xl font-extrabold text-emerald-600 my-2">${formatCurrency(total_cost_aoa, 'AOA')}</p>
+                                <p class="text-xs text-emerald-500">Taxa de conversão do mercado informal utilizada.</p>
+                            </div>
+
+                            <a href="${product.url}" target="_blank" rel="noopener sponsored" id="buy-button" class="btn-primary w-full mt-8">
+                                Comprar Agora
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECÇÃO PERSUASIVA -->
+                <div class="mt-12 bg-white rounded-2xl shadow-lg p-4 sm:p-8">
+                    <h2 class="text-2xl font-bold text-slate-800 mb-6">Precisa de Ajuda?</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <!-- Coluna de Vídeos/Tutoriais -->
+                        <div class="space-y-4">
+                            ${product.tutorial_video_url ? `
+                            <a href="${product.tutorial_video_url}" target="_blank" rel="noopener" class="flex items-center p-4 bg-slate-100 rounded-lg hover:bg-slate-200 transition">
+                                <svg class="w-8 h-8 text-emerald-600 mr-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                <!-- Largura do texto controlada para melhor leitura em telas largas -->
+                                <div class="max-w-prose">
+                                    <p class="font-semibold text-slate-800">Tem dificuldades em efetuar a compra?</p>
+                                    <p class="text-sm text-slate-500">Não se preocupe, veja o nosso vídeo tutorial passo a passo.</p>
+                                </div>
+                            </a>` : ''}
+                            
+                            ${product.proof_video_url ? `
+                            <a href="${product.proof_video_url}" target="_blank" rel="noopener" class="flex items-center p-4 bg-slate-100 rounded-lg hover:bg-slate-200 transition">
+                                <svg class="w-8 h-8 text-emerald-600 mr-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                <!-- Largura do texto controlada para melhor leitura em telas largas -->
+                                <div class="max-w-prose">
+                                    <p class="font-semibold text-slate-800">Tem dúvidas se receberá o produto?</p>
+                                    <p class="text-sm text-slate-500">Veja a prova! Nós já compramos e recebemos o nosso.</p>
+                                </div>
+                            </a>` : ''}
+                        </div>
+
+                        <!-- Coluna de Contacto e Redes Sociais -->
+                        <div class="space-y-4 flex flex-col justify-center">
+                             <h3 class="font-bold text-slate-700 text-lg">Siga-nos ou Fale Connosco</h3>
+                             <p class="text-sm text-slate-500 max-w-prose">Estamos aqui para ajudar e partilhar as melhores dicas de compras online.</p>
+                            <div class="flex space-x-6 pt-2 items-center" id="social-links-container">
+                                <!-- Icons will be rendered here by JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            container.querySelector('#buy-button').addEventListener('click', () => {
+                const logDetails = { link_id: product.id, product_title: product.title };
+                console.log(`[WebSocket] Clique no botão "Comprar Agora". Enviando dados...`, logDetails);
+                window.logActivity('buy_now_click', logDetails);
+                gtag('event', 'begin_checkout', {
+                    currency: "USD",
+                    value: totalCostUSD,
+                    items: [{ item_id: product.id, item_name: product.title, price: product.price }]
+                });
+            });
+
+            // Render social media icons
+            renderSocialLinks(product);
+        }
+
+        function renderSocialLinks(product) {
+             const socialContainer = document.getElementById('social-links-container');
+            if (!socialContainer) return;
+
+            const socialLinks = product.social_media_links || {};
+            const socialIcons = {
+                whatsapp: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/1024px-WhatsApp.svg.png?20220228223904',
+                instagram: 'https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png',
+                facebook: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Facebook_f_logo_%282019%29.svg/1024px-Facebook_f_logo_%282019%29.svg.png',
+                tiktok: 'https://cdn4.iconfinder.com/data/icons/social-media-flat-7/64/Social-media_Tiktok-1024.png',
+                youtube: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/YouTube_full-color_icon_%282017%29.svg/1024px-YouTube_full-color_icon_%282017%29.svg.png'
+            };
+
+            Object.keys(socialIcons).forEach(key => {
+                if (socialLinks[key]) {
+                    socialContainer.innerHTML += `<a href="${socialLinks[key]}" target="_blank" class="transition-transform hover:scale-110" title="${key.charAt(0).toUpperCase() + key.slice(1)}"><img src="${socialIcons[key]}" class="w-8 h-8"></a>`;
+                }
+            });
+        }
+
+        async function loadFooterInfo() {
+            try {
+                const { data, error } = await dbClient // eslint-disable-line
+                    .from('site_settings')
+                    .select('key, value')
+                    .in('key', ['contact_email', 'contact_phone', 'social_media_links']);
+                
+                if (error) throw error;
+
+                const settings = data.reduce((acc, { key, value }) => { 
+                    acc[key] = value; 
+                    return acc; 
+                }, {});
+
+               
+            } catch (error) {
+                console.error("Erro ao carregar informações do rodapé:", error);
+            }
+        }
+
+        async function main() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const productId = urlParams.get('id');
+
+            if (!productId) {
+                renderProductDetails(null);
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/affiliate-details/${productId}`);
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ message: 'Produto não encontrado.' }));
+                    throw new Error(errorData.message);
+                }
+                const rawData = await response.json();
+                renderProductDetails(rawData);
+            } catch (error) {
+                // O erro agora pode conter a mensagem específica do servidor (ex: 503)
+                console.error("Erro ao carregar detalhes do produto:", error);
+                renderProductDetails(null);
+            }
+        }
+
+        function handleTermsBanner() {
+            const banner = document.getElementById('terms-banner');
+            const acceptBtn = document.getElementById('accept-terms-btn');
+
+            if (localStorage.getItem('termsAccepted') !== 'true') {
+                banner.classList.remove('hidden');
+                setTimeout(() => banner.classList.remove('translate-y-full'), 100);
+            }
+
+            acceptBtn.addEventListener('click', () => {
+                localStorage.setItem('termsAccepted', 'true');
+                banner.classList.add('translate-y-full');
+                setTimeout(() => banner.classList.add('hidden'), 500);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const configResponse = await fetch('/api/config');
+                if (!configResponse.ok) throw new Error('Falha ao carregar a configuração.');
+                const config = await configResponse.json();
+                dbClient = supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
+                await main();
+                loadFooterInfo();
+                handleTermsBanner();
+            } catch (error) {
+                console.error("Erro de inicialização:", error);
+                document.getElementById('details-container').innerHTML = `<div class="text-center p-8 bg-red-50 text-red-700 rounded-2xl"><strong>Erro Crítico:</strong> Não foi possível carregar a configuração da aplicação.</div>`;
+            }
+        });
+    </script>
+    <script src="/js/main.js"></script>
+</body>
+</html>

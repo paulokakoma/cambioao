@@ -1,0 +1,7 @@
+{
+  "watch": ["."],
+  "ignore": [
+    "sessions/*"
+  ],
+  "ext": "js,json,html,css"
+}
