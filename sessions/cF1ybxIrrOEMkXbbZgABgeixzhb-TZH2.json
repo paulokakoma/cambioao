@@ -1,1 +1,5 @@
+<<<<<<< HEAD
 {"cookie":{"originalMaxAge":2591999988,"expires":"2025-12-10T16:52:59.192Z","secure":false,"httpOnly":true,"path":"/","sameSite":"lax"},"isAdmin":true,"__lastAccess":1762793579206}
+=======
+{"cookie":{"originalMaxAge":2591999997,"expires":"2025-12-02T14:14:54.274Z","secure":false,"httpOnly":true,"path":"/","sameSite":"lax"},"isAdmin":true,"__lastAccess":1762092894278}
+>>>>>>> 08bdad7c8a5b74038b5bc3d2c760108ac0d68fd9

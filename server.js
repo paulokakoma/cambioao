@@ -116,11 +116,18 @@ wss.on("connection", (ws, req) => {
         // 1. Guarda a atividade na tabela de logs
         supabase.from('user_activity').insert(activityPayload).then(({ error }) => {
           if (error) {
+<<<<<<< HEAD
             console.error('[WS] Erro ao inserir atividade na BD:', error);
           }
         });
 
         // Esta lógica de incremento direto na tabela 'affiliate_links' pode ser redundante se contarmos os eventos.
+=======
+            console.error('Erro ao inserir atividade do WebSocket na BD:', error);
+          }
+        });
+
+>>>>>>> 08bdad7c8a5b74038b5bc3d2c760108ac0d68fd9
         // 2. Se for um clique de afiliado, incrementa o contador na tabela principal
         if ((data.payload.event_type === 'affiliate_click' || data.payload.event_type === 'buy_now_click') && data.payload.details?.link_id) {
             // Converte o ID para inteiro para resolver a ambiguidade da função RPC (integer vs bigint)
@@ -264,6 +271,7 @@ app.get("/api/config", (req, res) => {
   });
 });
 
+<<<<<<< HEAD
 // --- NOVA ROTA: Obter dados do utilizador logado ---
 app.get("/api/me", isAdmin, (req, res) => {
     // A sessão é validada pelo middleware 'isAdmin'
@@ -289,6 +297,8 @@ app.post('/api/log-activity', async (req, res) => {
     }
     res.status(200).json({ success: true, message: 'Atividade registada.' });
 });
+=======
+>>>>>>> 08bdad7c8a5b74038b5bc3d2c760108ac0d68fd9
 // --- ROTAS PÚBLICAS DA API ---
 
 // Singleton para garantir que a verificação do bucket ocorra apenas uma vez.
@@ -461,6 +471,7 @@ app.post("/api/supporter", isAdmin, upload.single('banner_image'), async (req, r
 
 // --- ROTAS PROTEGIDAS DA API (REQUEREM LOGIN) ---
 
+<<<<<<< HEAD
 // --- NOVAS ROTAS GET PARA LISTAR DADOS ---
 
 // GET /api/rate_providers?type=FORMAL ou ?type=INFORMAL
@@ -642,6 +653,8 @@ app.post("/api/visa-settings", isAdmin, async (req, res) => {
     res.status(200).json({ success: true, message: "Configurações do Cartão Visa atualizadas." });
 });
 
+=======
+>>>>>>> 08bdad7c8a5b74038b5bc3d2c760108ac0d68fd9
 // Endpoint para buscar atividade recente (para preencher o feed no carregamento da página)
 app.get("/api/recent-activity", isAdmin, async (req, res) => {
     const limit = parseInt(req.query.limit, 10) || 25; // Padrão 25, mas permite override
@@ -724,6 +737,7 @@ app.post("/api/update-cell", isAdmin, async (req, res) => {
 app.post("/api/informal-rates", isAdmin, async (req, res) => {
     const { rates } = req.body;
     if (!rates) return res.status(400).json({ message: "Dados de taxas em falta." });
+<<<<<<< HEAD
 
     // Filtra e mapeia as taxas, removendo o ID se ele não existir.
     // Isso garante que, ao criar um novo registro, o ID seja gerado automaticamente pela BD.
@@ -733,6 +747,14 @@ app.post("/api/informal-rates", isAdmin, async (req, res) => {
         if (r.id) rateData.id = r.id;
         return rateData;
     });
+=======
+    const upserts = rates.filter(r => r.provider_id).map(r => ({
+        id: r.id || undefined,
+        provider_id: r.provider_id,
+        currency_pair: r.currency_pair,
+        sell_rate: r.sell_rate
+    }));
+>>>>>>> 08bdad7c8a5b74038b5bc3d2c760108ac0d68fd9
 
     if (upserts.length === 0) {
         return res.status(400).json({ message: "Nenhuma taxa válida para atualizar." });
@@ -767,8 +789,13 @@ app.get("/api/affiliate-details/:id", async (req, res) => {
         // Busca o produto, as taxas informais e as configurações em paralelo
         const [productRes, informalRatesRes, settingsRes] = await Promise.all([
             supabase.from('affiliate_links').select('*').eq('id', id).single(),
+<<<<<<< HEAD
             supabase.rpc('get_average_informal_rate', { p_pair: 'USD/AOA' }).single(),
             supabase.from('site_settings').select('value').eq('key', 'social_media_links').single(),
+=======
+            supabase.rpc('get_average_informal_rate', { p_pair: 'USD/AOA' }),
+            supabase.from('site_settings').select('value').eq('key', 'social_media_links').single()
+>>>>>>> 08bdad7c8a5b74038b5bc3d2c760108ac0d68fd9
         ]);
 
         // Verificação robusta dos resultados do Promise.all
@@ -793,6 +820,7 @@ app.get("/api/affiliate-details/:id", async (req, res) => {
         } else {
             // Fallback para a taxa do BNA se a taxa informal não estiver disponível
             console.warn("Taxa média informal não encontrada, usando fallback para BNA.");
+<<<<<<< HEAD
             // Otimização: Seleciona apenas 'sell_rate' e limita a 1 para ser mais rápido.
             const { data: bnaData, error: bnaError } = await supabase
                 .from('exchange_rates')
@@ -801,6 +829,9 @@ app.get("/api/affiliate-details/:id", async (req, res) => {
                 .eq('currency_pair', 'USD/AOA')
                 .limit(1)
                 .single();
+=======
+            const { data: bnaData, error: bnaError } = await supabase.from('exchange_rates').select('sell_rate').eq('provider_id', 1).eq('currency_pair', 'USD/AOA').maybeSingle();
+>>>>>>> 08bdad7c8a5b74038b5bc3d2c760108ac0d68fd9
             exchangeRate = bnaData?.sell_rate;
         }
 
@@ -825,6 +856,7 @@ app.get("/api/dashboard-stats", isAdmin, async (req, res) => {
 
     // Tenta usar a função RPC otimizada primeiro
     const { data: rpcData, error: rpcError } = await supabase.rpc('get_dashboard_stats_fallback').single();
+<<<<<<< HEAD
     
     if (!rpcError && rpcData) {
         // Sucesso! A função RPC existe e retornou dados.
@@ -835,6 +867,14 @@ app.get("/api/dashboard-stats", isAdmin, async (req, res) => {
             newVisitorsToday: rpcData.new_visitors_today || 0,
             monthlyAffiliateClicks: rpcData.monthly_affiliate_clicks || 0,
             monthlyVisaClicks: rpcData.monthly_visa_clicks || 0, // Alterado de monthly_buy_now_clicks
+=======
+
+    if (!rpcError && rpcData) {
+        // Sucesso! A função RPC existe e retornou dados.
+        return res.status(200).json({
+            activeBanks: rpcData.active_banks || 0,
+            todayViews: rpcData.today_views || 0,
+>>>>>>> 08bdad7c8a5b74038b5bc3d2c760108ac0d68fd9
             weeklyViews: rpcData.weekly_views || 0,
             monthlyViews: rpcData.monthly_views || 0,
             onlineUsers: onlineUsers // Adiciona a contagem de utilizadores online
@@ -853,6 +893,7 @@ app.get("/api/dashboard-stats", isAdmin, async (req, res) => {
         weekStartDate.setUTCDate(weekStartDate.getUTCDate() - 6);
         weekStartDate.setUTCHours(0, 0, 0, 0);
         const weekStart = weekStartDate.toISOString();
+<<<<<<< HEAD
         
         // Executa todas as queries em paralelo para melhor performance
         const [activeBanksRes, todayViewsRes, weeklyViewsRes, monthlyViewsRes, newVisitorsRes, monthlyAffiliateClicksRes, monthlyVisaClicksRes] = await Promise.all([
@@ -873,6 +914,21 @@ app.get("/api/dashboard-stats", isAdmin, async (req, res) => {
             newVisitorsToday: newVisitorsRes.data || 0,
             monthlyAffiliateClicks: monthlyAffiliateClicksRes.count || 0,
             monthlyVisaClicks: monthlyVisaClicksRes.count || 0, // Alterado de monthlyVisaClicksRes
+=======
+
+        const [activeBanksRes, todayViewsRes, weeklyViewsRes, monthlyViewsRes] = await Promise.all([
+            supabase.from('rate_providers').select('id', { count: 'exact', head: true }).eq('type', 'FORMAL').eq('is_active', true),
+            supabase.rpc('count_distinct_sessions', { event: 'page_view', start_time: todayStart, end_time: todayEnd }),
+            supabase.rpc('count_distinct_sessions', { event: 'page_view', start_time: weekStart, end_time: todayEnd }),
+            supabase.rpc('count_distinct_sessions', { event: 'page_view', start_time: monthStart, end_time: todayEnd })
+        ]);
+
+        res.status(200).json({ 
+            activeBanks: activeBanksRes.count || 0, 
+            todayViews: todayViewsRes.data || 0, 
+            weeklyViews: weeklyViewsRes.data || 0, 
+            monthlyViews: monthlyViewsRes.data || 0,
+>>>>>>> 08bdad7c8a5b74038b5bc3d2c760108ac0d68fd9
             onlineUsers: onlineUsers // Adiciona a contagem de utilizadores online
         });
     } catch (error) {
@@ -881,6 +937,7 @@ app.get("/api/dashboard-stats", isAdmin, async (req, res) => {
 
 });
 
+<<<<<<< HEAD
 // Endpoint para buscar atividade semanal de um mês específico
 app.get("/api/weekly-activity", isAdmin, async (req, res) => {
     const { month, months } = req.query; // Aceita 'month' (YYYY-MM) ou 'months' (número)
@@ -911,6 +968,8 @@ app.get("/api/weekly-activity", isAdmin, async (req, res) => {
     }
 });
 
+=======
+>>>>>>> 08bdad7c8a5b74038b5bc3d2c760108ac0d68fd9
 // Endpoint para buscar estatísticas de tipos de eventos
 app.get("/api/event-types-stats", isAdmin, async (req, res) => {
     try {
@@ -1015,6 +1074,7 @@ app.get("/sobre", (req, res) => {
     res.sendFile(path.join(__dirname, "public", "about.html"));
 });
 
+<<<<<<< HEAD
 // Rota para a página do Cartão Visa
 app.get("/visa", (req, res) => {
     if (req.isAdminSubdomain) {
@@ -1023,6 +1083,8 @@ app.get("/visa", (req, res) => {
     res.sendFile(path.join(__dirname, "public", "visa.html"));
 });
 
+=======
+>>>>>>> 08bdad7c8a5b74038b5bc3d2c760108ac0d68fd9
 // Rota para a página "Termos e Condições"
 app.get("/termos", (req, res) => {
     if (req.isAdminSubdomain) {
@@ -1045,6 +1107,7 @@ app.get("/robots.txt", (req, res) => {
     res.sendFile(path.join(__dirname, "public", "robots.txt"));
 });
 
+<<<<<<< HEAD
 // Rota para gerar o sitemap dinamicamente
 app.get("/sitemap.xml", async (req, res) => {
     res.type('application/xml');
@@ -1097,6 +1160,11 @@ app.get("/sitemap.xml", async (req, res) => {
 </urlset>`;
 
     res.send(sitemapXml);
+=======
+app.get("/sitemap.xml", (req, res) => {
+    res.type('application/xml');
+    res.sendFile(path.join(__dirname, "public", "sitemap.xml"));
+>>>>>>> 08bdad7c8a5b74038b5bc3d2c760108ac0d68fd9
 });
 
 // Rota para verificação do Bing
@@ -1145,6 +1213,7 @@ app.post("/api/reset-stats", isAdmin, async (req, res) => {
     }
 });
 
+<<<<<<< HEAD
 // Rota genérica para criar/atualizar recursos
 app.post("/api/bank", isAdmin, handleResourcePost('bank', 'rate_providers'));
 app.post("/api/affiliate", isAdmin, handleResourcePost('affiliate', 'affiliate_links'));
@@ -1159,6 +1228,25 @@ function handleResourcePost(resource, tableName) {
     try {
         console.log(`Tentando ${id ? 'atualizar' : 'criar'} ${resource}:`, data);
         let extraData = {}; // Para guardar valores que não vão para a tabela principal
+=======
+// Rota genérica para criar/atualizar recursos (deve ser uma das últimas)
+app.post("/api/:resource", isAdmin, async (req, res) => {
+    const { resource } = req.params;
+    const { id, ...data } = req.body;
+    const tableMap = { bank: 'rate_providers', affiliate: 'affiliate_links', currency: 'currencies', province: 'rate_providers', rate_providers: 'rate_providers' };
+    const tableName = tableMap[resource];
+    if (!tableName) return res.status(404).json({ message: "Recurso não encontrado." });
+
+    try {
+        console.log(`Tentando ${id ? 'atualizar' : 'criar'} ${resource}:`, data);
+
+        // Guardar valores extras que não devem ir para a tabela principal (apenas para bancos)
+        let extraData = {};
+        // O campo base_fee_percent só existe na tabela rate_providers
+        if (resource !== 'bank') {
+            delete data.base_fee_percent;
+        }
+>>>>>>> 08bdad7c8a5b74038b5bc3d2c760108ac0d68fd9
         if (resource === 'bank') {
             extraData = { usd_rate: data.usd_rate, eur_rate: data.eur_rate };
             delete data.usd_rate;
@@ -1168,6 +1256,7 @@ function handleResourcePost(resource, tableName) {
         // Garante que a propriedade 'id' não é enviada na inserção ou atualização, pois é gerida pela BD.
         delete data.id;
 
+<<<<<<< HEAD
         if (resource === 'bank') {
             // Verificação de duplicados para bancos
             const { data: existingBank, error: existingError } = await supabase
@@ -1191,6 +1280,8 @@ function handleResourcePost(resource, tableName) {
             }
         }
 
+=======
+>>>>>>> 08bdad7c8a5b74038b5bc3d2c760108ac0d68fd9
         let query;
         if (id) {
             query = supabase.from(tableName).update(data).eq('id', id);
@@ -1243,8 +1334,12 @@ function handleResourcePost(resource, tableName) {
         console.error(`Erro inesperado ao ${id ? 'atualizar' : 'criar'} ${resource}:`, error);
         res.status(500).json({ success: false, message: "Erro interno do servidor", error: error.message });
     }
+<<<<<<< HEAD
   };
 }
+=======
+});
+>>>>>>> 08bdad7c8a5b74038b5bc3d2c760108ac0d68fd9
 
 // --- INICIAR O SERVIDOR ---
 server.listen(port, '0.0.0.0', () => {
