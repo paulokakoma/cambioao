@@ -1,29 +1,3 @@
-<<<<<<< HEAD
-# Ficheiros de dependências do Node.js
-# Esta pasta pode ser recriada a qualquer momento executando `npm install`
-/node_modules
-
-# Ficheiros de ambiente
-# Contêm segredos e chaves de API. NUNCA devem ser versionados.
-.env
-.env.*
-!.env.example
-
-# Ficheiros de sessão do servidor
-# Gerados dinamicamente e contêm dados de sessão dos utilizadores.
-/sessions
-/sessions/
-
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-
-# Ficheiros gerados pelo sistema operativo
-.DS_Store
-Thumbs.db
-=======
 # Ficheiros de log
 logs
 *.log
@@ -38,4 +12,3 @@ yarn-debug.log*
 
 # Ficheiros de sistema do macOS
 .DS_Store
->>>>>>> 08bdad7c8a5b74038b5bc3d2c760108ac0d68fd9
