@@ -54,6 +54,17 @@
             70% { transform: scale(1); }
         }
         .visa-heartbeat img { animation: heartbeat 2.5s infinite; }
+
+        /* Estilos para o novo conversor */
+        .custom-select { 
+            -webkit-appearance: none; 
+            -moz-appearance: none; 
+            appearance: none; 
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col antialiased">
@@ -89,15 +100,40 @@
                     <h1 id="visa-title" class="text-4xl md:text-5xl font-extrabold text-slate-800 mb-6">Cartão Visa Virtual</h1>
                     <p class="text-lg text-slate-600 mb-8">A sua porta de entrada para o mundo digital. Adquira já o seu cartão para compras online e pagamentos de serviços em qualquer lugar do mundo.</p>
                     
-                    <!-- Custos -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-10">
-                        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                            <h3 class="font-bold text-slate-700 text-lg">Valor de Aquisição</h3>
-                            <p id="visa-acquisition-fee" class="text-3xl font-bold text-emerald-600">--</p>
+                    <!-- Novo Conversor de Moeda -->
+                    <div id="quick-converter-container" class="mb-8 p-6 bg-white rounded-2xl border border-slate-200 shadow-sm">
+                        <h4 class="text-lg font-bold text-gray-700 mb-4">Conversor Rápido</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+                            <!-- Campo de Valor -->
+                            <div class="md:col-span-2">
+                                <label for="quick-converter-amount" class="block text-sm font-medium text-gray-600">Valor</label>
+                                <input type="text" id="quick-converter-amount" inputmode="decimal" class="mt-1 w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-emerald-500 focus:border-emerald-500 text-lg font-mono" placeholder="100,00">
+                            </div>
+                    
+                            <!-- Seletores de Moeda e Alternador -->
+                            <div class="md:col-span-3 flex items-end gap-2">
+                                <div class="flex-1">
+                                    <label for="quick-converter-from" class="sr-only">De</label>
+                                    <select id="quick-converter-from" class="custom-select mt-1 w-full p-3 bg-white border border-gray-300 rounded-lg font-semibold">
+                                        <option value="USD">🇺🇸 USD</option>
+                                        <option value="EUR">🇪🇺 EUR</option>
+                                        <option value="AOA">🇦🇴 AOA</option>
+                                    </select>
+                                </div>
+                                <button id="quick-converter-switch" class="p-3 mb-0.5 bg-gray-200 hover:bg-gray-300 rounded-full transition-transform duration-300 focus:outline-none"><svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg></button>
+                                <div class="flex-1">
+                                    <label for="quick-converter-to" class="sr-only">Para</label>
+                                    <select id="quick-converter-to" class="custom-select mt-1 w-full p-3 bg-white border border-gray-300 rounded-lg font-semibold">
+                                        <option value="AOA">🇦🇴 AOA</option>
+                                        <option value="USD">🇺🇸 USD</option>
+                                        <option value="EUR">🇪🇺 EUR</option>
+                                    </select>
+                                </div>
+                            </div>
                         </div>
-                        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                            <h3 class="font-bold text-slate-700 text-lg">Carregamento Mínimo</h3>
-                            <p id="visa-min-load" class="text-3xl font-bold text-emerald-600">--</p>
+                        <div>
+                            <div id="quick-converter-result" class="text-center text-2xl font-bold text-gray-800 h-8"></div>
+                            <p id="converter-fee-notice" class="text-center text-xs text-slate-500 mt-1 h-4"></p>
                         </div>
                     </div>
 
@@ -110,6 +146,9 @@
                         <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"></path></svg>
                         <span>Pedir Cartão via WhatsApp</span>
                     </a>
+                    <p class="text-xs text-slate-500 mt-3 text-center md:text-left">
+                       Ao clicar, concorda com os nossos <a href="/termos" target="_blank" class="underline hover:text-emerald-600">Termos e Condições</a>.
+                    </p>
                 </div>
                 <!-- A Coluna da Imagem estava aqui, mas foi movida para cima -->
             </div>
@@ -169,7 +208,7 @@
                     <div class="bg-white p-8 rounded-xl shadow-lg text-center border-t-4 border-emerald-500">
                         <span class="text-5xl font-bold text-emerald-600/30 block mb-2">2</span>
                         <h3 class="text-xl font-bold text-slate-800 mb-2">Pagamento</h3>
-                        <p class="text-slate-600">Efetue o pagamento da taxa única de aquisição no valor de <strong>10.000,00 Kz</strong>.</p>
+                        <p class="text-slate-600">Efetue o pagamento da taxa de serviço. O valor a pagar é calculado com base no câmbio informal, que pode simular no conversor acima.</p>
                     </div>
                     <!-- Passo 3 -->
                     <div class="bg-white p-8 rounded-xl shadow-lg text-center border-t-4 border-emerald-500">
@@ -290,6 +329,9 @@
     <script src="/js/main.js"></script>
     <script type="module">
         async function loadVisaPageData() {
+            let informalRates = { usd_rate: 0, eur_rate: 0 };
+            let visaSettings = {};
+
             try {
                 const response = await fetch('/api/visa-settings');
                 if (!response.ok) throw new Error('Failed to load settings');
@@ -301,8 +343,17 @@
                 // Update dynamic elements
                 document.getElementById('visa-title').textContent = settings.visa_title || 'Cartão Visa Virtual';
                 document.getElementById('visa-image').src = settings.visa_image_url || '/assets/visa.png';
-                document.getElementById('visa-acquisition-fee').textContent = settings.visa_acquisition_fee ? formatCurrency(settings.visa_acquisition_fee, 'AOA') : '10.000,00 Kz';
-                document.getElementById('visa-min-load').textContent = settings.visa_min_load ? formatCurrency(settings.visa_min_load, 'USD') : '5,00 US$';
+                visaSettings = settings;
+                
+                // Carregar taxas informais para o conversor
+                try {
+                    const ratesResponse = await fetch('/api/informal-rates');
+                    if (ratesResponse.ok) {
+                        informalRates = await ratesResponse.json(); // eslint-disable-line
+                    }
+                } catch (rateError) {
+                    console.error('Could not load informal rates:', rateError);
+                }
 
                 // Update WhatsApp links
                 const whatsappNumber = settings.visa_whatsapp_number;
@@ -312,10 +363,91 @@
                     document.getElementById('whatsapp-cta-btn-footer').href = whatsappUrl;
                 }
 
+                // Inicia o conversor com as taxas carregadas
+                setupQuickConverter(informalRates, visaSettings);
+
             } catch (error) {
                 console.error('Error loading Visa page data:', error);
                 // The page will show default static values if the fetch fails.
+                setupQuickConverter(informalRates, visaSettings); // Inicia o conversor mesmo em caso de erro
             }
+        }
+
+        function setupQuickConverter(rates, settings) {
+            const amountInput = document.getElementById('quick-converter-amount');
+            const switchBtn = document.getElementById('quick-converter-switch');
+            const fromSelect = document.getElementById('quick-converter-from');
+            const toSelect = document.getElementById('quick-converter-to');
+            const resultDisplay = document.getElementById('quick-converter-result');
+            const feeNotice = document.getElementById('converter-fee-notice');
+            const feePercent = parseFloat(settings.visa_fee_percent) || 0;
+
+            function updateToOptions() {
+                const fromValue = fromSelect.value;
+                const toValue = toSelect.value;
+                Array.from(toSelect.options).forEach(option => {
+                    option.disabled = (option.value === fromValue);
+                });
+                if (fromValue === toValue) toSelect.value = Array.from(toSelect.options).find(opt => !opt.disabled).value;
+            }
+
+            const calculate = () => {
+                const amountStr = amountInput.value.replace(/\./g, '').replace(',', '.');
+                const amount = parseFloat(amountStr);
+                if (isNaN(amount) || amount === 0) {
+                    feeNotice.textContent = '';
+                    resultDisplay.textContent = '';
+                    return;
+                }
+
+                const from = fromSelect.value, to = toSelect.value;
+                let resultAmount = 0;
+                let rate = 0;
+                
+                // Limpa a nota da taxa por padrão
+                feeNotice.textContent = '';
+
+                if (from !== 'AOA' && to === 'AOA') {
+                    // Conversão de Estrangeiro para AOA: aplica a taxa
+                    rate = (from === 'USD') ? rates.usd_rate : rates.eur_rate;
+                    const convertedAmount = amount * rate;
+                    resultAmount = convertedAmount * (1 + (feePercent / 100));
+                   
+                    // Mostra a nota da taxa
+                    const formattedFee = new Intl.NumberFormat('pt-AO', { style: 'decimal', minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(feePercent);
+                    if (feePercent > 0) feeNotice.textContent = `Valor final a pagar usando mercado informal (inclui a nossa taxa de ${formattedFee}%).`;
+                } else {
+                    // Outras conversões (AOA -> Estrangeiro, Estrangeiro -> Estrangeiro)
+                    if (from === 'AOA' && to === 'USD') rate = 1 / rates.usd_rate;
+                    else if (from === 'AOA' && to === 'EUR') rate = 1 / rates.eur_rate;
+                    else if (from === 'USD' && to === 'EUR') rate = rates.usd_rate / rates.eur_rate;
+                    else if (from === 'EUR' && to === 'USD') rate = rates.eur_rate / rates.usd_rate;
+                    else if (from === to) rate = 1;
+                    resultAmount = amount * rate;
+                }
+
+                const formatNumber = (num) => new Intl.NumberFormat('pt-AO', { minimumFractionDigits: 2, maximumFractionDigits: 4 }).format(num);
+
+                resultDisplay.textContent = (resultAmount && isFinite(resultAmount)) 
+                    ? `≈ ${formatNumber(resultAmount)} ${to}`
+                    : 'Taxa indisponível';
+            };
+
+            [amountInput, toSelect].forEach(el => el.addEventListener('input', calculate));
+            fromSelect.addEventListener('input', () => {
+                updateToOptions();
+                calculate();
+            });
+            switchBtn.addEventListener('click', () => {
+                [fromSelect.value, toSelect.value] = [toSelect.value, fromSelect.value]; 
+                updateToOptions(); 
+                calculate(); 
+            });
+
+            // Chamada inicial
+            updateToOptions();
+            amountInput.value = '100,00'; // Valor padrão
+            calculate();
         }
 
         document.addEventListener('DOMContentLoaded', () => {

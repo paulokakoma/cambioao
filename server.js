@@ -453,6 +453,29 @@ app.post("/api/supporter", isAdmin, upload.single('banner_image'), async (req, r
     }
 });
 
+// Rota pública para obter as taxas médias do mercado informal
+app.get("/api/informal-rates", async (req, res) => {
+    try {
+        const [usdRateRes, eurRateRes] = await Promise.all([
+            supabase.rpc('get_average_informal_rate', { p_pair: 'USD/AOA' }).single(),
+            supabase.rpc('get_average_informal_rate', { p_pair: 'EUR/AOA' }).single()
+        ]);
+
+        if (usdRateRes.error || eurRateRes.error) {
+            console.error("Erro ao buscar taxas informais:", usdRateRes.error || eurRateRes.error);
+            // Não lança erro, apenas retorna o que tiver
+        }
+
+        res.status(200).json({
+            usd_rate: usdRateRes.data || 0,
+            eur_rate: eurRateRes.data || 0
+        });
+
+    } catch (error) {
+        handleSupabaseError(error, res);
+    }
+});
+
 // --- ROTAS PROTEGIDAS DA API (REQUEREM LOGIN) ---
 
 // --- NOVAS ROTAS GET PARA LISTAR DADOS ---
@@ -622,7 +645,7 @@ app.get("/api/visa-settings", async (req, res) => {
 
 // POST /api/visa-settings (para guardar as configurações do admin)
 app.post("/api/visa-settings", isAdmin, upload.single('visa_image'), async (req, res) => {
-    const { visa_title, visa_acquisition_fee, visa_min_load, visa_whatsapp_number } = req.body; // Os campos do formulário vêm do body
+    const { visa_title, visa_fee_percent, visa_min_load, visa_whatsapp_number } = req.body; // Os campos do formulário vêm do body
     let newImageUrl;
 
     try {
@@ -655,7 +678,7 @@ app.post("/api/visa-settings", isAdmin, upload.single('visa_image'), async (req,
         // 2. Prepara os dados para salvar na tabela 'site_settings'
         const settingsToUpsert = [
             { key: 'visa_title', value: String(visa_title || '') },
-            { key: 'visa_acquisition_fee', value: String(visa_acquisition_fee || '') },
+            { key: 'visa_fee_percent', value: String(visa_fee_percent || '0') },
             { key: 'visa_min_load', value: String(visa_min_load || '') },
             { key: 'visa_whatsapp_number', value: String(visa_whatsapp_number || '') },
         ];
