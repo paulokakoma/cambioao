@@ -1,13 +1,18 @@
 // --- CONFIGURAÇÃO ---
 const WEBSOCKET_URL = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}`;
 
-let dbClient;
+let dbClient; // Supabase client
 let ws;
 
 async function init() {
     try {
         // Inicializa o cliente Supabase
-        dbClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const response = await fetch('/api/config');
+        if (!response.ok) throw new Error('Failed to load Supabase configuration.');
+        const config = await response.json();
+        
+        dbClient = supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
+
         
         // Conecta ao WebSocket
         connectWebSocket();
@@ -61,7 +66,7 @@ async function loadProductDetails() {
         }
         
         // Registra a visualização
-        logActivity('affiliate_view', {
+        window.logActivity('affiliate_view', {
             link_id: product.id,
             product_title: product.title
         });
@@ -97,7 +102,7 @@ function renderProductDetails(product) {
     const buyButton = document.getElementById('buy-button');
     if (buyButton && product.url) {
         buyButton.href = product.url;
-        buyButton.addEventListener('click', () => {
+        buyButton.addEventListener('click', () => { // Usa a função global logActivity de main.js
             logActivity('affiliate_click', {
                 link_id: product.id,
                 product_title: product.title
@@ -136,17 +141,7 @@ function showError(message) {
     }
 }
 
-async function logActivity(type, metadata = {}) {
-    try {
-        const { error } = await dbClient
-            .from('user_activity')
-            .insert([{ type, metadata }]);
-            
-        if (error) throw error;
-    } catch (error) {
-        console.error('Erro ao registrar atividade:', error);
-    }
-}
+// A função global logActivity de main.js é esperada estar disponível.
 
 // Inicializa quando o DOM estiver pronto
 document.addEventListener('DOMContentLoaded', init);

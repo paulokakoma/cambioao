@@ -863,7 +863,7 @@
                     resultPanel.classList.add('opacity-0');
                     return;
                 }
-                
+                //conversao directa de kwanza para moeda estrangeira
                 const directConversion = price * rate;
                 const resultLabel1 = resultPanel.querySelector('div:first-child > p.text-base');
                 const resultLabel2 = resultPanel.querySelector('div.bg-white\\/15 > p.text-base');
@@ -880,18 +880,19 @@
                     const marginValue = valueWithBaseFee * (margin / 100 || 0);
                     const finalFeeValue = valueWithBaseFee * (finalFee / 100 || 0);
                     totalCost = valueWithBaseFee + marginValue + finalFeeValue;
-
                     resultLabel1.textContent = 'Valor a carregar (AOA):';
                     resultLabel2.textContent = 'Valor total a ser descontado (AOA)';
                     if (directConversionLabel) directConversionLabel.textContent = formatCurrency(valueWithBaseFee, 'AOA');
                     document.getElementById('totalCost').textContent = formatCurrency(totalCost, 'AOA');
                 } else {
+                    // Para conversão AOA -> Estrangeiro, subtrai a comissão antes de converter
+                    const priceAfterFee = price * (1 - (baseFeePercent / 100));
                     const usdRate = parseFloat(bankOption.dataset.usdRate);
                     const eurRate = parseFloat(bankOption.dataset.eurRate);
                     resultLabel1.textContent = 'Valor em Dólar (USD):';
                     resultLabel2.textContent = 'Valor em Euro (EUR):';
-                    if (directConversionLabel) directConversionLabel.textContent = formatCurrency(usdRate > 0 ? price / usdRate : 0, 'USD');
-                    document.getElementById('totalCost').textContent = formatCurrency(eurRate > 0 ? price / eurRate : 0, 'EUR');
+                    if (directConversionLabel) directConversionLabel.textContent = formatCurrency(usdRate > 0 ? priceAfterFee / usdRate : 0, 'USD');
+                    document.getElementById('totalCost').textContent = formatCurrency(eurRate > 0 ? priceAfterFee / eurRate : 0, 'EUR');
                 }
                 resultPanel.classList.remove('opacity-0');
 
