@@ -1,11 +1,10 @@
 // Carrega as variáveis de ambiente do ficheiro .env
 const path = require("path");
 
-// Carrega o .env APENAS em ambiente de desenvolvimento.
-// Em produção (Docker), as variáveis são injetadas pelo Docker Compose.
-if (process.env.NODE_ENV !== 'production') {
-  require("dotenv").config({ path: path.resolve(__dirname, '.env') });
-}
+// Carrega as variáveis de ambiente do ficheiro .env em todos os ambientes.
+// Para este projeto, queremos que o .env seja sempre carregado, pois o PM2 depende dele.
+require("dotenv").config({ path: path.resolve(__dirname, '.env') });
+
 const express = require("express");
 const { createClient } = require("@supabase/supabase-js");
 const http = require("http");
@@ -321,7 +320,7 @@ async function ensureStorageBucketExists(bucketName) {
 }
 
 // Rota para criar/atualizar Apoiadores com upload de imagem
-app.post("/api/supporter", isAdmin, upload.single('banner_image'), async (req, res) => {
+app.post("/api/supporter", isAdmin, upload.single('supporter_banner'), async (req, res) => {
     const { id, name, website_url, is_active, display_order } = req.body;
     let banner_url;
 
@@ -449,6 +448,29 @@ app.post("/api/supporter", isAdmin, upload.single('banner_image'), async (req, r
         });
     } catch (error) {
         console.error('Erro inesperado na rota /api/supporter:', error);
+        handleSupabaseError(error, res);
+    }
+});
+
+// Rota pública para obter as taxas médias do mercado informal
+app.get("/api/informal-rates", async (req, res) => {
+    try {
+        const [usdRateRes, eurRateRes] = await Promise.all([
+            supabase.rpc('get_average_informal_rate', { p_pair: 'USD/AOA' }).single(),
+            supabase.rpc('get_average_informal_rate', { p_pair: 'EUR/AOA' }).single()
+        ]);
+
+        if (usdRateRes.error || eurRateRes.error) {
+            console.error("Erro ao buscar taxas informais:", usdRateRes.error || eurRateRes.error);
+            // Não lança erro, apenas retorna o que tiver
+        }
+
+        res.status(200).json({
+            usd_rate: usdRateRes.data || 0,
+            eur_rate: eurRateRes.data || 0
+        });
+
+    } catch (error) {
         handleSupabaseError(error, res);
     }
 });
@@ -585,14 +607,22 @@ app.get("/api/currencies", isAdmin, async (req, res) => {
 
 // GET /api/settings (para preencher os formulários)
 app.get("/api/settings", isAdmin, async (req, res) => {
+    const isPublicRequest = !req.session.isAdmin;
+
     try {
-        const { data, error } = await supabase.from('site_settings').select('key, value');
+        let query = supabase.from('site_settings').select('key, value');
+        
+        // Se for uma requisição pública (não autenticada), buscamos apenas as configurações seguras
+        if (isPublicRequest) {
+            query = query.in('key', ['social_media_links', 'visa_image_url']);
+        }
+
+        const { data, error } = await query;
         if (error) throw error;
         
         // Converter o array num objeto {key: value} para o frontend
         const settingsObject = data.reduce((acc, { key, value }) => {
-            acc[key] = value;
-            return acc;
+            acc[key] = value; return acc;
         }, {});
         
         res.status(200).json(settingsObject);
@@ -622,16 +652,14 @@ app.get("/api/visa-settings", async (req, res) => {
 
 // POST /api/visa-settings (para guardar as configurações do admin)
 app.post("/api/visa-settings", isAdmin, upload.single('visa_image'), async (req, res) => {
-    const { visa_title, visa_acquisition_fee, visa_min_load, visa_whatsapp_number } = req.body; // Os campos do formulário vêm do body
+    const { visa_title, visa_fee_percent, visa_min_load, visa_whatsapp_number } = req.body; // Os campos do formulário vêm do body
     let newImageUrl;
 
     try {
-        // 1. Se uma imagem foi enviada, faz o upload
-        if (!req.file) {
-            console.log("Nenhum ficheiro de imagem recebido no pedido para /api/visa-settings.");
-        }
-
+        // 1. Se uma nova imagem foi enviada, faz o upload
         if (req.file) {
+            console.log("Ficheiro de imagem recebido para /api/visa-settings. A processar...");
+            
             await ensureStorageBucketExists('site-assets');
             const optimizedBuffer = await sharp(req.file.buffer)
                 .resize({ width: 800, height: 800, fit: 'inside' })
@@ -655,7 +683,7 @@ app.post("/api/visa-settings", isAdmin, upload.single('visa_image'), async (req,
         // 2. Prepara os dados para salvar na tabela 'site_settings'
         const settingsToUpsert = [
             { key: 'visa_title', value: String(visa_title || '') },
-            { key: 'visa_acquisition_fee', value: String(visa_acquisition_fee || '') },
+            { key: 'visa_fee_percent', value: String(visa_fee_percent || '0') },
             { key: 'visa_min_load', value: String(visa_min_load || '') },
             { key: 'visa_whatsapp_number', value: String(visa_whatsapp_number || '') },
         ];
@@ -674,7 +702,7 @@ app.post("/api/visa-settings", isAdmin, upload.single('visa_image'), async (req,
 
         res.status(200).json({
             success: true,
-            message: "Configurações do Cartão Visa atualizadas com sucesso.",
+            message: `Configurações do Cartão Visa atualizadas com sucesso.${newImageUrl ? ' Nova imagem guardada.' : ''}`,
             newImageUrl: newImageUrl // Retorna a nova URL para o frontend atualizar a prévia
         });
 
