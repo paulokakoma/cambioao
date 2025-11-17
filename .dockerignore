@@ -1,12 +1,10 @@
-# Ficheiros de log e sistema
+# Ignorar dependências do Node, pois são gerenciadas dentro do container
 node_modules
-npm-debug.log
 
-# Ficheiros de ambiente (nunca devem ir para a imagem)
+# Arquivos de log e de ambiente
+npm-debug.log
 .env
 
-# Ficheiros do Docker e Git
-.git
-.gitignore
-Dockerfile
-.dockerignore
+# Arquivos de configuração de ferramentas e IDE
+.idea
+.vscode

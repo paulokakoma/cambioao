@@ -1613,19 +1613,15 @@
 
         async function initializeApp() {
             try {
-                // --- INÍCIO DA ALTERAÇÃO ---
-                // Substitua com as suas credenciais do Supabase.
-                const supabaseUrl = 'SUA_SUPABASE_URL'; // Ex: https://xyz.supabase.co
-                const supabaseAnonKey = 'SUA_SUPABASE_ANON_KEY'; // A sua chave anónima (pública)
-                
-                dbClient = supabase.createClient(supabaseUrl, supabaseAnonKey);
-                
-                // A função main() agora é o ponto de entrada principal após a configuração.
-                await main(); 
+                const configResponse = await fetch('/api/config');
+                if (!configResponse.ok) {
+                    throw new Error('Falha ao carregar a configuração do servidor.');
+                }
+                const config = await configResponse.json();
+                const { supabaseUrl, supabaseAnonKey } = config;
 
-                // O Service Worker pode ser registrado após a inicialização principal.
-                // A função registerServiceWorker() não foi fornecida, mas assumindo que exista.
-                // if (typeof registerServiceWorker === 'function') registerServiceWorker();
+                dbClient = supabase.createClient(supabaseUrl, supabaseAnonKey);
+                await main();
 
             } catch (error) {
                 console.error("Erro de inicialização:", error);

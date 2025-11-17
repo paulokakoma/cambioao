@@ -2,11 +2,15 @@ services:
   app:
     # Constrói a imagem a partir do Dockerfile na pasta atual (.)
     build: .
-    container_name: cambioao-prod-container
+    container_name: cambioao-app-prod
     restart: unless-stopped
     env_file: .env
     ports:
       - "3000:3000"
     volumes:
       # Apenas o volume de dados para as sessões. Nenhum volume de código.
-      - ./sessions:/usr/src/app/sessions
+      - sessions_data:/usr/src/app/sessions
+
+# Define o volume nomeado que será gerenciado pelo Docker
+volumes:
+  sessions_data:

@@ -1,5 +1,5 @@
 # --- Estágio 1: Dependências ---
-# Instala todas as dependências (dev e prod)
+# Instala todas as dependências (incluindo devDependencies para o build)
 FROM node:20-alpine AS deps
 WORKDIR /usr/src/app
 COPY package.json package-lock.json ./
@@ -9,30 +9,34 @@ RUN npm ci
 # Constrói os assets (CSS) e remove as dependências de desenvolvimento
 FROM node:20-alpine AS builder
 WORKDIR /usr/src/app
-# Copia as dependências do estágio anterior
 COPY --from=deps /usr/src/app/node_modules ./node_modules
-# Copia o código fonte
 COPY . .
-# Gera o CSS do Tailwind
 RUN npx tailwindcss -i ./public/css/input.css -o ./public/css/output.css --minify
-# Remove as dependências de desenvolvimento para ter uma pasta node_modules limpa
 RUN npm prune --production
 
-# --- Estágio 2: Produção ---
-# Imagem final, leve e segura
+# --- Estágio 3: Produção ---
+# Cria a imagem final, leve e segura para produção
 FROM node:20-alpine
-# Adiciona um usuário não-root para segurança
+
+# Cria um usuário e grupo não-root para a aplicação
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
-USER appuser
+
+# Define o diretório de trabalho
 WORKDIR /usr/src/app
-# Copia os artefatos do build
-COPY --from=builder /usr/src/app/public ./public
-COPY --from=builder /usr/src/app/views ./views
-COPY --from=builder /usr/src/app/server.js ./
-COPY --from=builder /usr/src/app/package*.json ./
-# Copia apenas as dependências de produção
+
+# Copia as dependências de produção do estágio 'builder'
 COPY --from=builder /usr/src/app/node_modules ./node_modules
-# Expõe a porta que a aplicação usa
+
+# Copia os arquivos da aplicação (código fonte, assets públicos e privados)
+COPY --from=builder /usr/src/app/server.js ./
+COPY --from=builder /usr/src/app/public ./public
+COPY --from=builder /usr/src/app/private ./private
+
+# Define o proprietário dos arquivos para o usuário da aplicação
+RUN chown -R appuser:appgroup .
+
+# Muda para o usuário não-root
+USER appuser
+
 EXPOSE 3000
-# Comando para iniciar o servidor em modo de produção
 CMD [ "node", "server.js" ]
