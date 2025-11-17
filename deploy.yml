@@ -1,0 +1,57 @@
+# .github/workflows/deploy.yml
+
+name: Deploy to Contabo
+
+# Dispara o workflow em cada push para a branch 'main'
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🚚 Get latest code
+        uses: actions/checkout@v4
+
+      - name: 📂 Sync files to server
+        # Copia os ficheiros do repositório para o servidor, excluindo node_modules e .git
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.CONTABO_HOST }}
+          username: ${{ secrets.CONTABO_USER }}
+          key: ${{ secrets.CONTABO_SSH_KEY }}
+          source: "."
+          target: "/home/${{ secrets.CONTABO_USER }}/cambioao" # Ajuste se o caminho for diferente
+          strip_components: 1 # Remove o primeiro nível de diretório da origem
+          rm: true # Remove ficheiros no destino que não existem na origem
+
+      - name: 🚀 Deploy to server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.CONTABO_HOST }}
+          username: ${{ secrets.CONTABO_USER }}
+          key: ${{ secrets.CONTABO_SSH_KEY }}
+          script: |
+            # Navega para a pasta do projeto
+            cd /home/${{ secrets.CONTABO_USER }}/cambioao
+
+            # Garante que o ficheiro .env existe (ele não é copiado pelo scp)
+            # Se não existir, cria um ficheiro vazio para evitar erros.
+            # IMPORTANTE: Você deve criar e preencher este ficheiro no servidor na primeira vez.
+            if [ ! -f .env ]; then
+              echo "AVISO: Ficheiro .env não encontrado. Criando um vazio."
+              touch .env
+            fi
+
+            # Faz o build da nova imagem e reinicia o serviço com docker-compose
+            # O --build força a reconstrução da imagem com o novo código
+            # O -d (detached) executa em segundo plano
+            sudo docker-compose -f docker-compose.prod.yml up --build -d
+
+            # Limpa imagens Docker antigas e não utilizadas para poupar espaço
+            sudo docker image prune -af
+
