@@ -1,14 +1,20 @@
-# Ficheiros de log
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-
-# Dependências do Node
+# Dependencies
 /node_modules
 
-# Ficheiro de variáveis de ambiente (contém segredos)
+# Environment variables
+# Contém segredos como chaves de API, senhas de banco de dados, etc.
+# NUNCA deve ser enviado para o repositório.
 .env
 
-# Ficheiros de sistema do macOS
+# Runtime Data
+/sessions
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# Vercel specific
+.vercel
+
+# macOS specific
 .DS_Store

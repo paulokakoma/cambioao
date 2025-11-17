@@ -101,39 +101,42 @@ wss.on("connection", (ws, req) => {
   console.log(`Cliente WebSocket conectado ${ws.isAdmin ? '(Admin)' : '(Usuário)'}.`);
   broadcastUserCount();
 
-  ws.on('message', (message) => {
+  ws.on('message', async (message) => {
     try {
       const data = JSON.parse(message);
-      if (data.type === 'log_activity' && data.payload) {        
+      if (data.type === 'log_activity' && data.payload) {
           // Garante que o timestamp seja sempre em UTC.
           const activityPayload = {
               ...data.payload,
               created_at: new Date().toISOString()
           };
 
-          // 1. Guarda a atividade na tabela de logs
-          supabase.from('user_activity').insert(activityPayload).then(({ error }) => {
-              if (error) {
-                  console.error('[WS] Erro ao inserir atividade na BD:', error);
-              }
-          });
+          // 1. Guarda a atividade na tabela de logs (usando await)
+          const { error: insertError } = await supabase.from('user_activity').insert(activityPayload);
+          if (insertError) {
+              console.error('[WS] Erro ao inserir atividade na BD:', insertError);
+              // Pode-se optar por não continuar se a inserção falhar
+          }
 
           // 2. Se for um clique de afiliado, incrementa o contador na tabela principal
           if ((data.payload.event_type === 'affiliate_click' || data.payload.event_type === 'buy_now_click') && data.payload.details?.link_id) {
               const linkId = parseInt(data.payload.details.link_id, 10);
-              supabase.rpc('increment_affiliate_click', { link_id_to_inc: linkId })
-                  .then(({ error }) => {
-                      if (error) {
-                          console.error(`[SERVER] ❌ ERRO ao incrementar contador de cliques para o link ID ${linkId}:`, error);
-                      }
-                  });
+              const { error: rpcError } = await supabase.rpc('increment_affiliate_click', { link_id_to_inc: linkId });
+              if (rpcError) {
+                  console.error(`[SERVER] ❌ ERRO ao incrementar contador de cliques para o link ID ${linkId}:`, rpcError);
+              }
           }
 
           // 3. Notifica os administradores em tempo real
           broadcast({ type: 'new_user_activity', payload: activityPayload }, 'admin');
       }
-    } catch (error) { console.error('Erro ao processar mensagem WebSocket:', error); }
+    } catch (error) {
+        //Consider using a logging library like Winston for more robust logging
+        console.error('Erro ao processar mensagem WebSocket:', error);
+    }
   });
+
+
 
   ws.on("close", () => {
     console.log(`Cliente WebSocket desconectado ${ws.isAdmin ? '(Admin)' : '(Usuário)'}.`);
@@ -320,7 +323,7 @@ async function ensureStorageBucketExists(bucketName) {
 }
 
 // Rota para criar/atualizar Apoiadores com upload de imagem
-app.post("/api/supporter", isAdmin, upload.single('supporter_banner'), async (req, res) => {
+app.post("/api/supporter", isAdmin, upload.single('banner_image'), async (req, res) => {
     const { id, name, website_url, is_active, display_order } = req.body;
     let banner_url;
 
