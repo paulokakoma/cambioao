@@ -1,38 +1,42 @@
-# =================================
-# Build Stage
-# =================================
-# Usar uma imagem base oficial do Node.js para construir as dependências
-FROM node:20-alpine AS builder
-
-# Define o diretório de trabalho dentro do contêiner
+# --- Estágio 1: Dependências ---
+# Instala todas as dependências (incluindo devDependencies para o build)
+FROM node:20-alpine AS deps
 WORKDIR /usr/src/app
+COPY package.json package-lock.json ./
+RUN npm ci
 
-# Copia os arquivos de definição de dependências
-COPY package*.json ./
+# --- Estágio 2: Builder ---
+# Constrói os assets (CSS) e remove as dependências de desenvolvimento
+FROM node:20-alpine AS builder
+WORKDIR /usr/src/app
+COPY --from=deps /usr/src/app/node_modules ./node_modules
+COPY . .
+RUN npx tailwindcss -i ./public/css/input.css -o ./public/css/output.css --minify
+RUN npm prune --production
 
-# Instala apenas as dependências de produção
-RUN npm ci --omit=dev
-
-# =================================
-# Production Stage
-# =================================
-# Começa com uma nova imagem base limpa para um tamanho menor e mais segurança
+# --- Estágio 3: Produção ---
+# Cria a imagem final, leve e segura para produção
 FROM node:20-alpine
 
+# Cria um usuário e grupo não-root para a aplicação
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+
+# Define o diretório de trabalho
 WORKDIR /usr/src/app
 
 # Copia as dependências de produção do estágio 'builder'
 COPY --from=builder /usr/src/app/node_modules ./node_modules
-COPY --from=builder /usr/src/app/package*.json ./
 
-# Copia o restante do código da aplicação para o diretório de trabalho
-COPY . .
+# Copia os arquivos da aplicação (código fonte, assets públicos e privados)
+COPY --from=builder /usr/src/app/server.js ./
+COPY --from=builder /usr/src/app/public ./public
+COPY --from=builder /usr/src/app/private ./private
 
-# Troca para um usuário não-root por questões de segurança
-USER node
+# Define o proprietário dos arquivos para o usuário da aplicação
+RUN chown -R appuser:appgroup .
 
-# Expõe a porta em que a aplicação será executada
+# Muda para o usuário não-root
+USER appuser
+
 EXPOSE 3000
-
-# Comando para iniciar a aplicação em produção
 CMD [ "node", "server.js" ]

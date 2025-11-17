@@ -1623,10 +1623,6 @@
                 // A função main() agora é o ponto de entrada principal após a configuração.
                 await main(); 
 
-                // O Service Worker pode ser registrado após a inicialização principal.
-                // A função registerServiceWorker() não foi fornecida, mas assumindo que exista.
-                // if (typeof registerServiceWorker === 'function') registerServiceWorker();
-
             } catch (error) {
                 console.error("Erro de inicialização:", error);
                 document.body.innerHTML = `<div class="p-8 m-8 text-center bg-red-100 text-red-800 rounded-lg"><strong>Erro Crítico:</strong> Não foi possível carregar a configuração da aplicação.</div>`;

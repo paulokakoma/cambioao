@@ -1,14 +1,10 @@
-# Ignore node_modules, as they are handled inside the container
+# Ignorar dependências do Node, pois são gerenciadas dentro do container
 node_modules
 
-# Ignore local environment files and logs
-.env
+# Arquivos de log e de ambiente
 npm-debug.log
-*.log
+.env
 
-# Git and version control
-.git
-.gitignore
-
-# macOS specific
-.DS_Store
+# Arquivos de configuração de ferramentas e IDE
+.idea
+.vscode

@@ -245,21 +245,6 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
-app.post('/api/logout', (req, res) => {
-    req.session.destroy(err => {
-        if (err) return res.status(500).json({ message: 'Não foi possível fazer logout.' });
-        res.status(200).json({ success: true, message: 'Logout bem-sucedido.' });
-    });
-});
-
-// Endpoint para fornecer configuração ao frontend (pode ser público)
-app.get("/api/config", (req, res) => {
-  res.json({
-    supabaseUrl: supabaseUrl,
-    supabaseAnonKey: supabaseAnonKey
-  });
-});
-
 // --- NOVA ROTA: Obter dados do utilizador logado ---
 app.get("/api/me", isAdmin, (req, res) => {
     // A sessão é validada pelo middleware 'isAdmin'
@@ -268,6 +253,24 @@ app.get("/api/me", isAdmin, (req, res) => {
     res.status(200).json({
         email: 'admin@ecokambio.com',
         user_metadata: { full_name: 'Admin' }
+    });
+});
+
+// --- ROTAS PÚBLICAS DA API ---
+
+// Endpoint para fornecer configuração ao frontend (chaves públicas)
+app.get("/api/config", (req, res) => {
+  res.json({
+    supabaseUrl: supabaseUrl,
+    supabaseAnonKey: supabaseAnonKey
+  });
+});
+
+// Endpoint para logout
+app.post('/api/logout', (req, res) => {
+    req.session.destroy(err => {
+        if (err) return res.status(500).json({ message: 'Não foi possível fazer logout.' });
+        res.status(200).json({ success: true, message: 'Logout bem-sucedido.' });
     });
 });
 
@@ -285,7 +288,6 @@ app.post('/api/log-activity', async (req, res) => {
     }
     res.status(200).json({ success: true, message: 'Atividade registada.' });
 });
-// --- ROTAS PÚBLICAS DA API ---
 
 // Singleton para garantir que a verificação do bucket ocorra apenas uma vez.
 const bucketCheckPromises = {};
@@ -1019,6 +1021,24 @@ app.get("/api/event-types-stats", isAdmin, async (req, res) => {
         handleSupabaseError(error, res);
     }
 });
+
+// --- ROTAS DE STATUS E SAÚDE ---
+// Endpoint para verificar o status da aplicação e do servidor.
+// É uma boa prática para monitorização e depuração.
+app.get("/api/status", (req, res) => {
+    // A biblioteca 'os' do Node.js permite obter informações do sistema operacional
+    const os = require('os');
+
+    res.status(200).json({
+        status: "ok",
+        hostname: os.hostname(), // Retorna o nome do host do servidor (ex: vmi1234567)
+        uptime_seconds: process.uptime(), // Tempo em segundos que a aplicação está a correr
+        node_version: process.version,
+        environment: process.env.NODE_ENV || 'development',
+        server_time_utc: new Date().toISOString()
+    });
+});
+
 
 // --- ROTAS PARA SERVIR PÁGINAS HTML ---
 
