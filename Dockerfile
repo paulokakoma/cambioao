@@ -2,7 +2,7 @@
 # Build Stage
 # =================================
 # Usar uma imagem base oficial do Node.js para construir as dependências
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS builder
 
 # Define o diretório de trabalho dentro do contêiner
 WORKDIR /usr/src/app
@@ -17,7 +17,7 @@ RUN npm ci --omit=dev
 # Production Stage
 # =================================
 # Começa com uma nova imagem base limpa para um tamanho menor e mais segurança
-FROM node:18-alpine
+FROM node:20-alpine
 
 WORKDIR /usr/src/app
 
