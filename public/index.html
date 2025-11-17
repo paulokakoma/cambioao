@@ -1613,19 +1613,17 @@
 
         async function initializeApp() {
             try {
-                // --- INÍCIO DA ALTERAÇÃO ---
-                // Substitua com as suas credenciais do Supabase.
-                const supabaseUrl = 'SUA_SUPABASE_URL'; // Ex: https://xyz.supabase.co
-                const supabaseAnonKey = 'SUA_SUPABASE_ANON_KEY'; // A sua chave anónima (pública)
-                
-                dbClient = supabase.createClient(supabaseUrl, supabaseAnonKey);
-                
+                const configResponse = await fetch('/api/config');
+                if (!configResponse.ok) throw new Error('Falha ao carregar a configuração do servidor.');
+                const config = await configResponse.json();
+                dbClient = supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
+
                 // A função main() agora é o ponto de entrada principal após a configuração.
-                await main(); 
+                await main();
 
             } catch (error) {
                 console.error("Erro de inicialização:", error);
-                document.body.innerHTML = `<div class="p-8 m-8 text-center bg-red-100 text-red-800 rounded-lg"><strong>Erro Crítico:</strong> Não foi possível carregar a configuração da aplicação.</div>`;
+                document.body.innerHTML = `<div class="p-8 m-8 text-center bg-red-100 text-red-800 rounded-lg"><strong>Erro Crítico:</strong> Não foi possível carregar a configuração da aplicação. (${error.message})</div>`;
             }
         }
 
