@@ -39,13 +39,10 @@ jobs:
             # Navega para a pasta do projeto
             cd /home/${{ secrets.CONTABO_USER }}/cambioao
 
-            # Garante que o ficheiro .env existe (ele não é copiado pelo scp)
-            # Se não existir, cria um ficheiro vazio para evitar erros.
-            # IMPORTANTE: Você deve criar e preencher este ficheiro no servidor na primeira vez.
-            if [ ! -f .env ]; then
-              echo "AVISO: Ficheiro .env não encontrado. Criando um vazio."
-              touch .env
-            fi
+            # Cria o ficheiro .env no servidor com as chaves secretas do GitHub
+            echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" > .env
+            echo "SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}" >> .env
+            echo "SESSION_SECRET=${{ secrets.SESSION_SECRET }}" >> .env
 
             # Faz o build da nova imagem e reinicia o serviço com docker-compose
             # O --build força a reconstrução da imagem com o novo código
@@ -54,4 +51,3 @@ jobs:
 
             # Limpa imagens Docker antigas e não utilizadas para poupar espaço
             sudo docker image prune -af
-
