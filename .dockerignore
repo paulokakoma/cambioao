@@ -1,14 +1,12 @@
-# Ignore node_modules, as they are handled inside the container
+# Ficheiros de log e sistema
 node_modules
-
-# Ignore local environment files and logs
-.env
 npm-debug.log
-*.log
 
-# Git and version control
+# Ficheiros de ambiente (nunca devem ir para a imagem)
+.env
+
+# Ficheiros do Docker e Git
 .git
 .gitignore
-
-# macOS specific
-.DS_Store
+Dockerfile
+.dockerignore

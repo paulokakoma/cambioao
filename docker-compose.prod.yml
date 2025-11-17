@@ -1,14 +1,10 @@
-version: '3.8'
-
 services:
   app:
-    # Não usa 'build', pois assumimos que a imagem já foi construída e está disponível
-    # (seja localmente ou num registry como o Docker Hub).
-    image: cambioao-prod:latest # Usa a imagem que você construiu
+    # Constrói a imagem a partir do Dockerfile na pasta atual (.)
+    build: .
     container_name: cambioao-prod-container
     restart: unless-stopped
-    env_file:
-      - .env
+    env_file: .env
     ports:
       - "3000:3000"
     volumes:

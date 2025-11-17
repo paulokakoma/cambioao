@@ -1020,6 +1020,24 @@ app.get("/api/event-types-stats", isAdmin, async (req, res) => {
     }
 });
 
+// --- ROTAS DE STATUS E SAÚDE ---
+// Endpoint para verificar o status da aplicação e do servidor.
+// É uma boa prática para monitorização e depuração.
+app.get("/api/status", (req, res) => {
+    // A biblioteca 'os' do Node.js permite obter informações do sistema operacional
+    const os = require('os');
+
+    res.status(200).json({
+        status: "ok",
+        hostname: os.hostname(), // Retorna o nome do host do servidor (ex: vmi1234567)
+        uptime_seconds: process.uptime(), // Tempo em segundos que a aplicação está a correr
+        node_version: process.version,
+        environment: process.env.NODE_ENV || 'development',
+        server_time_utc: new Date().toISOString()
+    });
+});
+
+
 // --- ROTAS PARA SERVIR PÁGINAS HTML ---
 
 // Rota para o domínio principal - página inicial

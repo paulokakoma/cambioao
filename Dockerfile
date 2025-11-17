@@ -1,38 +1,38 @@
-# =================================
-# Build Stage
-# =================================
-# Usar uma imagem base oficial do Node.js para construir as dependências
+# --- Estágio 1: Dependências ---
+# Instala todas as dependências (dev e prod)
+FROM node:20-alpine AS deps
+WORKDIR /usr/src/app
+COPY package.json package-lock.json ./
+RUN npm ci
+
+# --- Estágio 2: Builder ---
+# Constrói os assets (CSS) e remove as dependências de desenvolvimento
 FROM node:20-alpine AS builder
-
-# Define o diretório de trabalho dentro do contêiner
 WORKDIR /usr/src/app
-
-# Copia os arquivos de definição de dependências
-COPY package*.json ./
-
-# Instala apenas as dependências de produção
-RUN npm ci --omit=dev
-
-# =================================
-# Production Stage
-# =================================
-# Começa com uma nova imagem base limpa para um tamanho menor e mais segurança
-FROM node:20-alpine
-
-WORKDIR /usr/src/app
-
-# Copia as dependências de produção do estágio 'builder'
-COPY --from=builder /usr/src/app/node_modules ./node_modules
-COPY --from=builder /usr/src/app/package*.json ./
-
-# Copia o restante do código da aplicação para o diretório de trabalho
+# Copia as dependências do estágio anterior
+COPY --from=deps /usr/src/app/node_modules ./node_modules
+# Copia o código fonte
 COPY . .
+# Gera o CSS do Tailwind
+RUN npx tailwindcss -i ./public/css/input.css -o ./public/css/output.css --minify
+# Remove as dependências de desenvolvimento para ter uma pasta node_modules limpa
+RUN npm prune --production
 
-# Troca para um usuário não-root por questões de segurança
-USER node
-
-# Expõe a porta em que a aplicação será executada
+# --- Estágio 2: Produção ---
+# Imagem final, leve e segura
+FROM node:20-alpine
+# Adiciona um usuário não-root para segurança
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+USER appuser
+WORKDIR /usr/src/app
+# Copia os artefatos do build
+COPY --from=builder /usr/src/app/public ./public
+COPY --from=builder /usr/src/app/views ./views
+COPY --from=builder /usr/src/app/server.js ./
+COPY --from=builder /usr/src/app/package*.json ./
+# Copia apenas as dependências de produção
+COPY --from=builder /usr/src/app/node_modules ./node_modules
+# Expõe a porta que a aplicação usa
 EXPOSE 3000
-
-# Comando para iniciar a aplicação em produção
+# Comando para iniciar o servidor em modo de produção
 CMD [ "node", "server.js" ]

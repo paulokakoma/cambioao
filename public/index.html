@@ -1613,11 +1613,12 @@
 
         async function initializeApp() {
             try {
-                const response = await fetch('/api/config');
-                if (!response.ok) throw new Error('Falha ao carregar a configuração do servidor.');
-                const config = await response.json();
+                // --- INÍCIO DA ALTERAÇÃO ---
+                // Substitua com as suas credenciais do Supabase.
+                const supabaseUrl = 'SUA_SUPABASE_URL'; // Ex: https://xyz.supabase.co
+                const supabaseAnonKey = 'SUA_SUPABASE_ANON_KEY'; // A sua chave anónima (pública)
                 
-                dbClient = supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
+                dbClient = supabase.createClient(supabaseUrl, supabaseAnonKey);
                 
                 // A função main() agora é o ponto de entrada principal após a configuração.
                 await main(); 
