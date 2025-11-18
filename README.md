@@ -135,3 +135,4 @@ npm start
 - **WebSocket (ws)** - Comunicação em tempo real
 - **Tailwind CSS** - Estilização
 - **Multer** - Upload de ficheiros
+# ecokambio
