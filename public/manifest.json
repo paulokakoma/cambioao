@@ -1,7 +1,7 @@
 {
-  "name": "EcoKambio - Câmbio Angola",
+  "name": "EcoKambio - Câmbio Justo em Angola",
   "short_name": "EcoKambio",
-  "description": "Consulte as taxas de câmbio do dólar, euro e outras divisas em Angola. Compare o mercado formal e informal em tempo real.",
+  "description": "A sua fonte para as taxas de câmbio mais atualizadas em Angola, incluindo bancos e mercado informal.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#f1f5f9",
@@ -9,13 +9,8 @@
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/assets/icon-192x192.png",
+      "src": "/assets/apple-touch-icon.png",
       "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "/assets/icon-512x512.png",
-      "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
     }
