@@ -1,10 +1,12 @@
-# Ignorar dependências do Node, pois são gerenciadas dentro do container
+# Ficheiros de configuração do Git
+.git
+.gitignore
+
+# Dependências locais que não devem ser copiadas para a imagem
 node_modules
 
-# Arquivos de log e de ambiente
-npm-debug.log
+# Ficheiros de ambiente (devem ser geridos fora da imagem)
 .env
 
-# Arquivos de configuração de ferramentas e IDE
-.idea
-.vscode
+# Logs e ficheiros de depuração
+npm-debug.log
