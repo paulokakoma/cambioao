@@ -1023,8 +1023,8 @@ video {
   width: 0.5rem;
 }
 
-.w-28 {
-  width: 7rem;
+.w-24 {
+  width: 6rem;
 }
 
 .w-3 {
@@ -2634,10 +2634,6 @@ video {
   .sm\:mx-0 {
     margin-left: 0px;
     margin-right: 0px;
-  }
-
-  .sm\:inline {
-    display: inline;
   }
 
   .sm\:h-10 {
