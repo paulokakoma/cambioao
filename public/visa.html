@@ -101,45 +101,34 @@
                     <p class="text-lg text-slate-600 mb-8">A sua porta de entrada para o mundo digital. Adquira já o seu cartão para compras online e pagamentos de serviços em qualquer lugar do mundo.</p>
                     
                     <!-- Novo Conversor de Moeda -->
-                    <div id="quick-converter-container" class="mb-8 p-6 bg-white rounded-2xl border border-slate-200 shadow-sm">
-                        <h4 class="text-lg font-bold text-gray-700 mb-4">Conversor Rápido</h4>
-                        <div class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+                    <div id="quick-converter-container" class="mb-8 p-6 bg-white rounded-2xl border border-slate-200 shadow-lg">
+                        <h4 class="text-xl font-bold text-slate-800 mb-4">Simulador de Carregamento</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
                             <!-- Campo de Valor -->
-                            <div class="md:col-span-2">
-                                <label for="quick-converter-amount" class="block text-sm font-medium text-gray-600">Valor</label>
-                                <input type="text" id="quick-converter-amount" inputmode="decimal" class="mt-1 w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-emerald-500 focus:border-emerald-500 text-lg font-mono" placeholder="100,00">
+                            <div class="flex-grow">
+                                <label for="quick-converter-amount" class="block text-sm font-medium text-gray-600">Valor a carregar no cartão</label>
+                                <input type="text" id="quick-converter-amount" inputmode="decimal" class="mt-1 w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-emerald-500 focus:border-emerald-500 text-lg font-mono" placeholder="100,00" value="100,00">
                             </div>
                     
                             <!-- Seletores de Moeda e Alternador -->
-                            <div class="md:col-span-3 flex items-end gap-2">
-                                <div class="flex-1">
-                                    <label for="quick-converter-from" class="sr-only">De</label>
-                                    <select id="quick-converter-from" class="custom-select mt-1 w-full p-3 bg-white border border-gray-300 rounded-lg font-semibold">
-                                        <option value="USD">🇺🇸 USD</option>
-                                        <option value="EUR">🇪🇺 EUR</option>
-                                        <option value="AOA">🇦🇴 AOA</option>
-                                    </select>
-                                </div>
-                                <button id="quick-converter-switch" class="p-3 mb-0.5 bg-gray-200 hover:bg-gray-300 rounded-full transition-transform duration-300 focus:outline-none"><svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg></button>
-                                <div class="flex-1">
-                                    <label for="quick-converter-to" class="sr-only">Para</label>
-                                    <select id="quick-converter-to" class="custom-select mt-1 w-full p-3 bg-white border border-gray-300 rounded-lg font-semibold">
-                                        <option value="AOA">🇦🇴 AOA</option>
-                                        <option value="USD">🇺🇸 USD</option>
-                                        <option value="EUR">🇪🇺 EUR</option>
-                                    </select>
-                                </div>
+                            <div class="w-full">
+                                <label for="quick-converter-from" class="block text-sm font-medium text-gray-600">Moeda do carregamento</label>
+                                <select id="quick-converter-from" class="custom-select mt-1 w-full p-3 bg-white border border-gray-300 rounded-lg font-semibold">
+                                    <option value="USD">🇺🇸 USD</option>
+                                    <option value="EUR">🇪🇺 EUR</option>
+                                </select>
                             </div>
                         </div>
-                        <div>
-                            <div id="quick-converter-result" class="text-center text-2xl font-bold text-gray-800 h-8"></div>
-                            <p id="converter-fee-notice" class="text-center text-xs text-slate-500 mt-1 h-4"></p>
+                        <div class="mt-6 bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-center">
+                            <p class="font-semibold text-emerald-800">Valor a pagar em Kwanzas</p>
+                            <p id="quick-converter-result" class="text-3xl font-extrabold text-emerald-600 my-1">--</p>
+                            <p id="converter-fee-notice" class="text-xs text-emerald-500 h-4"></p>
                         </div>
                     </div>
 
                     <!-- Botão CTA Principal -->
                     <a id="whatsapp-cta-btn-hero"
-                       href="https://wa.me/244XXXXXXXXX?text=Ol%C3%A1%2C%20gostaria%20de%20adquirir%20o%20Cart%C3%A3o%20Visa%20Virtual." 
+                       href="#" 
                        target="_blank" 
                        rel="noopener" 
                        class="inline-flex items-center gap-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 px-8 rounded-lg text-lg transition-colors duration-300 transform hover:scale-105">
@@ -307,25 +296,11 @@
 
     </main>
     
-    <footer class="bg-slate-800 text-slate-400 py-12">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <div id="social-links-footer" class="flex justify-center items-center space-x-6 mb-8">
-                <!-- Links sociais podem ser adicionados aqui -->
-                <!-- Ex: <a href="#" class="hover:text-white transition-colors" title="Facebook"><svg>...</svg></a> -->
-            </div>
-            <div class="border-t border-slate-700 pt-8 flex flex-col md:flex-row justify-center items-center gap-x-6 gap-y-2 text-sm">
-                <a href="/sobre" class="hover:text-white transition-colors">Sobre Nós</a>
-                <span class="hidden md:inline text-slate-600">•</span>
-                <a href="/termos" class="hover:text-white transition-colors">Termos e Condições</a>
-                <span class="hidden md:inline text-slate-600">•</span>
-                <a href="/privacidade" class="hover:text-white transition-colors">Política de Privacidade</a>
-            </div>
-            <p class="mt-8 text-slate-500 text-sm">&copy; 2025 EcoKambio. Todos os direitos reservados.</p>
-        </div>
-    </footer>
+    <footer data-include="/components/_footer.html" class="bg-slate-800 text-slate-400 mt-16 py-8"></footer>
     
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/js/components.js"></script>
     <script type="module">
         async function loadVisaPageData() {
             let informalRates = { usd_rate: 0, eur_rate: 0 };
@@ -358,7 +333,7 @@
                 const whatsappNumber = settings.visa_whatsapp_number;
                 if (whatsappNumber) {
                     const whatsappUrl = `https://wa.me/${whatsappNumber}?text=Ol%C3%A1%2C%20gostaria%20de%20adquirir%20o%20Cart%C3%A3o%20Visa%20Virtual.`;
-                    document.getElementById('whatsapp-cta-btn-hero').href = whatsappUrl;
+                    document.getElementById('whatsapp-cta-btn-hero').href = whatsappUrl; // O href será atualizado aqui
                     document.getElementById('whatsapp-cta-btn-footer').href = whatsappUrl;
                 }
 
@@ -372,80 +347,81 @@
             }
         }
 
+        function updateWhatsappLink(inputAmount, inputCurrency, resultAOA, whatsappNumber) {
+            const heroBtn = document.getElementById('whatsapp-cta-btn-hero');
+            const footerBtn = document.getElementById('whatsapp-cta-btn-footer');
+            if (!heroBtn || !footerBtn || !whatsappNumber) return;
+
+            let text;
+            if (inputAmount > 0 && resultAOA > 0) {
+                const formattedInput = new Intl.NumberFormat('pt-AO', { minimumFractionDigits: 2 }).format(inputAmount);
+                const formattedResult = new Intl.NumberFormat('pt-AO', { minimumFractionDigits: 2 }).format(resultAOA);
+                text = `Olá, gostaria de adquirir o Cartão Visa Virtual e carregá-lo com ${formattedInput} ${inputCurrency} (pagamento de ≈ ${formattedResult} AOA).`;
+            } else {
+                text = `Olá, gostaria de adquirir o Cartão Visa Virtual.`;
+            }
+
+            const encodedText = encodeURIComponent(text);
+            const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedText}`;
+
+            // Atualiza os links
+            heroBtn.href = whatsappUrl;
+            footerBtn.href = whatsappUrl;
+        }
+
         function setupQuickConverter(rates, settings) {
             const amountInput = document.getElementById('quick-converter-amount');
-            const switchBtn = document.getElementById('quick-converter-switch');
             const fromSelect = document.getElementById('quick-converter-from');
-            const toSelect = document.getElementById('quick-converter-to');
             const resultDisplay = document.getElementById('quick-converter-result');
             const feeNotice = document.getElementById('converter-fee-notice');
             const feePercent = parseFloat(settings.visa_fee_percent) || 0;
-
-            function updateToOptions() {
-                const fromValue = fromSelect.value;
-                const toValue = toSelect.value;
-                Array.from(toSelect.options).forEach(option => {
-                    option.disabled = (option.value === fromValue);
-                });
-                if (fromValue === toValue) toSelect.value = Array.from(toSelect.options).find(opt => !opt.disabled).value;
-            }
 
             const calculate = () => {
                 const amountStr = amountInput.value.replace(/\./g, '').replace(',', '.');
                 const amount = parseFloat(amountStr);
                 if (isNaN(amount) || amount === 0) {
                     feeNotice.textContent = '';
-                    resultDisplay.textContent = '';
+                    resultDisplay.textContent = '--';
+                    updateWhatsappLink(0, '', 0, settings.visa_whatsapp_number); // Reseta o link do WhatsApp
                     return;
                 }
 
-                const from = fromSelect.value, to = toSelect.value;
+                const from = fromSelect.value;
                 let resultAmount = 0;
                 let rate = 0;
                 
-                // Limpa a nota da taxa por padrão
-                feeNotice.textContent = '';
-
-                if (from !== 'AOA' && to === 'AOA') {
-                    // Conversão de Estrangeiro para AOA: aplica a taxa
-                    rate = (from === 'USD') ? rates.usd_rate : rates.eur_rate;
-                    const convertedAmount = amount * rate;
-                    resultAmount = convertedAmount * (1 + (feePercent / 100));
-                   
-                    // Mostra a nota da taxa
-                    const formattedFee = new Intl.NumberFormat('pt-AO', { style: 'decimal', minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(feePercent);
-                    if (feePercent > 0) feeNotice.textContent = `Valor final a pagar usando mercado informal (inclui a nossa taxa de ${formattedFee}%).`;
+                // A lógica agora é sempre converter de USD/EUR para AOA, aplicando a taxa.
+                rate = (from === 'USD') ? rates.usd_rate : rates.eur_rate;
+                const convertedAmount = amount * rate;
+                resultAmount = convertedAmount * (1 + (feePercent / 100));
+               
+                // Mostra a nota da taxa
+                const formattedFee = new Intl.NumberFormat('pt-AO', { style: 'decimal', minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(feePercent);
+                if (feePercent > 0) {
+                    feeNotice.textContent = `Inclui a nossa taxa de serviço de ${formattedFee}%.`;
                 } else {
-                    // Outras conversões (AOA -> Estrangeiro, Estrangeiro -> Estrangeiro)
-                    if (from === 'AOA' && to === 'USD') rate = 1 / rates.usd_rate;
-                    else if (from === 'AOA' && to === 'EUR') rate = 1 / rates.eur_rate;
-                    else if (from === 'USD' && to === 'EUR') rate = rates.usd_rate / rates.eur_rate;
-                    else if (from === 'EUR' && to === 'USD') rate = rates.eur_rate / rates.usd_rate;
-                    else if (from === to) rate = 1;
-                    resultAmount = amount * rate;
+                    feeNotice.textContent = '';
                 }
 
-                const formatNumber = (num) => new Intl.NumberFormat('pt-AO', { minimumFractionDigits: 2, maximumFractionDigits: 4 }).format(num);
+                const formatNumber = (num) => new Intl.NumberFormat('pt-AO', { 
+                    style: 'currency', 
+                    currency: 'AOA',
+                    minimumFractionDigits: 2, 
+                    maximumFractionDigits: 2 
+                }).format(num);
 
                 resultDisplay.textContent = (resultAmount && isFinite(resultAmount)) 
-                    ? `≈ ${formatNumber(resultAmount)} ${to}`
+                    ? `≈ ${formatNumber(resultAmount)}`
                     : 'Taxa indisponível';
+                
+                // Atualiza o link do WhatsApp com os novos valores
+                updateWhatsappLink(amount, from, resultAmount, settings.visa_whatsapp_number);
             };
 
-            [amountInput, toSelect].forEach(el => el.addEventListener('input', calculate));
-            fromSelect.addEventListener('input', () => {
-                updateToOptions();
-                calculate();
-            });
-            switchBtn.addEventListener('click', () => {
-                [fromSelect.value, toSelect.value] = [toSelect.value, fromSelect.value]; 
-                updateToOptions(); 
-                calculate(); 
-            });
+            [amountInput, fromSelect].forEach(el => el.addEventListener('input', calculate));
 
             // Chamada inicial
-            updateToOptions();
-            amountInput.value = '100,00'; // Valor padrão
+            // O valor padrão "100,00" já está no HTML
             calculate();
         }
 

@@ -77,11 +77,19 @@
         <div class="bg-white rounded-2xl shadow-lg p-8 md:p-12">
             <h1 class="text-4xl font-extrabold text-slate-800 mb-6">Política de Privacidade</h1>
             <div class="prose prose-lg max-w-none text-slate-600 space-y-4">
-                <p>A sua privacidade é importante para nós. Esta política de privacidade explica que dados pessoais recolhemos dos nossos utilizadores e como os usamos.</p>
-                <h2 class="text-3xl font-bold text-slate-700 pt-6">1. Recolha de Dados</h2>
+                <h2 class="text-2xl font-bold text-slate-700 pt-6">Secção 1: O Controlador de Dados</h2>
+                <p>O Controlador de Dados, responsável pelo tratamento dos seus dados pessoais recolhidos através do EcoKambio, é a empresa Moko Tech, Sociedade por Quotas.</p>
+                <ul class="list-none pl-0">
+                    <li><strong>Designação:</strong> Moko Tech, Sociedade por Quotas</li>
+                    <li><strong>Endereço:</strong> </li>
+                    <li><strong>Contacto para Privacidade:</strong> <a href="mailto:ecokambio@gmail.com" class="text-emerald-600 hover:underline">ecokambio@gmail.com</a></li>
+                </ul>
+                <p class="mt-4">A sua privacidade é importante para nós. Esta política de privacidade explica que dados pessoais recolhemos dos nossos utilizadores e como os usamos.</p>
+
+                <h2 class="text-3xl font-bold text-slate-700 pt-6">2. Recolha de Dados</h2>
                 <p>Adicionalmente, ao iniciar o processo de aquisição de um Cartão Visa Virtual, o utilizador é redirecionado para o WhatsApp. Nesse momento, recolhemos os dados de contacto (como o número de telefone) estritamente para processar o pedido, facilitar a comunicação e entregar o produto. Estes dados não são partilhados com terceiros para fins de marketing.</p>
                 <p>Recolhemos dados anónimos de atividade do utilizador para melhorar a nossa plataforma. Isto inclui eventos como visualizações de página, cliques em links de afiliados e utilização da calculadora. Estes dados são associados a um ID de sessão anónimo e não a informações pessoais identificáveis, garantindo que a sua identidade permanece privada.</p>
-                <h2 class="text-3xl font-bold text-slate-700 pt-6">2. Cookies</h2>
+                <h2 class="text-3xl font-bold text-slate-700 pt-6">3. Cookies</h2>
                 <p>Utilizamos cookies e tecnologias semelhantes (como o `localStorage`) para o funcionamento essencial e melhoria do nosso website. Um cookie é um pequeno ficheiro de texto que um site armazena no seu computador ou dispositivo móvel quando o visita.</p>
                 <h3 class="text-2xl font-bold text-slate-700 pt-4">Como usamos os cookies?</h3>
                 <ul class="list-disc pl-6 space-y-2">
@@ -93,21 +101,12 @@
         </div>
     </main>
 
-    <footer class="bg-slate-800 text-slate-400 mt-16 py-8">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <div id="social-links-footer" class="flex justify-center items-center space-x-6 mb-6">
-                <!-- Os links sociais serão carregados aqui -->
-            </div>
-            <div class="border-t border-slate-700 pt-6 flex flex-col md:flex-row justify-center items-center gap-x-6 gap-y-2 text-sm">
-                <a href="/sobre" class="hover:text-white transition-colors">Sobre Nós</a>
-                <span class="hidden md:inline text-slate-600">•</span>
-                <a href="/termos" class="hover:text-white transition-colors">Termos e Condições</a>
-                <span class="hidden md:inline text-slate-600">•</span>
-                <a href="/privacidade" class="hover:text-white transition-colors">Política de Privacidade</a>
-            </div>
-            <p class="mt-6 text-slate-500 text-sm">&copy; 2025 EcoKambio. Todos os direitos reservados.</p>
-        </div>
-    </footer>
-    <script src="/js/main.js"></script>
+    <footer data-include="/components/_footer.html" class="bg-slate-800 text-slate-400 mt-16 py-8"></footer>
+
+    <script src="/js/components.js"></script>
+    <script type="module">
+        // Se precisar de carregar alguma informação dinâmica no futuro,
+        // pode adicionar o código aqui.
+    </script>
 </body>
 </html>

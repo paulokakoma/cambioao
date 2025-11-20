@@ -82,21 +82,7 @@
         </div>
     </main>
 
-    <footer class="bg-slate-800 text-slate-400 mt-16 py-8">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <div id="social-links-footer" class="flex justify-center items-center space-x-6 mb-6">
-                <!-- Os links sociais serão carregados aqui -->
-            </div>
-            <div class="border-t border-slate-700 pt-6 flex flex-col md:flex-row justify-center items-center gap-x-6 gap-y-2 text-sm">
-                <a href="/sobre" class="hover:text-white transition-colors">Sobre Nós</a>
-                <span class="hidden md:inline text-slate-600">•</span>
-                <a href="/termos" class="hover:text-white transition-colors">Termos e Condições</a>
-                <span class="hidden md:inline text-slate-600">•</span>
-                <a href="/privacidade" class="hover:text-white transition-colors">Política de Privacidade</a>
-            </div>
-            <p class="mt-6 text-slate-500 text-sm">&copy; 2025 EcoKambio. Todos os direitos reservados.</p>
-        </div>
-    </footer>
+    <footer data-include="/components/_footer.html" class="bg-slate-800 text-slate-400 mt-16 py-8"></footer>
 
     <!-- Banner de Termos e Cookies -->
     <div id="terms-banner" class="hidden fixed bottom-0 left-0 right-0 bg-slate-900 text-white p-4 shadow-lg z-50 transform translate-y-full transition-transform duration-500 ease-in-out">
@@ -110,6 +96,7 @@
         </div>
     </div>
 
+    <script src="/js/components.js"></script>
     <script type="module">
         let dbClient;
         function formatCurrency(value, currency = 'AOA') {
